@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+#
+# check maintainer upload directories for files to move to release area
+#
+# - only process packages for which we are listed as a maintainer
+# - only move things with an mtime earlier than the mtime of the !ready file
+# - validate the syntax of the setup.ini file before moving anything
+# - note if package file already exists in release area with identical contents
+# - error if package file already exist in release area with different contents
+# - remove !ready file
+# - send a report on what we did to the maintainer and project leads
+#
+# XXX: sha512.sum ???
+
+import os
+import re
+import filecmp
+from collections import defaultdict
+
+import maintainers
+import cygwin
+
+def scan(m, arch):
+    pkgre = '|'.join(maintainers.list[m].pkgs)
+
+    basedir = os.path.join(maintainers.list[m].homedir(), arch)
+    releasedir = os.path.join(cygwin.FTP, arch)
+
+    move = defaultdict(list)
+    readys = []
+    error = False
+    mtime = 0
+
+    for (dir, subdirs, files) in os.walk(basedir):
+        p = os.path.relpath(dir, basedir)
+
+        for f in sorted(files):
+            fn = os.path.join(basedir, p, f)
+
+            if f == '!ready':
+                mtime = os.path.getmtime(fn)
+                readys.append(fn)
+                continue
+            elif f.startswith('!'):
+                continue
+            elif f == 'setup.hint':
+                if setup_hint_validate(fn):
+                    move[p].append(f)
+                else:
+                    error = True
+                continue
+
+            if os.path.getmtime(fn) > mtime:
+                if mtime == 0:
+                    print("ignoring %s as there is no !ready" % f)
+                else:
+                    print("ignoring %s as it is newer than !ready" % f)
+                continue
+
+            if not re.search(pkgre, f):
+                print("%s is not in the package list for this maintainer" % f)
+                continue
+
+            if f.startswith('-'):
+                print("file deletion request %s not implemented yet" % f)
+            elif re.search('.tar.*$', f):
+                dest = os.path.join(releasedir, p, f)
+                if os.path.isfile(dest):
+                    if filecmp.cmp(dest, fn, shallow=False):
+                        print("identical %s already in release area, ignoring" % f)
+                    else:
+                        print("different %s already in release area" % f)
+                        error = True
+                else:
+                    move[p].append(f)
+            else:
+                print("unexpected file %s" % f)
+
+    for f in readys:
+        print("rm", f)
+        os.unlink(f)
+
+    if not error:
+        if len(move) > 0:
+            for dir in move.keys():
+                print("mkdir", os.path.join(releasedir, p))
+                os.makedirs(os.path.join(releasedir, p), exist_ok=True)
+                for f in move[dir]:
+                    print("move", os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+                    os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+
+def setup_hint_validate(fn):
+    with open(fn) as f:
+        c = f.read()
+
+        line = 1
+
+        while True:
+            match = re.match(r'^#.*$|^(curr|prev|test|category|requires|external-source): [^"\n]*$|^sdesc: ".+"$|^ldesc: "(.|\n)+?"$', c, re.MULTILINE)
+
+            if match:
+                line = line + len(match.group().splitlines())
+                c = c[match.end()+1:]
+            else:
+                print("%s validation error at line %d" % (fn, line))
+                return False
+
+            if len(c) == 0:
+                return True
+
+def main():
+    maintainers.add_maintainer_directories()
+    maintainers.add_maintainer_packages()
+
+    for arch in ['x86', 'x86_64' ]:
+        for m in sorted(maintainers.list.keys()):
+            scan(m, arch)
+
+if __name__ == "__main__":
+    main()

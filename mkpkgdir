@@ -4,13 +4,11 @@
 # intended to be run from crontab every 5 minutes
 #
 
-import grp
 import os
+import grp
 import pwd
-import re
-import sys
 
-from collections import defaultdict
+import maintainers
 
 # XXX: make these command line options, with defaults
 HOMEDIRS='/sourceware/cygwin-staging/home'
@@ -27,43 +25,15 @@ ORPHANMAINT="default"
 cygwin_uid = pwd.getpwnam('jon').pw_uid
 cygstage_gid = grp.getgrnam('None').gr_gid
 
-maintainers = defaultdict(list)
-
 # set default umask of 0
 os.umask(0)
 
-# get the list of existing maintainer directories
-for m in os.listdir(HOMEDIRS):
-    maintainers[m] = []
-
-# add maintainers from the package maintainers list, with the packages they maintain
-with open(PKGMAINT) as fd:
-    for (i, l) in enumerate(fd):
-        l = l.rstrip()
-
-        # match lines of the form '<package> <maintainer(s)>'
-        match = re.match(r'^(\S+)\s+(.+)$', l)
-        if match:
-            pkg = match.group(1)
-            m0 = match.group(2)
-
-            # orphaned packages get the default maintainer
-            # XXX: or can be ignored?
-            if m0.startswith('ORPHANED'):
-                m0 = ORPHANMAINT
-
-            # ensure any metacharacters in pkg are escaped
-            pkg = re.escape(pkg)
-
-            # joint maintainers are separated by '/'
-            for m in m0.split('/'):
-                maintainers[m].append(pkg)
-
-        else:
-            print("%s: unrecognized line in %s:%d: '%s'" % (sys.argv[0], PKGMAINT, i, l))
+# create maintainer list
+maintainers.add_maintainer_directories(HOMEDIRS)
+maintainers.add_maintainer_packages(PKGMAINT, orphanMaint=ORPHANMAINT)
 
 # create or suggest removal for each maintainer directory
-for m in sorted(maintainers.keys()):
+for m in sorted(maintainers.list.keys()):
     dir = os.path.join(HOMEDIRS, m)
 
     # if the path exists, but isn't a directory
@@ -71,7 +41,7 @@ for m in sorted(maintainers.keys()):
         print("%s: %s exists and isn't a directory!" % (sys.argv[0], dir))
         continue
 
-    pkgs = maintainers[m]
+    pkgs = maintainers.list[m].pkgs
 
     # ensure the upload directory exists, with appropriate permissions, owner and contents
     os.makedirs(dir, exist_ok=True)
