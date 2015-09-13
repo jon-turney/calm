@@ -10,11 +10,6 @@ import pwd
 
 import maintainers
 
-# XXX: make these command line options, with defaults
-HOMEDIRS='/sourceware/cygwin-staging/home'
-#PKGMAINT='/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'
-PKGMAINT='cygwin-pkg-maint'
-
 # these maintainers can upload orphaned packages as well
 ORPHANMAINT="default"
 
@@ -29,19 +24,20 @@ cygstage_gid = grp.getgrnam('None').gr_gid
 os.umask(0)
 
 # create maintainer list
-maintainers.add_maintainer_directories(HOMEDIRS)
-maintainers.add_maintainer_packages(PKGMAINT, orphanMaint=ORPHANMAINT)
+maintainers.add_maintainer_directories()
+maintainers.add_maintainer_packages(orphanMaint=ORPHANMAINT)
 
 # create or suggest removal for each maintainer directory
-for m in sorted(maintainers.list.keys()):
-    dir = os.path.join(HOMEDIRS, m)
+for name in sorted(maintainers.Maintainer.keys()):
+    m = maintainers.Maintainer.get(name)
+    dir = m.homedir()
 
     # if the path exists, but isn't a directory
     if os.path.exists(dir) and not os.path.isdir(dir):
         print("%s: %s exists and isn't a directory!" % (sys.argv[0], dir))
         continue
 
-    pkgs = maintainers.list[m].pkgs
+    pkgs = m.pkgs
 
     # ensure the upload directory exists, with appropriate permissions, owner and contents
     os.makedirs(dir, exist_ok=True)

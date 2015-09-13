@@ -13,11 +13,11 @@
 import os
 import re
 import sys
-import collections
 import cygwin
 
 class Maintainer:
     _homedirs = ''
+    _list = {}
 
     def __init__(self, name):
         self.name = name
@@ -27,7 +27,14 @@ class Maintainer:
     def homedir(self):
         return os.path.join(Maintainer._homedirs, self.name)
 
-list = collections.defaultdict(Maintainer)
+    def get(name):
+        if not name in Maintainer._list:
+            Maintainer._list[name] = Maintainer(name)
+
+        return Maintainer._list[name]
+
+    def keys():
+        return Maintainer._list.keys()
 
 # add maintainers which have existing directories
 def add_maintainer_directories(dir=None):
@@ -36,15 +43,13 @@ def add_maintainer_directories(dir=None):
     Maintainer._homedirs = dir
 
     for n in os.listdir(dir):
-        m = Maintainer(n)
+        m = Maintainer.get(n)
 
         for e in ['!email', '!mail'] :
             email = os.path.join(dir, e)
             if os.path.isfile(email):
                 with open(email) as f:
                     m.email = f.read()
-
-        list[n] = m
 
 # add maintainers from the package maintainers list, with the packages they
 # maintain
@@ -74,8 +79,9 @@ def add_maintainer_packages(pkglist=None, orphanMaint=None):
                 pkg = re.escape(pkg)
 
                 # joint maintainers are separated by '/'
-                for m in m0.split('/'):
-                    list[m].pkgs.append(pkg)
+                for name in m0.split('/'):
+                    m = Maintainer.get(name)
+                    m.pkgs.append(pkg)
 
             else:
                 print("%s: unrecognized line in %s:%d: '%s'" % (sys.argv[0], pkglist, i, l))

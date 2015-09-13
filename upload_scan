@@ -15,15 +15,27 @@
 import os
 import re
 import filecmp
+import argparse
 from collections import defaultdict
 
 import maintainers
 import cygwin
 
-def scan(m, arch):
-    pkgre = '|'.join(maintainers.list[m].pkgs)
+#
+#
+#
 
-    basedir = os.path.join(maintainers.list[m].homedir(), arch)
+verbose = 0
+dryrun = False
+
+#
+#
+#
+
+def scan(m, arch):
+    pkgre = '|'.join(m.pkgs)
+
+    basedir = os.path.join(m.homedir(), arch)
     releasedir = os.path.join(cygwin.FTP, arch)
 
     move = defaultdict(list)
@@ -36,6 +48,8 @@ def scan(m, arch):
 
         for f in sorted(files):
             fn = os.path.join(basedir, p, f)
+            if verbose:
+                print("processing %s" % fn)
 
             if f == '!ready':
                 mtime = os.path.getmtime(fn)
@@ -77,17 +91,27 @@ def scan(m, arch):
                 print("unexpected file %s" % f)
 
     for f in readys:
-        print("rm", f)
-        os.unlink(f)
+        if verbose:
+            print("rm", f)
+        if not dryrun:
+            os.unlink(f)
 
     if not error:
         if len(move) > 0:
             for dir in move.keys():
-                print("mkdir", os.path.join(releasedir, p))
-                os.makedirs(os.path.join(releasedir, p), exist_ok=True)
+                if verbose:
+                    print("mkdir", os.path.join(releasedir, p))
+                if not dryrun:
+                    os.makedirs(os.path.join(releasedir, p), exist_ok=True)
                 for f in move[dir]:
-                    print("move", os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
-                    os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+                    if verbose:
+                        print("move", os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+                    if not dryrun:
+                        os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+
+#
+#
+#
 
 def setup_hint_validate(fn):
     with open(fn) as f:
@@ -108,13 +132,29 @@ def setup_hint_validate(fn):
             if len(c) == 0:
                 return True
 
+#
+#
+#
+
 def main():
     maintainers.add_maintainer_directories()
     maintainers.add_maintainer_packages()
 
     for arch in ['x86', 'x86_64' ]:
-        for m in sorted(maintainers.list.keys()):
-            scan(m, arch)
+        for name in sorted(maintainers.Maintainer.keys()):
+            scan(maintainers.Maintainer.get(name), arch)
+
+#
+#
+#
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
+    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose')
+    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun')
+    (args) = parser.parse_args()
+
+    verbose = args.verbose
+    dryrun = args.dryrun
+
     main()
