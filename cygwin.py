@@ -9,3 +9,7 @@ HOMEDIRS='/sourceware/cygwin-staging/home'
 PKGMAINT='cygwin-pkg-maint'
 #FTP='/var/ftp/pub/cygwin'
 FTP='/var/ftp/pub/cygwin-test'
+
+# logs are always emailed to these addresses
+#EMAIL='jturney'
+EMAILS='jon.turney@dronecode.org.uk'
