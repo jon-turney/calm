@@ -19,3 +19,6 @@ ORPHANMAINT="Yaakov Selkowitz"
 
 #
 ARCHES=['x86', 'x86_64' ]
+
+# base directory for HTML output
+HTMLBASE='/www/sourceware/htdocs/cygwin/packages'

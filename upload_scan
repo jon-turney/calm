@@ -112,6 +112,7 @@ def scan(m, arch):
 #
 
 def setup_hint_validate(fn):
+    # XXX: should validate that setup.hint is UTF-8 encoded
     with open(fn) as f:
         c = f.read()
 

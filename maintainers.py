@@ -15,7 +15,7 @@ import re
 import cygwin
 import logging
 
-class Maintainer:
+class Maintainer(object):
     _homedirs = ''
     _list = {}
 
