@@ -1,63 +1,105 @@
 #!/usr/bin/env python3
 #
-# re-implementation of mkpkgdir script in python
+# create maintainer upload directories
+#
+# a re-implementation of the mkpkgdir perl script in python
 # intended to be run from crontab every 5 minutes
+#
+# - Read existing maintainer directories, build a list of maintainer
+# - Read cygwin-pkg-maint, add to list of maintainers, and build a list of
+#   packages for each maintainer
+# - Assign orpahaned packages to the project lead(s)
+# - For each maintainer, create a home directory, set permissions, and write a
+#   !packages file
+# - Report if the maintainer has no packages and mark with !defunct
 #
 
 import os
+import sys
 import grp
 import pwd
+import argparse
+import logging
 
 import maintainers
+import cygwin
 
-# these maintainers can upload orphaned packages as well
-ORPHANMAINT="default"
+#
+#
+#
 
-# XXX: add verbose option
+dryrun = False
 
 #cygwin_uid = pwd.getpwnam('cygwin').pw_uid
 #cygstage_gid = grp.getgrnam('cygstage').gr_gid
 cygwin_uid = pwd.getpwnam('jon').pw_uid
 cygstage_gid = grp.getgrnam('None').gr_gid
 
-# set default umask of 0
-os.umask(0)
+#
+#
+#
 
-# create maintainer list
-maintainers.add_maintainer_directories()
-maintainers.add_maintainer_packages(orphanMaint=ORPHANMAINT)
+def main():
+    # set default umask of 0
+    os.umask(0)
 
-# create or suggest removal for each maintainer directory
-for name in sorted(maintainers.Maintainer.keys()):
-    m = maintainers.Maintainer.get(name)
-    dir = m.homedir()
+    # create maintainer list
+    maintainers.add_maintainer_directories()
+    maintainers.add_maintainer_packages(orphanMaint=cygwin.ORPHANMAINT)
 
-    # if the path exists, but isn't a directory
-    if os.path.exists(dir) and not os.path.isdir(dir):
-        print("%s: %s exists and isn't a directory!" % (sys.argv[0], dir))
-        continue
+    # create or suggest removal for each maintainer directory
+    for name in sorted(maintainers.Maintainer.keys()):
+        m = maintainers.Maintainer.get(name)
+        dir = m.homedir()
 
-    pkgs = m.pkgs
+        # if the path exists, but isn't a directory
+        if os.path.exists(dir) and not os.path.isdir(dir):
+            logging.error("%s exists and isn't a directory!" % dir)
+            continue
 
-    # ensure the upload directory exists, with appropriate permissions, owner and contents
-    os.makedirs(dir, exist_ok=True)
-    os.chown(dir, cygwin_uid, cygstage_gid)
-    os.chmod(dir, 0o2775)
-    with open(os.path.join(dir, '!packages'), 'w') as fd:
-        os.fchown(fd.fileno(), cygwin_uid, cygstage_gid)
-        print('|'.join(pkgs), file=fd)
-    for subdir in ['x86', 'x86_64' ]:
-        os.makedirs(os.path.join(dir, subdir, 'release'), exist_ok=True)
-        os.chown(os.path.join(dir, subdir, 'release'), cygwin_uid, cygstage_gid)
+        # ensure the upload directory exists, with appropriate permissions, owner and contents
+        logging.info('processing %s' % dir)
+        if not dryrun:
+            os.makedirs(dir, exist_ok=True)
+            os.chown(dir, cygwin_uid, cygstage_gid)
+            os.chmod(dir, 0o2775)
+            with open(os.path.join(dir, '!packages'), 'w') as fd:
+                os.fchown(fd.fileno(), cygwin_uid, cygstage_gid)
+                print('|'.join(m.pkgs), file=fd)
+            for subdir in cygwin.ARCHES:
+                os.makedirs(os.path.join(dir, subdir, 'release'), exist_ok=True)
+                os.chown(os.path.join(dir, subdir, 'release'), cygwin_uid, cygstage_gid)
 
-    defunct = os.path.join(dir, '!defunct')
+        defunct = os.path.join(dir, '!defunct')
 
-    if len(pkgs) == 0:
-        # if they have no packages, suggest removing their upload directory (once)
-        if not os.path.exists(defunct):
-            print("%s: defunct maintainer %s.  Remove their directory?" % (sys.argv[0], m))
-            open(defunct, 'w').close()
-    else:
-        # remove defunct marker if no longer defunct
-        if os.path.exists(defunct):
-            os.unlink(defunct)
+        if len(m.pkgs) == 0:
+            # if they have no packages, suggest removing their upload directory (once)
+            if not os.path.exists(defunct):
+                logging.warn("defunct maintainer %s.  Remove their directory?" % name)
+                if not dryrun:
+                    open(defunct, 'w').close()
+        else:
+            # remove defunct marker if no longer defunct
+            if os.path.exists(defunct):
+                logging.info("maintainer %s no longer defunct" % name)
+                if not dryrun:
+                    os.unlink(defunct)
+
+#
+#
+#
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Create maintainer upload directories')
+    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
+    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
+    (args) = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.INFO)
+
+    logging.basicConfig(format=sys.argv[0]+': %(message)s')
+
+    dryrun = args.dryrun
+
+    main()

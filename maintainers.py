@@ -12,8 +12,8 @@
 
 import os
 import re
-import sys
 import cygwin
+import logging
 
 class Maintainer:
     _homedirs = ''
@@ -84,4 +84,4 @@ def add_maintainer_packages(pkglist=None, orphanMaint=None):
                     m.pkgs.append(pkg)
 
             else:
-                print("%s: unrecognized line in %s:%d: '%s'" % (sys.argv[0], pkglist, i, l))
+                logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))

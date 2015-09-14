@@ -138,7 +138,7 @@ def main():
     maintainers.add_maintainer_directories()
     maintainers.add_maintainer_packages()
 
-    for arch in ['x86', 'x86_64' ]:
+    for arch in cygwin.ARCHES:
         for name in sorted(maintainers.Maintainer.keys()):
             m = maintainers.Maintainer.get(name)
 
@@ -165,15 +165,14 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
     parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
-    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="Don't do anything; just print what would happen")
+    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
     parser.add_argument('--email', action='store', dest = 'email', nargs='?', const=cygwin.EMAILS, help='email output to maintainer and ADDRS (default: ' + cygwin.EMAILS + ')', metavar='ADDRS')
     (args) = parser.parse_args()
 
-    level=logging.WARNING
     if args.verbose:
-        level=logging.INFO
+        logging.getLogger().setLevel(logging.INFO)
 
-    logging.basicConfig(format='%(message)s', level=level)
+    logging.basicConfig(format=sys.argv[0]+': %(message)s')
 
     dryrun = args.dryrun
 

@@ -13,3 +13,9 @@ FTP='/var/ftp/pub/cygwin-test'
 # logs are always emailed to these addresses
 #EMAIL='jturney'
 EMAILS='jon.turney@dronecode.org.uk'
+
+# these maintainers can upload orphaned packages as well
+ORPHANMAINT="Yaakov Selkowitz"
+
+#
+ARCHES=['x86', 'x86_64' ]
