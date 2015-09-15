@@ -32,7 +32,8 @@ packages = defaultdict(Package)
 
 #
 # simple parsing of setup.ini
-# XXX: just good enough for the moment
+# XXX: almost just good enough for the moment
+# setup.ini doesn't list source-only packages, so we miss those...
 #
 setup_ini = os.path.join(cygwin.FTP, arch, 'setup.ini')
 
@@ -54,7 +55,7 @@ with open(setup_ini) as f:
 base = os.path.join(cygwin.HTMLBASE, arch)
 listing = glob.glob(os.path.join(base, '*', '*'))
 
-for p in sorted(packages.keys()):
+for p in packages.keys():
     dir = os.path.join(base, p)
     os.makedirs(dir, exist_ok=True)
     os.chmod(dir, 0o777)
@@ -81,10 +82,11 @@ AddType text/html 1 2 3 4 5 6 7 8 9
 #            print(html)
             with open(html, 'w') as f:
                 header = p + ":" + packages[p].sdesc.replace('"', '')
-                if fver.endswith('src'):
+                if fver.endswith('-src'):
                     header = header + " (source code)"
                 else:
                     header = header + " (installed binaries and support files)"
+                # XXX: also recognize '-debuginfo'
 
                 print('''
 <html>
@@ -138,9 +140,11 @@ with open(packages_inc, 'w') as index:
 <table class="pkglist">
     ''', file=index)
 
-    for p in sorted(packages):
+    for p in sorted(packages.keys(), key=lambda k: k.upper()):
         # XXX: not if 'skip' or empty sdesc
+
         header = packages[p].sdesc.replace('"', '')
+
         print('<tr><td><a href="' + arch + '/' +  p + '">' + p + '</a></td><td>' + header  + '</td></tr>', file=index)
 
     print('''

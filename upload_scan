@@ -113,6 +113,7 @@ def scan(m, arch):
 
 def setup_hint_validate(fn):
     # XXX: should validate that setup.hint is UTF-8 encoded
+    # XXX: should validate that sdesc doesn't contain ':', as that prefix is removed
     with open(fn) as f:
         c = f.read()
 
