@@ -107,6 +107,9 @@ def scan(m, arch):
                     if not dryrun:
                         os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
 
+    # XXX: should update md5.sum and sha512.sum in target directory, if it
+    # wasn't part of the upload
+
 #
 #
 #
