@@ -147,10 +147,10 @@ def main(files):
     status = 0
 
     for fn in files:
-        hint = setup_hint_parse(fn)
+        hints = setup_hint_parse(fn)
 
-        if 'parse-errors' in hint:
-            for l in hint['parse-errors']:
+        if 'parse-errors' in hints:
+            for l in hints['parse-errors']:
                 print('%s: %s' % (fn, l))
 #            status = 255
         else:

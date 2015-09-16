@@ -17,145 +17,147 @@ import glob
 import tarfile
 import time
 import re
+import textwrap
 from collections import defaultdict
 
 import cygwin
+import package
 
-arch = 'x86'
-
-class Package(object):
-    def __init__(self):
-        self.tars = []
-        self.sdesc = ''
-
-packages = defaultdict(Package)
-
-#
-# simple parsing of setup.ini
-# XXX: almost just good enough for the moment
-# setup.ini doesn't list source-only packages, so we miss those...
-#
-setup_ini = os.path.join(cygwin.FTP, arch, 'setup.ini')
-
-with open(setup_ini) as f:
-    for l in f:
-        l = l.strip()
-        if l.startswith('@ '):
-            p = l[2:]
-        elif l.startswith('install') or l.startswith('source'):
-            t = l.split(' ')[1]
-            packages[p].tars.append(t)
-        elif l.startswith('sdesc: '):
-            packages[p].sdesc = l[7:]
+# a sorting which forces packages which begin with '!' to be sorted first,
+# packages which begin with '_" to be sorted last, and others to be sorted
+# case-insensitively
+def package_sort(k):
+    k = k.lower()
+    if k[0] == '!':
+        k = chr(0) + k
+    elif k[0] == '_':
+        k = chr(255) + k
+    return k
 
 #
 #
 #
 
-base = os.path.join(cygwin.HTMLBASE, arch)
-listing = glob.glob(os.path.join(base, '*', '*'))
+def main():
+    arch = 'x86'
 
-for p in packages.keys():
-    dir = os.path.join(base, p)
-    os.makedirs(dir, exist_ok=True)
-    os.chmod(dir, 0o777)
+    packages = package.read_packages(arch)
 
-    # write .htaccess if needed
-    htaccess = os.path.join(dir, '.htaccess')
-    if not os.path.exists(htaccess):
-        with open(htaccess, 'w') as f:
-            print('''
-Options Indexes
-IndexOptions -FancyIndexing
-AddType text/html 1 2 3 4 5 6 7 8 9
-            ''', file=f)
-            # XXX: omitting 0 here doesn't make much sense
-            # this doesn't help for src packages, so is it actually having any effect?
+    base = os.path.join(cygwin.HTMLBASE, arch)
+    toremove = glob.glob(os.path.join(base, '*', '*'))
 
-    for t in packages[p].tars:
-        fver = os.path.basename(t)
-        fver = re.sub(r'\.tar.*$', '', fver)
-        html = os.path.join(dir, fver)
+    for p in packages.keys():
+    #    print(p)
 
-        if not os.path.exists(html):
-            # XX: omit things with no category or sdesc?
-#            print(html)
-            with open(html, 'w') as f:
-                header = p + ":" + packages[p].sdesc.replace('"', '')
-                if fver.endswith('-src'):
-                    header = header + " (source code)"
-                else:
-                    header = header + " (installed binaries and support files)"
-                # XXX: also recognize '-debuginfo'
+        dir = os.path.join(base, p)
+        os.makedirs(dir, exist_ok=True)
+        os.chmod(dir, 0o777)
 
-                print('''
-<html>
-<h1>''' + header + '''</h1>
-<tt><pre>
-                ''', file=f)
+        # write .htaccess if needed
+        htaccess = os.path.join(dir, '.htaccess')
+        if not os.path.exists(htaccess):
+            with open(htaccess, 'w') as f:
+                print(textwrap.dedent('''\
+                                         Options Indexes
+                                         IndexOptions -FancyIndexing
+                                         AddType text/html 1 2 3 4 5 6 7 8 9'''),
+                                      file=f)
+                # XXX: omitting 0 here doesn't make much sense
+                # this doesn't help for src packages, so is it actually having any effect?
 
-                tf = os.path.join(cygwin.FTP, t)
-                if os.path.exists(tf):
+        for t in packages[p].tars:
+    #        print(t)
 
-                    # compressed empty files aren't valid tar file, but we can
-                    # just ignore them
-                    if (os.path.getsize(tf) <= 32):
-                        continue
+            fver = os.path.basename(t)
+            fver = re.sub(r'\.tar.*$', '', fver)
+            html = os.path.join(dir, fver)
 
-                    a = tarfile.open(tf)
-                    for i in a:
-#                        print(i.name)
-                        print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
-                        if i.type in [tarfile.LNKTYPE, tarfile.SYMTYPE]:
-                            print(' -> %s' % i.linkname, file=f, end='')
-                        print('', file=f)
-                else:
-                    # XXX: this shouldn't happen with a full mirror...
-                    print('tarfile %s not found' % tf, file=f)
+            if not os.path.exists(html):
+                # XXX: omit things with no category or sdesc?
+                if 'skip' in packages[p].hints:
+                    continue
 
-                print('''
-</pre></tt>
-</html>
-                ''', file=f)
+                print(html)
 
-        # this file should exist, so remove from listing
-        if html in listing:
-            listing.remove(html)
+                with open(html, 'w') as f:
+                    header = p + ": " + packages[p].hints['sdesc'].replace('"', '')
+                    if fver.endswith('-src'):
+                        header = header + " (source code)"
+                    else:
+                        header = header + " (installed binaries and support files)"
+                    # XXX: also recognize '-debuginfo' ?
 
-#
-# write packages.inc
-#
+                    print(textwrap.dedent('''\
+                                             <html>
+                                             <h1>%s</h1>
+                                             <tt><pre>''' % (header)), file=f)
 
-packages_inc = os.path.join(base, 'packages.inc')
-with open(packages_inc, 'w') as index:
-    os.fchmod(index.fileno(), 0o755)
-    print('''
-<div id="''' + arch + '''">
-<div id="background">
-<b class="rtop"><b class="r1"></b><b class="r2"></b><b class="r3"></b><b class="r4"></b></b>
-<h2>Available Packages for ''' + arch + '''</h2>
-<b class="rbottom"><b class="r4"></b><b class="r3"></b><b class="r2"></b><b class="r1"></b></b>
-</div>
-<br>
-<table class="pkglist">
-    ''', file=index)
+                    tf = os.path.join(cygwin.FTP, t)
+                    if os.path.exists(tf):
 
-    for p in sorted(packages.keys(), key=lambda k: k.upper()):
-        # XXX: not if 'skip' or empty sdesc
+                        # compressed empty files aren't a valid tar file, but we can
+                        # just ignore them
+                        if (os.path.getsize(tf) <= 32):
+                            continue
 
-        header = packages[p].sdesc.replace('"', '')
+                        a = tarfile.open(tf)
+                        for i in a:
+    #                        print(i.name)
+                            print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
+                            if i.isdir():
+                                print('/', file=f, end='')
+                            if i.issym() or i.islnk():
+                                print(' -> %s' % i.linkname, file=f, end='')
+                            print('', file=f)
+                    else:
+                        # XXX: this shouldn't happen with a full mirror...
+                        print('tarfile %s not found' % tf, file=f)
 
-        print('<tr><td><a href="' + arch + '/' +  p + '">' + p + '</a></td><td>' + header  + '</td></tr>', file=index)
+                    print(textwrap.dedent('''\
+                                             </pre></tt>
+                                             </html>'''), file=f)
 
-    print('''
-</table>
-</div>
-    ''',file=index)
+            # this file should exist, so remove from the toremove list
+            if html in toremove:
+                toremove.remove(html)
 
-#
-# remove any listing files for which there were no corresponding packages
-#
+    #
+    # write packages.inc
+    #
 
-for r in listing:
-    print("rm ", r)
-    os.unlink(r)
+    packages_inc = os.path.join(base, 'packages.inc')
+    with open(packages_inc, 'w') as index:
+        os.fchmod(index.fileno(), 0o755)
+        print(textwrap.dedent('''\
+                                 <div id="%s">
+                                 <div id="background">
+                                 <b class="rtop"><b class="r1"></b><b class="r2"></b><b class="r3"></b><b class="r4"></b></b>
+                                 <h2>Available Packages for %s</h2>
+                                 <b class="rbottom"><b class="r4"></b><b class="r3"></b><b class="r2"></b><b class="r1"></b></b>
+                                 </div>
+                                 <br>
+                                 <table class="pkglist">''') % (arch, arch), file=index)
+
+        for p in sorted(packages.keys(), key=package_sort):
+            if 'skip' in packages[p].hints:
+                continue
+            # XXX: not if 'skip' or empty sdesc
+
+            header = packages[p].hints['sdesc'].replace('"', '')
+
+            print('<tr><td><a href="' + arch + '/' +  p + '">' + p + '</a></td><td>' + header  + '</td></tr>', file=index)
+
+        print(textwrap.dedent('''\
+                                 </table>
+                                 </div>'''), file=index)
+
+    #
+    # remove any remaining listing files for which there was no corresponding package
+    #
+
+    for r in toremove:
+        print("rm ", r)
+    #    os.unlink(r)
+
+if __name__ == "__main__":
+    main()
