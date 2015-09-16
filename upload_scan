@@ -10,18 +10,19 @@
 # - remove !ready file
 # - send a report on what we did to the maintainer and project leads
 #
-# XXX: sha512.sum ???
 
 import os
+import sys
 import re
 import filecmp
 import argparse
 from collections import defaultdict
 import logging
-import buffering_smtp_handler
 
+import buffering_smtp_handler
 import maintainers
 import cygwin
+import hint
 
 #
 #
@@ -52,19 +53,17 @@ def scan(m, arch):
             fn = os.path.join(basedir, p, f)
             logging.info("processing %s" % fn)
 
+            # note mtime of !ready
             if f == '!ready':
                 mtime = os.path.getmtime(fn)
                 readys.append(fn)
                 continue
+            # ignore !packages (which we no longer use)
+            # ignore !mail and !email (which we have already read)
             elif f.startswith('!'):
                 continue
-            elif f == 'setup.hint':
-                if setup_hint_validate(fn):
-                    move[p].append(f)
-                else:
-                    error = True
-                continue
 
+            # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
                     logging.warn("ignoring %s as there is no !ready" % f)
@@ -72,6 +71,15 @@ def scan(m, arch):
                     logging.warn("ignoring %s as it is newer than !ready" % f)
                 continue
 
+            # process setup.hint
+            if f == 'setup.hint':
+                if setup_hint_validate(fn):
+                    move[p].append(f)
+                else:
+                    error = True
+                continue
+
+            # only process packages for which we are listed as a maintainer
             if not re.search(pkgre, f):
                 logging.warn("%s is not in the package list for this maintainer" % f)
                 continue
@@ -91,49 +99,46 @@ def scan(m, arch):
             else:
                 logging.error("unexpected file %s" % f)
 
+    # remove all the !ready files
     for f in readys:
-        logging.info("rm", f)
+        logging.info("rm %s", f)
         if not dryrun:
             os.unlink(f)
 
+    # only move something if there were no errors
     if not error:
         if len(move) > 0:
-            for dir in move.keys():
-                logging.info("mkdir", os.path.join(releasedir, p))
+            for p in move.keys():
+                logging.info("mkdir %s" % os.path.join(releasedir, p))
                 if not dryrun:
                     os.makedirs(os.path.join(releasedir, p), exist_ok=True)
-                for f in move[dir]:
-                    logging.info("move", os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+                for f in move[p]:
+                    logging.info("move %s to %s" % (os.path.join(basedir, p, f), os.path.join(releasedir, p, f)))
                     if not dryrun:
                         os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
 
-    # XXX: should update md5.sum and sha512.sum in target directory, if it
-    # wasn't part of the upload
+                # Update sha512.sum file in target directory
+                #
+                # (this means that upset can use that file unconditionally,
+                # rather than having to have a special case to generate the hash
+                # itself for when that file hasn't yet been created by
+                # sourceware.org scripts)
+                if not dryrun:
+                    os.system('cd %s ; sha512.sum * >sha512.sum', os.pathjoin(releasedir, p))
 
 #
 #
 #
 
 def setup_hint_validate(fn):
-    # XXX: should validate that setup.hint is UTF-8 encoded
-    # XXX: should validate that sdesc doesn't contain ':', as that prefix is removed
-    with open(fn) as f:
-        c = f.read()
+    hints = hint.setup_hint_parse(fn)
+    if 'parse-errors' in hints:
+        for l in hints['parse-errors']:
+            logging.warn("%s: %s" % (fn, l))
+        return False
 
-        line = 1
-
-        while True:
-            match = re.match(r'^#.*$|^(curr|prev|test|category|requires|external-source): [^"\n]*$|^sdesc: ".+"$|^ldesc: "(.|\n)+?"$', c, re.MULTILINE)
-
-            if match:
-                line = line + len(match.group().splitlines())
-                c = c[match.end()+1:]
-            else:
-                logging.error("%s validation error at line %d" % (fn, line))
-                return False
-
-            if len(c) == 0:
-                return True
+    logging.info("%s: ok" % fn)
+    return True
 
 #
 #
