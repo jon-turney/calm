@@ -6,6 +6,9 @@
 import argparse
 import textwrap
 import time
+import re
+from distutils.version import LooseVersion
+from collections import defaultdict
 
 import common_constants
 import package
@@ -20,9 +23,78 @@ def main(args):
     # build package list
     packages = package.read_packages(args.arch)
 
-    # validate
-    # assign a version to each stability level
+    #
+    # validate the package database
+    #
+    for p in packages.keys():
+        # all packages listed in requires must exist
+        if 'requires' in packages[p].hints:
+            for r in packages[p].hints['requires'].split():
+                if r not in packages:
+                    print("package %s requires nonexistent package %s" % (p, r))
 
+        # if external-source is used, the package must exist
+        if 'external-source' in packages[p].hints:
+            e = packages[p].hints['external-source']
+            if e not in packages:
+                print("package %s refers to nonexistent external-source %s" % (p, e))
+
+        packages[p].vermap = defaultdict(defaultdict)
+        has_install = False
+
+        for t in packages[p].tars:
+            # categorize each tarfile as either 'source' or 'install'
+            if re.search(r'-src\.tar', t):
+                category = 'source'
+            else:
+                category = 'install'
+                has_install = True
+
+            # extract just the version part from tar filename
+            v = re.sub(r'^.*/' + re.escape(p) + '-', '', t)
+            v = re.sub(r'(-src|)\.tar\.(xz|bz2|gz)$', '', v)
+
+            # store tarfile corresponding to this version and category
+            packages[p].vermap[v][category] = t
+
+        levels = [ 'curr', 'prev' ]
+        packages[p].stability = defaultdict()
+
+        # sort in order from highest to lowest version
+        for v in sorted(packages[p].vermap.keys(), reverse=True):
+            # if this package is not external-source, a source tarfile must
+            # exist for every version
+            required_categories = []
+            if 'external-source' not in packages[p].hints:
+                required_categories.append('source')
+
+            # Similarly, we should verify that each version has an install
+            # tarfile, unless this is a source-only package.  Unfortunately, the
+            # current data model doesn't clearly identify those.  For the
+            # moment, if we have seen at least one install tarfile, assume we
+            # aren't a source-only package.
+            if has_install:
+                required_categories.append('install')
+
+            for c in required_categories:
+                if c not in packages[p].vermap[v]:
+                    print("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
+
+            # assign a version to each stability level
+            if len(levels) > 0:
+                packages[p].stability[levels.pop(0)] = v
+            else:
+                # XXX: versions which don't correspond to any stability level
+                # should be reported, we might want to remove them at some point
+                print("package '%s' has no levels left for version '%s'" % (p, v))
+
+        # fetch sha512 for each tar file
+        # XXX: all stability levels must exist?
+        # XXX: tarfiles which don't match the package name?
+
+    #
+    # write setup.ini
+    #
     with open(args.inifile, 'w') as f:
         # write setup.ini header
         print(textwrap.dedent('''\
@@ -44,8 +116,6 @@ def main(args):
             if 'skip' in packages[p].hints:
                 continue
 
-            # XXX: all stability levels must exist
-
             # write package data
             print("@ %s" % p, file=f)
 
@@ -66,11 +136,21 @@ def main(args):
             if 'ldesc' in packages[p].hints:
                 print("ldesc: %s" % packages[p].hints['ldesc'], file=f)
 
-            # XXX: all package listed in requires must exist
             if 'requires' in packages[p].hints:
                 print("requires: %s" % packages[p].hints['requires'], file=f)
 
-            # XXX: write lines for each version
+            # write tarfile lines for each stability level
+            for level in [ 'curr', 'test', 'prev' ]:
+                if level in packages[p].stability:
+                    version = packages[p].stability[level]
+                    if level != 'curr':
+                        print("[%s]" % level, file=f)
+                    print("version: %s" % version, file=f)
+                    for category in ['install', 'source']:
+                        if category in packages[p].vermap[version]:
+                            print("%s: %s %d %d" % (category, packages[p].vermap[version][category], 0, 0), file=f)
+
+                    # XXX: follow external-source
 
             if 'message' in packages[p].hints:
                 print("message: %s" % packages[p].hints['message'], file=f)
