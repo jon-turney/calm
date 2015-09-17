@@ -1,0 +1,8 @@
+sdesc: "The ARC archive utility"
+ldesc: "This program is based on the MSDOS ARC program, version 5.21, plus a
+few enhancements. ARC performs Huffman Squeezing on data. The Huffman
+Squeeze algorithm was removed from MSDOS ARC after version 5.12. It
+turns out to be more efficient than Lempel-Ziv style compression when
+compressing graphic images. Squeeze analysis is always done now, and
+the best of packing, squeezing, or crunching is used."
+category: Archive
