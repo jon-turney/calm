@@ -21,8 +21,12 @@ ORPHANMAINT="Yaakov Selkowitz"
 # architectures we support
 ARCHES=['x86', 'x86_64' ]
 
+
 # base directory for HTML output
-HTMLBASE='/www/sourceware/htdocs/cygwin/packages'
+HTDOCS='/www/sourceware/htdocs/cygwin/'
+
+#
+#HTMLBASE='/www/sourceware/htdocs/cygwin/packages'
 
 # the list of packages with maintainers
 PKGMAINT='/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'
