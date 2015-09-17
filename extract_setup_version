@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+#
+# extract version from setup executable
+#
+
+import argparse
+import os
+import re
+
+#
+# the setup binary contains a '%%% setup-version ' string identifying the
+# version, but it's hard to read that when it's UPX packed.
+#
+# so instead, we expect the exe file to be a symlink to a file which encodes
+# the version in it's name
+#
+# XXX: possibly we could work around this by placing the version string into
+# a string resource and using upx's --keep-resource flag to keep that resource
+# uncompressed
+#
+
+def main(fn):
+    # canonicalize the pathname
+    fn = os.path.realpath(fn)
+
+    match = re.search(r'setup-([\d\.]+).x86', fn)
+    if match:
+        print(match.group(1))
+        return 0
+    else:
+        return 1
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Extract version from setup executable')
+    parser.add_argument('exe' , action='store', nargs='?', metavar='filename', help='executable file')
+    (args) = parser.parse_args()
+
+    if args.exe:
+        exit(main(args.exe))
+
+    parser.print_help()
+
+# XXX:maybe this could make the filename from /www/sourceware/htdocs/cygwin and arch?
