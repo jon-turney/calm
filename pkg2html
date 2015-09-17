@@ -23,17 +23,6 @@ from collections import defaultdict
 import common_constants
 import package
 
-# a sorting which forces packages which begin with '!' to be sorted first,
-# packages which begin with '_" to be sorted last, and others to be sorted
-# case-insensitively
-def package_sort(k):
-    k = k.lower()
-    if k[0] == '!':
-        k = chr(0) + k
-    elif k[0] == '_':
-        k = chr(255) + k
-    return k
-
 #
 #
 #
@@ -138,7 +127,7 @@ def main():
                                  <br>
                                  <table class="pkglist">''') % (arch, arch), file=index)
 
-        for p in sorted(packages.keys(), key=package_sort):
+        for p in sorted(packages.keys(), key=package.sort_key):
             if 'skip' in packages[p].hints:
                 continue
             # XXX: not if 'skip' or empty sdesc

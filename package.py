@@ -51,6 +51,17 @@ def read_packages(arch):
 
     return packages
 
+# a sorting which forces packages which begin with '!' to be sorted first,
+# packages which begin with '_" to be sorted last, and others to be sorted
+# case-insensitively
+def sort_key(k):
+    k = k.lower()
+    if k[0] == '!':
+        k = chr(0) + k
+    elif k[0] == '_':
+        k = chr(255) + k
+    return k
+
 if __name__ == "__main__":
     for arch in common_constants.ARCHES:
         packages = read_packages(arch)

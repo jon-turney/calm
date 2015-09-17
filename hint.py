@@ -131,6 +131,13 @@ def setup_hint_parse(fn):
                 else:
                     errors.append("unknown setup construct '%s' at line %d" % (item, i))
 
+            # if 'skip' isn't present, 'category' and 'sdesc' must be
+            if 'skip' not in hints:
+                mandatory = ['category', 'sdesc']
+                for k in mandatory:
+                    if k not in hints:
+                        errors.append("required key '%s' missing")
+
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')
 
