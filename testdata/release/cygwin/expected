@@ -1,0 +1,9 @@
+{'autodep': '.*',
+ 'category': 'Base',
+ 'curr': '2.2.1-1',
+ 'ldesc': '"The UNIX emulation engine"',
+ 'noautodep': '_update-info-dir _autorebase',
+ 'prev': '2.2.0-1',
+ 'requires': 'base-cygwin',
+ 'sdesc': '"The UNIX emulation engine"',
+ 'test': '2.3.0-0.3'}

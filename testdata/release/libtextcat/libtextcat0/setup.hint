@@ -1,0 +1,4 @@
+sdesc: "Text Classification Library dll"
+category: Text
+requires: cygwin
+external-source: libtextcat

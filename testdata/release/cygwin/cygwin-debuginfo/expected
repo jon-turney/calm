@@ -1,0 +1,8 @@
+{'category': 'Debug',
+ 'curr': '2.2.1-1',
+ 'external-source': 'cygwin',
+ 'ldesc': '"This package contains files necessary for debugging the\ncygwin package with gdb."',
+ 'prev': '2.2.0-1',
+ 'requires': 'cygwin-debuginfo',
+ 'sdesc': '"Debug info for cygwin"',
+ 'test': '2.3.0-0.3'}

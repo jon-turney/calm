@@ -1,0 +1,5 @@
+category: Graphics Libs
+requires: libproj1 
+sdesc: ""The PROJ Cartographic Projections Software (devel)"
+ldesc: "Cartographic projection library and utilities"
+external-source: proj

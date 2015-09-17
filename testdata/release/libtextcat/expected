@@ -1,0 +1,11 @@
+{'category': 'Text',
+ 'ldesc': '"Libtextcat is a library with functions that implement the\n'
+          'classification technique described in Cavnar & Trenkle, "N-Gram-Based\n'
+          'Text Categorization". It was primarily developed for language\n'
+          'guessing, a task on which it is known to perform with near-perfect\n'
+          'accuracy.\n'
+          'BSD License.\n'
+          'http://software.wise-guys.nl/libtextcat/"',
+ 'parse-errors': ['embedded quote at line 7'],
+ 'requires': 'libtextcat0',
+ 'sdesc': '"Text Classification Library (language guessing in C)"'}

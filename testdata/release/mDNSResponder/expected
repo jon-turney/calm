@@ -1,0 +1,10 @@
+{'category': 'Net',
+ 'ldesc': '"Bonjour, also known as zero-configuration networking, enables\n'
+          'automatic discovery of computers, devices, and services on IP networks using\n'
+          'industry standard IP protocols."',
+ 'message': 'mDNSResponder "The Cygwin mDNSResponder package contains only clients.\n'
+            "If you do not already have the 'Bonjour Service' installed (it comes with\n"
+            'a number of popular Windows programs), then you can download it at\n'
+            'http://support.apple.com/kb/DL999"',
+ 'requires': 'libdns_sd1',
+ 'sdesc': '"Bonjour Zeroconf implementation"'}

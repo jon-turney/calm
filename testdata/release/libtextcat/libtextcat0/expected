@@ -1,0 +1,4 @@
+{'category': 'Text',
+ 'external-source': 'libtextcat',
+ 'requires': 'cygwin',
+ 'sdesc': '"Text Classification Library dll"'}

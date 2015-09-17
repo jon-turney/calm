@@ -1,0 +1,8 @@
+{'category': 'Devel',
+ 'curr': '2.2.1-1',
+ 'external-source': 'cygwin',
+ 'ldesc': '"Core development files required to build Cygwin packages"',
+ 'prev': '2.2.0-1',
+ 'requires': '',
+ 'sdesc': '"Core development files"',
+ 'test': '2.3.0-0.3'}

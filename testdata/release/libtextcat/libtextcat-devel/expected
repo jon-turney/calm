@@ -1,0 +1,4 @@
+{'category': 'Devel Text',
+ 'external-source': 'libtextcat',
+ 'requires': 'libtextcat0 libtextcat',
+ 'sdesc': '"Helper, header and library for libtextcat"'}

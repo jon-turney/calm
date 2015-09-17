@@ -1,0 +1,5 @@
+{'category': 'Base',
+ 'ldesc': '"Initial base installation helper script."',
+ 'noautodep': 'cygwin',
+ 'requires': '',
+ 'sdesc': '"Initial base installation helper script."'}

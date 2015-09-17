@@ -1,0 +1,14 @@
+{'category': 'Devel',
+ 'ldesc': '"Program does many of the traditional lint checks including\n'
+          'unused declarations, type inconsistencies, use before definition,\n'
+          'unreachable code, ignored return values, execution paths with no\n'
+          'return, likely infinite loops, and fall through cases. More powerful\n'
+          'checks are made possible by additional information given in source\n'
+          'code annotations. Annotations are stylized comments that document\n'
+          'assumptions about functions, variables, parameters and types. In\n'
+          'addition to the checks specifically enabled by annotations, many of\n'
+          'the traditional lint checks are improved by exploiting this additional\n'
+          'setinformation."',
+ 'parse-errors': ['key sdesc has multi-line value'],
+ 'requires': 'cygwin',
+ 'sdesc': '"Check C programs for security vulnerabilities and programming\nmistakes."'}

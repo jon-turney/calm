@@ -1,0 +1,11 @@
+category: Graphics
+requires: libgcc1
+external-source: libspiro
+sdesc: "Library for converting clothoid splines to bezier curves (runtime)"
+ldesc: "Spiro is the creation of Raph Levien. It simplifies the drawing 
+of beautiful curves.
+
+Using bézier splines an artist can easily draw curves with the same 
+slope on either side of an on-curve point. Spiros, on the other hand, 
+are based on clothoid splines which make it easy to maintain constant 
+curvature as well as constant slope. Such curves will simply look nicer."

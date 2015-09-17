@@ -1,0 +1,6 @@
+{'category': 'Graphics Libs',
+ 'external-source': 'proj',
+ 'parse-errors': ['embedded quote at line 3', 'key sdesc has multi-line value'],
+ 'requires': 'libproj1',
+ 'sdesc': '""The PROJ Cartographic Projections Software (devel)"\n'
+          'ldesc: "Cartographic projection library and utilities"'}

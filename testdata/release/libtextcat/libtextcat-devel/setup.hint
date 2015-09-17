@@ -1,0 +1,4 @@
+sdesc: "Helper, header and library for libtextcat"
+category: Devel Text
+requires: libtextcat0 libtextcat
+external-source: libtextcat

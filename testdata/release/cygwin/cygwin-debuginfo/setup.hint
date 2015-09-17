@@ -1,0 +1,9 @@
+category: Debug
+requires: cygwin-debuginfo
+external-source: cygwin
+sdesc: "Debug info for cygwin"
+ldesc: "This package contains files necessary for debugging the
+cygwin package with gdb."
+prev: 2.2.0-1
+curr: 2.2.1-1
+test: 2.3.0-0.3

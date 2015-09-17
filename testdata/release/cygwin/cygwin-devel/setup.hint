@@ -1,0 +1,8 @@
+category: Devel
+requires:
+sdesc: "Core development files"
+ldesc: "Core development files required to build Cygwin packages"
+external-source: cygwin
+prev: 2.2.0-1
+curr: 2.2.1-1
+test: 2.3.0-0.3
