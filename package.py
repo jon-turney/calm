@@ -8,7 +8,7 @@ import re
 from collections import defaultdict
 
 import hint
-import cygwin
+import common_constants
 
 class Package(object):
     def __init__(self):
@@ -19,7 +19,7 @@ class Package(object):
 def read_packages(arch):
     packages = defaultdict(Package)
 
-    releasedir = os.path.join(cygwin.FTP, arch)
+    releasedir = os.path.join(common_constants.FTP, arch)
 
     for (dirpath, subdirs, files) in os.walk(releasedir):
         relpath = os.path.relpath(dirpath, releasedir)
@@ -54,7 +54,7 @@ def read_packages(arch):
     return packages
 
 if __name__ == "__main__":
-    for arch in cygwin.ARCHES:
+    for arch in common_constants.ARCHES:
         packages = read_packages(arch)
         for p in packages.keys():
             print(p, len(packages[p].tars))

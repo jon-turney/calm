@@ -22,7 +22,7 @@ import argparse
 import logging
 
 import maintainers
-import cygwin
+import common_constants
 
 #
 #
@@ -45,7 +45,7 @@ def main():
 
     # create maintainer list
     maintainers.add_maintainer_directories()
-    maintainers.add_maintainer_packages(orphanMaint=cygwin.ORPHANMAINT)
+    maintainers.add_maintainer_packages(orphanMaint=common_constants.ORPHANMAINT)
 
     # create or suggest removal for each maintainer directory
     for name in sorted(maintainers.Maintainer.keys()):
@@ -66,7 +66,7 @@ def main():
             with open(os.path.join(dir, '!packages'), 'w') as fd:
                 os.fchown(fd.fileno(), cygwin_uid, cygstage_gid)
                 print('|'.join(m.pkgs), file=fd)
-            for subdir in cygwin.ARCHES:
+            for subdir in common_constants.ARCHES:
                 os.makedirs(os.path.join(dir, subdir, 'release'), exist_ok=True)
                 os.chown(os.path.join(dir, subdir, 'release'), cygwin_uid, cygstage_gid)
 

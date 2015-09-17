@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 #
+# maintainer
 #
 
 #
@@ -12,8 +14,9 @@
 
 import os
 import re
-import cygwin
 import logging
+
+import common_constants
 
 class Maintainer(object):
     _homedirs = ''
@@ -39,7 +42,7 @@ class Maintainer(object):
 # add maintainers which have existing directories
 def add_maintainer_directories(dir=None):
     if dir is None:
-        dir = cygwin.HOMEDIRS
+        dir = common_constants.HOMEDIRS
     Maintainer._homedirs = dir
 
     for n in os.listdir(dir):
@@ -55,7 +58,7 @@ def add_maintainer_directories(dir=None):
 # maintain
 def add_maintainer_packages(pkglist=None, orphanMaint=None):
     if pkglist is None:
-        pkglist = cygwin.PKGMAINT
+        pkglist = common_constants.PKGMAINT
 
     with open(pkglist) as f:
         for (i, l) in enumerate(f):

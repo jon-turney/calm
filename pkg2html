@@ -20,7 +20,7 @@ import re
 import textwrap
 from collections import defaultdict
 
-import cygwin
+import common_constants
 import package
 
 # a sorting which forces packages which begin with '!' to be sorted first,
@@ -43,7 +43,7 @@ def main():
 
     packages = package.read_packages(arch)
 
-    base = os.path.join(cygwin.HTMLBASE, arch)
+    base = os.path.join(common_constants.HTMLBASE, arch)
     toremove = glob.glob(os.path.join(base, '*', '*'))
 
     for p in packages.keys():
@@ -92,7 +92,7 @@ def main():
                                              <h1>%s</h1>
                                              <tt><pre>''' % (header)), file=f)
 
-                    tf = os.path.join(cygwin.FTP, t)
+                    tf = os.path.join(common_constants.FTP, t)
                     if os.path.exists(tf):
 
                         # compressed empty files aren't a valid tar file, but we can

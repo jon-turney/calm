@@ -20,8 +20,8 @@ from collections import defaultdict
 import logging
 
 import buffering_smtp_handler
+import common_constants
 import maintainers
-import cygwin
 import hint
 
 #
@@ -39,7 +39,7 @@ def scan(m, arch):
     pkgre = '|'.join(m.pkgs)
 
     basedir = os.path.join(m.homedir(), arch)
-    releasedir = os.path.join(cygwin.FTP, arch)
+    releasedir = os.path.join(common_constants.FTP, arch)
 
     move = defaultdict(list)
     readys = []
@@ -148,7 +148,7 @@ def main():
     maintainers.add_maintainer_directories()
     maintainers.add_maintainer_packages()
 
-    for arch in cygwin.ARCHES:
+    for arch in common_constants.ARCHES:
         for name in sorted(maintainers.Maintainer.keys()):
             m = maintainers.Maintainer.get(name)
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
     parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
     parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
-    parser.add_argument('--email', action='store', dest = 'email', nargs='?', const=cygwin.EMAILS, help='email output to maintainer and ADDRS (default: ' + cygwin.EMAILS + ')', metavar='ADDRS')
+    parser.add_argument('--email', action='store', dest = 'email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
     (args) = parser.parse_args()
 
     if args.verbose:
