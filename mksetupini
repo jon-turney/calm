@@ -53,7 +53,7 @@ def main(args):
     #
     # validate the package database
     #
-    for p in packages.keys():
+    for p in sorted(packages.keys()):
         # all packages listed in requires must exist
         if 'requires' in packages[p].hints:
             for r in packages[p].hints['requires'].split():
@@ -89,13 +89,17 @@ def main(args):
 
         # sort in order from highest to lowest version
         for v in sorted(packages[p].vermap.keys(), reverse=True):
-            # if this package is not external-source, a source tarfile must
-            # exist for every version
             required_categories = []
-            if 'external-source' not in packages[p].hints:
-                required_categories.append('source')
 
-            # Similarly, we should verify that each version has an install
+            # a source tarfile must exist for every version, unless
+            # - the install tarfile is empty, or
+            # - this package is external-source
+            if 'external-source' not in packages[p].hints:
+                if 'install' in packages[p].vermap[v]:
+                    if not package.tarfile_is_empty(os.path.join(args.rel_area, args.arch, packages[p].path, packages[p].vermap[v]['install'])):
+                        required_categories.append('source')
+
+            # similarly, we should verify that each version has an install
             # tarfile, unless this is a source-only package.  Unfortunately, the
             # current data model doesn't clearly identify those.  For the
             # moment, if we have seen at least one install tarfile, assume we
@@ -143,7 +147,7 @@ def main(args):
                 continue
 
             # write package data
-            print("@ %s" % p, file=f)
+            print("\n@ %s" % p, file=f)
 
             # for historical reasons, we adjust sdesc slightly:
             #
@@ -161,6 +165,8 @@ def main(args):
 
             if 'ldesc' in packages[p].hints:
                 print("ldesc: %s" % packages[p].hints['ldesc'], file=f)
+
+            print("category: %s" % packages[p].hints['category'], file=f)
 
             if 'requires' in packages[p].hints:
                 print("requires: %s" % packages[p].hints['requires'], file=f)

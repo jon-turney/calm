@@ -28,6 +28,7 @@
 import os
 import re
 import logging
+import tarfile
 from collections import defaultdict
 
 import hint
@@ -43,12 +44,13 @@ def read_packages(rel_area, arch):
     packages = defaultdict(Package)
 
     releasedir = os.path.join(rel_area, arch)
-    logging.info('Reading packages from %s' % releasedir)
+    logging.info('reading packages from %s' % releasedir)
 
     for (dirpath, subdirs, files) in os.walk(releasedir):
         relpath = os.path.relpath(dirpath, releasedir)
 
         if 'setup.hint' in files:
+            files.remove('setup.hint')
             # the package name is always the directory name
             p = os.path.basename(dirpath)
 
@@ -61,32 +63,41 @@ def read_packages(rel_area, arch):
             # read setup.hints
             hints = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
             if 'parse-errors' in hints:
-                logging.warning('Errors parsing hints for package %s' % p)
+                logging.warning('errors parsing hints for package %s' % p)
                 continue
 
             # read sha512.sum
             sha512 = {}
             if not 'sha512.sum' in files:
-                logging.warning('Missing sha512.sum for package %s' % p)
+                logging.warning('missing sha512.sum for package %s' % p)
                 continue
             else:
+                files.remove('sha512.sum')
+
                 with open(os.path.join(releasedir, relpath, 'sha512.sum')) as fo:
                     for l in fo:
                         match = re.match(r'^(\S+)\s+(?:\*|)(\S+)$', l)
                         if match:
                             sha512[match.group(2)] = match.group(1)
                         else:
-                            logging.warning("Bad line '%s' in sha512.sum for package %s" % (l, p))
+                            logging.warning("bad line '%s' in sha512.sum for package %s" % (l, p))
+
+            # discard obsolete md5.sum
+            if 'md5.sum' in files:
+                files.remove('md5.sum')
 
             # collect the attributes for each tar file
             tars = {}
             missing = False
-            for f in filter(lambda f: re.search(r'\.tar.*$', f), files):
-                tars[f]= {}
+
+            for f in list(filter(lambda f: re.search(r'^' + re.escape(p) + '-.+-[0-9.]*(-src|)\.tar\.(xz|bz2|gz)$', f), files)):
+                files.remove(f)
+
+                tars[f] = {}
                 tars[f]['size'] = os.path.getsize(os.path.join(releasedir, relpath, f))
 
                 if f not in sha512:
-                    logging.error("No sha512.sum line for file %s in package %s" % (f, p))
+                    logging.error("no sha512.sum line for file %s in package %s" % (f, p))
                     missing = True
                     break
                 else:
@@ -95,19 +106,43 @@ def read_packages(rel_area, arch):
             if missing:
                 continue
 
-            # XXX: warn about unexpected files
-            # XXX: warn about tarfiles which don't match the package name?
+            # warn about unexpected files, including tarfiles which don't match
+            # the package name or package-version-release naming conventions
+            if files:
+                logging.warning("unexpected files in %s: %s" % (relpath, str(files)))
 
             packages[p].hints = hints
             packages[p].tars = tars
             packages[p].path = relpath
 
         elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
-            logging.warning("No setup hint in %s but files %s" % (dirpath, str(files)))
+            logging.warning("no setup hint in %s but files %s" % (dirpath, str(files)))
 
     logging.info("%d packages read" % len(packages))
 
     return packages
+
+#
+# utility to determine if a tar file is empty
+#
+def tarfile_is_empty(tf):
+    # sometimes compressed empty files used rather than a compressed empty tar
+    # archive
+    if os.path.getsize(tf) <= 32:
+        return True
+
+    # parsing the tar archive just to determine if it contains at least one
+    # archive member is relatively expensive, so we just assume it contains
+    # something if it's over a certain size threshold
+    if os.path.getsize(tf) > 1024:
+        return False
+
+    # if it's really a tar file, does it contain zero files?
+    with tarfile.open(tf) as a:
+        if any(a) == 0:
+            return True
+
+    return False
 
 # a sorting which forces packages which begin with '!' to be sorted first,
 # packages which begin with '_" to be sorted last, and others to be sorted

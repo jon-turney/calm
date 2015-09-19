@@ -99,6 +99,7 @@ def item_lexer(c):
 def setup_hint_parse(fn):
     hints = {}
     errors = []
+    warnings = []
 
     with open(fn, 'rb') as f:
         c = f.read()
@@ -139,7 +140,7 @@ def setup_hint_parse(fn):
                     # validate that sdesc doesn't contain ':', as that prefix is removed
                     if key == 'sdesc':
                         if ':' in value:
-                            errors.append("sdesc contains ':'")
+                            warnings.append("sdesc contains ':'")
 
                     # only 'ldesc' and 'message' are allowed a multi-line value
                     if (key not in multilinevalkeys) and (len(value.splitlines()) > 1):
@@ -165,6 +166,9 @@ def setup_hint_parse(fn):
     if errors:
         hints['parse-errors'] = errors
 
+    if warnings:
+        hints['parse-warnings'] = warnings
+
     return hints
 
 #
@@ -177,13 +181,15 @@ def main(files):
     for fn in files:
         hints = setup_hint_parse(fn)
 
+        if 'parse-warnings' in hints:
+            for l in hints['parse-warnings']:
+                print('%s: %s' % (fn, l))
+            status = 1
+
         if 'parse-errors' in hints:
             for l in hints['parse-errors']:
                 print('%s: %s' % (fn, l))
-#            status = 255
-        else:
-#            print('%s: ok' % fn)
-            pass
+            status = 255
 
     return status
 
