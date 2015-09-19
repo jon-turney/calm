@@ -1,0 +1,12 @@
+* The current update done by upset is atomic: It reads both uploads and release
+  area and verifies the resulting package set is consistent before moving an
+  ything.
+
+  For simplicitly, this reimplmentation splits the moving and package set
+  consistency check into separate pieces, but we should have the pieces to add
+  that feature back.
+
+* upset appears to have a feature intended to merge existing the requires: with
+  those in setup.hint.  I'm not sure if it works, though.  Something like that
+  would be quite useful, though, telling you when dependencies were added or
+  removed.
