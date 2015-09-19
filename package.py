@@ -35,8 +35,8 @@ import common_constants
 
 class Package(object):
     def __init__(self):
-        self.path = ''
-        self.tars = []
+        self.path = '' # path to package, relative to release area
+        self.tars = {}
         self.hints = {}
 
 def read_packages(rel_area, arch):
@@ -48,9 +48,6 @@ def read_packages(rel_area, arch):
     for (dirpath, subdirs, files) in os.walk(releasedir):
         relpath = os.path.relpath(dirpath, releasedir)
 
-        tars = list(filter(lambda f: re.search(r'\.tar.*$', f), files))
-        tars = list(map(lambda f: os.path.join(arch, relpath, f), tars))
-
         if 'setup.hint' in files:
             # the package name is always the directory name
             p = os.path.basename(dirpath)
@@ -61,14 +58,49 @@ def read_packages(rel_area, arch):
                               (dirpath, packages[p].path))
                 continue
 
+            # read setup.hints
             hints = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
             if 'parse-errors' in hints:
                 logging.warning('Errors parsing hints for package %s' % p)
                 continue
 
+            # read sha512.sum
+            sha512 = {}
+            if not 'sha512.sum' in files:
+                logging.warning('Missing sha512.sum for package %s' % p)
+                continue
+            else:
+                with open(os.path.join(releasedir, relpath, 'sha512.sum')) as fo:
+                    for l in fo:
+                        match = re.match(r'^(\S+)\s+(?:\*|)(\S+)$', l)
+                        if match:
+                            sha512[match.group(2)] = match.group(1)
+                        else:
+                            logging.warning("Bad line '%s' in sha512.sum for package %s" % (l, p))
+
+            # collect the attributes for each tar file
+            tars = {}
+            missing = False
+            for f in filter(lambda f: re.search(r'\.tar.*$', f), files):
+                tars[f]= {}
+                tars[f]['size'] = os.path.getsize(os.path.join(releasedir, relpath, f))
+
+                if f not in sha512:
+                    logging.error("No sha512.sum line for file %s in package %s" % (f, p))
+                    missing = True
+                    break
+                else:
+                    tars[f]['sha512'] = sha512[f]
+
+            if missing:
+                continue
+
+            # XXX: warn about unexpected files
+            # XXX: warn about tarfiles which don't match the package name?
+
             packages[p].hints = hints
             packages[p].tars = tars
-            packages[p].path = dirpath
+            packages[p].path = relpath
 
         elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
             logging.warning("No setup hint in %s but files %s" % (dirpath, str(files)))

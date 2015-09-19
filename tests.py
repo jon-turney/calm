@@ -70,6 +70,8 @@ class TestMain(unittest.TestCase):
         setattr(args, 'htdocs', htdocs)
         setattr(args, 'rel_area', 'testdata')
         setattr(args, 'dryrun', False)
+        setattr(args, 'force', True)
+
         pkg2html.main(args)
 
         # compare the output files with expected

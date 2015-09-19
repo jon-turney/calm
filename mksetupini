@@ -31,6 +31,9 @@ import argparse
 import textwrap
 import time
 import re
+import logging
+import os
+import sys
 from distutils.version import LooseVersion
 from collections import defaultdict
 
@@ -45,7 +48,7 @@ import package
 
 def main(args):
     # build package list
-    packages = package.read_packages(args.arch)
+    packages = package.read_packages(args.rel_area, args.arch)
 
     #
     # validate the package database
@@ -55,13 +58,13 @@ def main(args):
         if 'requires' in packages[p].hints:
             for r in packages[p].hints['requires'].split():
                 if r not in packages:
-                    print("package %s requires nonexistent package %s" % (p, r))
+                    logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
 
         # if external-source is used, the package must exist
         if 'external-source' in packages[p].hints:
             e = packages[p].hints['external-source']
             if e not in packages:
-                print("package %s refers to nonexistent external-source %s" % (p, e))
+                logging.error("package '%s' refers to nonexistent external-source '%s'" % (p, e))
 
         packages[p].vermap = defaultdict(defaultdict)
         has_install = False
@@ -75,7 +78,7 @@ def main(args):
                 has_install = True
 
             # extract just the version part from tar filename
-            v = re.sub(r'^.*/' + re.escape(p) + '-', '', t)
+            v = re.sub(r'^' + re.escape(p) + '-', '', t)
             v = re.sub(r'(-src|)\.tar\.(xz|bz2|gz)$', '', v)
 
             # store tarfile corresponding to this version and category
@@ -102,7 +105,7 @@ def main(args):
 
             for c in required_categories:
                 if c not in packages[p].vermap[v]:
-                    print("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
+                    logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
 
             # assign a version to each stability level
             if len(levels) > 0:
@@ -110,11 +113,10 @@ def main(args):
             else:
                 # XXX: versions which don't correspond to any stability level
                 # should be reported, we might want to remove them at some point
-                print("package '%s' has no levels left for version '%s'" % (p, v))
+#                logging.error("package '%s' has no levels left for version '%s'" % (p, v))
+                pass
 
-        # fetch sha512 for each tar file
         # XXX: all stability levels must exist?
-        # XXX: tarfiles which don't match the package name?
 
     #
     # write setup.ini
@@ -172,7 +174,11 @@ def main(args):
                     print("version: %s" % version, file=f)
                     for category in ['install', 'source']:
                         if category in packages[p].vermap[version]:
-                            print("%s: %s %d %d" % (category, packages[p].vermap[version][category], 0, 0), file=f)
+                            t = packages[p].vermap[version][category]
+                            fn = os.path.join(args.arch, packages[p].path, t)
+                            sha512 = packages[p].tars[t]['sha512']
+                            size = packages[p].tars[t]['size']
+                            print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
 
                     # XXX: follow external-source
 
@@ -180,11 +186,20 @@ def main(args):
                 print("message: %s" % packages[p].hints['message'], file=f)
 
 if __name__ == "__main__":
+    relarea_default = common_constants.FTP
+
     parser = argparse.ArgumentParser(description='Make setup.ini')
-    parser.add_argument('--setup-version' , action='store', metavar='VERSION', help='value for setup-version key')
-    parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
+    parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
+    parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--setup-version' , action='store', metavar='VERSION', help='value for setup-version key')
+    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
     (args) = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.INFO)
+
+    logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
 
     main(args)

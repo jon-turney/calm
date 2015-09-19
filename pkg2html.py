@@ -63,6 +63,10 @@ def main(args):
 
     for p in packages.keys():
 
+        # do nothing for packages marked 'skip'
+        if 'skip' in packages[p].hints:
+            continue
+
         dir = os.path.join(base, p)
         os.makedirs(dir, exist_ok=True)
         os.chmod(dir, 0o777)
@@ -86,18 +90,16 @@ def main(args):
                     # this doesn't help for src packages, so is it actually having any effect?
 
         #
-        # for each tarfile, write tarfile listing, if needed
+        # for each tarfile, write tarfile listing
         #
 
         for t in packages[p].tars:
 
-            fver = os.path.basename(t)
-            fver = re.sub(r'\.tar.*$', '', fver)
+            fver = re.sub(r'\.tar.*$', '', t)
             html = os.path.join(dir, fver)
 
-            if not os.path.exists(html):
-                if 'skip' in packages[p].hints:
-                    continue
+            # ... if it doesn't already exist, or force
+            if not os.path.exists(html) or args.force:
 
                 logging.info('Writing %s' % html)
 
@@ -115,25 +117,23 @@ def main(args):
                                                  <h1>%s</h1>
                                                  <tt><pre>''' % (header)), file=f)
 
-                        tf = os.path.join(common_constants.FTP, t)
-                        if os.path.exists(tf):
-
-                            # compressed empty files aren't a valid tar file, but we can
-                            # just ignore them
-                            if (os.path.getsize(tf) <= 32):
-                                continue
-
-                            a = tarfile.open(tf)
-                            for i in a:
-                                print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
-                                if i.isdir():
-                                    print('/', file=f, end='')
-                                if i.issym() or i.islnk():
-                                    print(' -> %s' % i.linkname, file=f, end='')
-                                print('', file=f)
-                        else:
+                        tf = os.path.join(args.rel_area, args.arch, packages[p].path, t)
+                        if not os.path.exists(tf):
                             # XXX: this shouldn't happen with a full mirror...
                             print('tarfile %s not found' % tf, file=f)
+                        elif os.path.getsize(tf) <= 32:
+                            # compressed empty files aren't a valid tar file,
+                            # but we can just ignore them
+                            pass
+                        else:
+                            with tarfile.open(tf) as a:
+                                for i in a:
+                                    print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
+                                    if i.isdir():
+                                        print('/', file=f, end='')
+                                    if i.issym() or i.islnk():
+                                        print(' -> %s' % i.linkname, file=f, end='')
+                                    print('', file=f)
 
                         print(textwrap.dedent('''\
                                                  </pre></tt>
@@ -191,12 +191,12 @@ if __name__ == "__main__":
     relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='Write HTML package listings')
-    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
-    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
+    parser.add_argument('--force', action='store_true', help="overwrite existing files")
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
-    # XXX: should support a 'force' action to write files even though they already exist
+    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
+    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
     (args) = parser.parse_args()
 
     if args.verbose:
