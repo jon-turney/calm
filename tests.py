@@ -37,6 +37,8 @@ import pkg2html
 
 class TestMain(unittest.TestCase):
     def test_hint_parser(self):
+        self.maxDiff = None
+
         for (dirpath, subdirs, files) in os.walk('testdata/x86/release'):
             if 'setup.hint' in files:
                 with self.subTest(package=os.path.basename(dirpath)):
@@ -51,7 +53,7 @@ class TestMain(unittest.TestCase):
                     with open(os.path.join(dirpath, 'expected')) as f:
                         expected = eval(f.read())
 
-                    self.assertEqual(results, expected)
+                    self.assertEqual(expected, results)
 
 #
 # something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
@@ -79,7 +81,7 @@ class TestMain(unittest.TestCase):
                 if not filecmp.cmp(results, expected, shallow=False):
                     logging.info("%s different", os.path.join(relpath, f))
                     with open(results) as r, open(expected) as e:
-                        self.assertMultiLineEqual(r.read(), e.read())
+                        self.assertMultiLineEqual(e.read(), r.read())
                 else:
                     logging.info("%s identical", os.path.join(relpath, f))
 

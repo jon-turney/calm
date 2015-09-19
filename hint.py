@@ -124,7 +124,6 @@ def setup_hint_parse(fn):
 
                     if not key in hintkeys:
                         errors.append('unknown setup key %s at line %d' % (fn, key, i))
-                        err_count = err_count + 1
                         continue
 
                     # store the key:value
@@ -140,7 +139,7 @@ def setup_hint_parse(fn):
                     # validate that sdesc doesn't contain ':', as that prefix is removed
                     if key == 'sdesc':
                         if ':' in value:
-                            errors.append("sdesc '%s' contains ':'" % (value))
+                            errors.append("sdesc contains ':'")
 
                     # only 'ldesc' and 'message' are allowed a multi-line value
                     if (key not in multilinevalkeys) and (len(value.splitlines()) > 1):
