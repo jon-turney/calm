@@ -123,8 +123,28 @@ def validate_packages(args, packages):
             # store tarfile corresponding to this version and category
             packages[p].vermap[v][category] = t
 
-        levels = [ 'curr', 'prev' ]
+        levels = [ 'test', 'curr', 'prev' ]
         packages[p].stability = defaultdict()
+
+        # process any explicit assignment of versions to stability levels
+        for l in [ 'test', 'curr', 'prev']:
+            if l in packages[p].hints:
+                v = packages[p].hints[l]
+
+                # check that version exists
+                if v in packages[p].vermap.keys():
+                    logging.info("package '%s' stability '%s' override to version '%s'" % (p, l, v))
+                    # assign version to level
+                    packages[p].stability[l] = v
+                    # and remove from list of unallocated levels
+                    levels.remove(l)
+                else:
+                    logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
+                    error = True
+
+        # 'test' version must be explicit
+        if 'test' in levels:
+            levels.remove('test')
 
         # sort in order from highest to lowest version
         for v in sorted(packages[p].vermap.keys(), key=lambda v:LooserVersion(v), reverse=True):
@@ -158,7 +178,7 @@ def validate_packages(args, packages):
             else:
                 # XXX: versions which don't correspond to any stability level
                 # should be reported, we might want to remove them at some point
-#                logging.error("package '%s' has no levels left for version '%s'" % (p, v))
+#                logging.error("package '%s' has no stability levels left for version '%s'" % (p, v))
                 pass
 
         # for historical reasons, add cygwin to requires if not already present,
@@ -173,7 +193,7 @@ def validate_packages(args, packages):
                 packages[p].hints['requires'] = requires + 'cygwin'
 
         # if the package has no install tarfiles (i.e. is source only), mark it
-        # as 'skip' (which really means 'source-only' \t the moment)
+        # as 'skip' (which really means 'source-only' at the moment)
         if not has_install and 'skip' not in packages[p].hints:
             packages[p].hints['skip'] = ''
 
@@ -242,7 +262,7 @@ def write_setup_ini(args, packages):
                     print("requires: %s" % requires, file=f)
 
             # write tarfile lines for each stability level
-            for level in [ 'curr', 'test', 'prev' ]:
+            for level in [ 'curr', 'prev', 'test' ]:
                 if level in packages[p].stability:
                     version = packages[p].stability[level]
                     if level != 'curr':

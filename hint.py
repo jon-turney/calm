@@ -151,6 +151,10 @@ def setup_hint_parse(fn):
                         if not re.match(r'(\S+)\s+(\S.*)', value):
                             errors.append('message value must have id and text')
 
+                    # warn if value starts with a quote followed by whitespace
+                    if re.match(r'^"[ \t]+', value):
+                        warnings.append('value for key %s starts with quoted whitespace' % (key))
+
                     # XXX: perhaps quotes around the value should be mandatory
                     # for some keys?
                 else:
