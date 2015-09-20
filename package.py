@@ -63,13 +63,15 @@ def read_packages(rel_area, arch):
             # read setup.hints
             hints = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
             if 'parse-errors' in hints:
-                logging.warning('errors parsing hints for package %s' % p)
+                for l in hints['parse-errors']:
+                    logging.error("package '%s': %s" % (p, l))
+                logging.error("errors while parsing hints for package '%s'" % p)
                 continue
 
             # read sha512.sum
             sha512 = {}
             if not 'sha512.sum' in files:
-                logging.warning('missing sha512.sum for package %s' % p)
+                logging.warning("missing sha512.sum for package '%s'" % p)
                 continue
             else:
                 files.remove('sha512.sum')
@@ -80,7 +82,7 @@ def read_packages(rel_area, arch):
                         if match:
                             sha512[match.group(2)] = match.group(1)
                         else:
-                            logging.warning("bad line '%s' in sha512.sum for package %s" % (l, p))
+                            logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l, p))
 
             # discard obsolete md5.sum
             if 'md5.sum' in files:
@@ -97,7 +99,7 @@ def read_packages(rel_area, arch):
                 tars[f]['size'] = os.path.getsize(os.path.join(releasedir, relpath, f))
 
                 if f not in sha512:
-                    logging.error("no sha512.sum line for file %s in package %s" % (f, p))
+                    logging.error("no sha512.sum line for file %s in package '%s'" % (f, p))
                     missing = True
                     break
                 else:
@@ -109,14 +111,14 @@ def read_packages(rel_area, arch):
             # warn about unexpected files, including tarfiles which don't match
             # the package name or package-version-release naming conventions
             if files:
-                logging.warning("unexpected files in %s: %s" % (relpath, str(files)))
+                logging.warning("unexpected files in %s: %s" % (relpath, ', '.join(files)))
 
             packages[p].hints = hints
             packages[p].tars = tars
             packages[p].path = relpath
 
         elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
-            logging.warning("no setup hint in %s but files %s" % (dirpath, str(files)))
+            logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
 
     logging.info("%d packages read" % len(packages))
 

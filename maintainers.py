@@ -75,6 +75,7 @@ def add_maintainer_directories(dir=None):
             if os.path.isfile(email):
                 with open(email) as f:
                     m.email = f.read()
+                    # XXX: one line per address, ignore blank and comment lines
 
 # add maintainers from the package maintainers list, with the packages they
 # maintain

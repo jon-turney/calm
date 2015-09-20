@@ -150,6 +150,9 @@ def setup_hint_parse(fn):
                     if key == 'message':
                         if not re.match(r'(\S+)\s+(\S.*)', value):
                             errors.append('message value must have id and text')
+
+                    # XXX: perhaps quotes around the value should be mandatory
+                    # for some keys?
                 else:
                     errors.append("unknown setup construct '%s' at line %d" % (item, i))
 

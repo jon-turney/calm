@@ -43,6 +43,26 @@ import package
 #
 #
 #
+
+class LooserVersion(LooseVersion):
+
+    #override
+    def _cmp(self, other):
+        try:
+            return super(LooserVersion, self)._cmp(other)
+        except TypeError:
+            # When unorderable, compare the version strings instead
+            if isinstance(other, str):
+                other = LooseVersion(other)
+            if self.vstring == other.vstring:
+                return 0
+            if self.vstring < other.vstring:
+                return -1
+            if self.vstring > other.vstring:
+                return 1
+#
+#
+#
 #
 #
 
@@ -50,24 +70,40 @@ def main(args):
     # build package list
     packages = package.read_packages(args.rel_area, args.arch)
 
-    #
-    # validate the package database
-    #
+    # validate the package set
+    if not validate_packages(args, packages):
+        return
+
+    # write setup.ini
+    write_setup_ini(args, packages);
+
+#
+# validate the package database
+#
+def validate_packages(args, packages):
+    error = False
+
     for p in sorted(packages.keys()):
         # all packages listed in requires must exist
         if 'requires' in packages[p].hints:
             for r in packages[p].hints['requires'].split():
                 if r not in packages:
                     logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
+                    error = True
+
+        # XXX: a package appearing it it's own requires should be disallowed
 
         # if external-source is used, the package must exist
+        # XXX: also, a source tarfile must exist for every install tarfile version
         if 'external-source' in packages[p].hints:
             e = packages[p].hints['external-source']
             if e not in packages:
                 logging.error("package '%s' refers to nonexistent external-source '%s'" % (p, e))
+                error = True
 
         packages[p].vermap = defaultdict(defaultdict)
         has_install = False
+        is_empty = {}
 
         for t in packages[p].tars:
             # categorize each tarfile as either 'source' or 'install'
@@ -76,6 +112,9 @@ def main(args):
             else:
                 category = 'install'
                 has_install = True
+
+                # check if install package is empty
+                is_empty[t] = package.tarfile_is_empty(os.path.join(args.rel_area, args.arch, packages[p].path, t))
 
             # extract just the version part from tar filename
             v = re.sub(r'^' + re.escape(p) + '-', '', t)
@@ -88,7 +127,7 @@ def main(args):
         packages[p].stability = defaultdict()
 
         # sort in order from highest to lowest version
-        for v in sorted(packages[p].vermap.keys(), reverse=True):
+        for v in sorted(packages[p].vermap.keys(), key=lambda v:LooserVersion(v), reverse=True):
             required_categories = []
 
             # a source tarfile must exist for every version, unless
@@ -96,7 +135,7 @@ def main(args):
             # - this package is external-source
             if 'external-source' not in packages[p].hints:
                 if 'install' in packages[p].vermap[v]:
-                    if not package.tarfile_is_empty(os.path.join(args.rel_area, args.arch, packages[p].path, packages[p].vermap[v]['install'])):
+                    if not is_empty[packages[p].vermap[v]['install']]:
                         required_categories.append('source')
 
             # similarly, we should verify that each version has an install
@@ -109,7 +148,9 @@ def main(args):
 
             for c in required_categories:
                 if c not in packages[p].vermap[v]:
-                    logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
+#                    logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
+#                    error = True
+                    pass
 
             # assign a version to each stability level
             if len(levels) > 0:
@@ -120,11 +161,32 @@ def main(args):
 #                logging.error("package '%s' has no levels left for version '%s'" % (p, v))
                 pass
 
+        # for historical reasons, add cygwin to requires if not already present,
+        # the package is not source-only, not empty, and not on the list to
+        # avoid doing this for (this approximates what 'autodep' did)
+        if has_install and (not all(is_empty.values())) and (p not in ['base-cygwin']):
+            requires = packages[p].hints.get('requires', '')
+
+            if not re.search(r'\bcygwin\b', requires):
+                if len(requires) > 0:
+                    requires = requires + ' '
+                packages[p].hints['requires'] = requires + 'cygwin'
+
+        # if the package has no install tarfiles (i.e. is source only), mark it
+        # as 'skip' (which really means 'source-only' \t the moment)
+        if not has_install and 'skip' not in packages[p].hints:
+            packages[p].hints['skip'] = ''
+
+        # XXX: hint can override the version at a stability level
         # XXX: all stability levels must exist?
 
-    #
-    # write setup.ini
-    #
+    return not error
+
+#
+# write setup.ini
+#
+def write_setup_ini(args, packages):
+
     with open(args.inifile, 'w') as f:
         # write setup.ini header
         print(textwrap.dedent('''\
@@ -153,23 +215,31 @@ def main(args):
             #
             # - strip anything up to and including first ':'
             # - capitalize first letter
+            # whilst preserving any leading quote
             #
             # these are both bad ideas, due to sdesc's which start with a
             # lower-case command name, or contain perl or ruby module names like
             # 'Net::HTTP'
             sdesc = packages[p].hints['sdesc']
+            sdesc = re.sub('^("?)(.*?)("?)$', r'\2', sdesc)
             if ':' in sdesc:
-                sdesc = sdesc.split(':', 1)[1]
-            sdesc = sdesc[0].upper() + sdesc[1:]
+                sdesc = re.sub(r'^[^:]+:\s*', '', sdesc)
+            sdesc = '"' + upper_first_character(sdesc) + '"'
             print("sdesc: %s" % sdesc, file=f)
 
             if 'ldesc' in packages[p].hints:
                 print("ldesc: %s" % packages[p].hints['ldesc'], file=f)
 
-            print("category: %s" % packages[p].hints['category'], file=f)
+            # for historical reasons, category names must start with a capital
+            # letter
+            category = ' '.join(map(upper_first_character, packages[p].hints['category'].split()))
+            print("category: %s" % category, file=f)
 
             if 'requires' in packages[p].hints:
-                print("requires: %s" % packages[p].hints['requires'], file=f)
+                # for historical reasons, empty requires are suppressed
+                requires = packages[p].hints['requires']
+                if requires:
+                    print("requires: %s" % requires, file=f)
 
             # write tarfile lines for each stability level
             for level in [ 'curr', 'test', 'prev' ]:
@@ -178,18 +248,33 @@ def main(args):
                     if level != 'curr':
                         print("[%s]" % level, file=f)
                     print("version: %s" % version, file=f)
-                    for category in ['install', 'source']:
-                        if category in packages[p].vermap[version]:
-                            t = packages[p].vermap[version][category]
-                            fn = os.path.join(args.arch, packages[p].path, t)
-                            sha512 = packages[p].tars[t]['sha512']
-                            size = packages[p].tars[t]['size']
-                            print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
 
-                    # XXX: follow external-source
+                    if 'install' in packages[p].vermap[version]:
+                        t = packages[p].vermap[version]['install']
+                        tar_line('install', args.arch, packages[p], t, f)
+
+                    if 'external-source' in packages[p].hints:
+                        # follow external-source
+                        s = packages[p].hints['external-source']
+                        t = packages[s].vermap[version]['source']
+                        tar_line('source', args.arch, packages[s], t, f)
+                    elif 'source' in packages[p].vermap[version]:
+                        t = packages[p].vermap[version]['source']
+                        tar_line('source', args.arch, packages[p], t, f)
 
             if 'message' in packages[p].hints:
                 print("message: %s" % packages[p].hints['message'], file=f)
+
+def tar_line(category, arch, p, t, f):
+    fn = os.path.join(arch, p.path, t)
+    sha512 = p.tars[t]['sha512']
+    size = p.tars[t]['size']
+    print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
+
+# change the first character of a string to upper case, without altering the
+# rest
+def upper_first_character(s):
+    return s[:1].upper() + s[1:]
 
 if __name__ == "__main__":
     relarea_default = common_constants.FTP
