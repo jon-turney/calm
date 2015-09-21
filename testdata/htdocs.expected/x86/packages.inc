@@ -18,5 +18,6 @@
 <tr><td><a href="x86/libtextcat0">libtextcat0</a></td><td>Text Classification Library dll</td></tr>
 <tr><td><a href="x86/mDNSResponder">mDNSResponder</a></td><td>Bonjour Zeroconf implementation</td></tr>
 <tr><td><a href="x86/proj-debuginfo">proj-debuginfo</a></td><td>Debug info for proj</td></tr>
+<tr><td><a href="x86/rpm-doc">rpm-doc</a></td><td>Obsolete package for RPM package management system manual pages</td></tr>
 </table>
 </div>

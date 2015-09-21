@@ -1,0 +1,5 @@
+category: Net
+requires: libgcc1 libncursesw10 
+sdesc: "Console AIM, ICQ, IRC, and Lily client"
+ldesc: " naim is a console client for AOL Instant Messenger (AIM),
+AOL I Seek You (ICQ), Internet Relay Chat (IRC), and The lily CMC."

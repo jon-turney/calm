@@ -1,0 +1,18 @@
+<html>
+<h1>rpm-doc: Obsolete package for RPM package management system manual pages (installed binaries and support files)</h1>
+<tt><pre>
+    2003-05-02 11:46       25562 usr/man/fr/man8/rpm.8
+    2003-05-02 11:46       39721 usr/man/ja/man8/rpm.8
+    2003-05-02 11:46         962 usr/man/ja/man8/rpm2cpio.8
+    2003-05-02 11:46       10925 usr/man/ko/man8/rpm.8
+    2003-05-02 11:46         675 usr/man/ko/man8/rpm2cpio.8
+    2003-05-02 11:46        1642 usr/man/man1/gendiff.1
+    2003-05-02 11:46       28286 usr/man/man8/rpm.8
+    2003-05-02 11:46         603 usr/man/man8/rpm2cpio.8
+    2003-05-02 11:46       21387 usr/man/pl/man8/rpm.8
+    2003-05-02 11:46         657 usr/man/pl/man8/rpm2cpio.8
+    2003-05-02 11:46       22681 usr/man/ru/man8/rpm.8
+    2003-05-02 11:46         603 usr/man/ru/man8/rpm2cpio.8
+    2003-05-02 11:46       23159 usr/man/sk/man8/rpm.8
+</pre></tt>
+</html>

@@ -1,6 +1,7 @@
 {'category': 'Graphics Libs',
  'external-source': 'proj',
- 'parse-errors': ['embedded quote at line 3', "sdesc contains ':'", 'key sdesc has multi-line value'],
+ 'parse-errors': ['embedded quote at line 3', 'key sdesc has multi-line value'],
+ 'parse-warnings': ["sdesc contains ':'"],
  'requires': '',
  'sdesc': '""The PROJ Cartographic Projections Software (runtime)"\n'
           'ldesc: "Cartographic projection library and utilities"'}
