@@ -43,9 +43,7 @@ import package
 #
 #
 #
-
 class LooserVersion(LooseVersion):
-
     #override
     def _cmp(self, other):
         try:
@@ -60,8 +58,7 @@ class LooserVersion(LooseVersion):
                 return -1
             if self.vstring > other.vstring:
                 return 1
-#
-#
+
 #
 #
 #
@@ -94,7 +91,6 @@ def validate_packages(args, packages):
         # XXX: a package appearing it it's own requires should be disallowed
 
         # if external-source is used, the package must exist
-        # XXX: also, a source tarfile must exist for every install tarfile version
         if 'external-source' in packages[p].hints:
             e = packages[p].hints['external-source']
             if e not in packages:
@@ -123,30 +119,60 @@ def validate_packages(args, packages):
             # store tarfile corresponding to this version and category
             packages[p].vermap[v][category] = t
 
-        levels = [ 'test', 'curr', 'prev' ]
-        packages[p].stability = defaultdict()
-
-        # process any explicit assignment of versions to stability levels
-        for l in [ 'test', 'curr', 'prev']:
+        # verify the versions specified for stability level exist
+        levels = ['test', 'curr', 'prev']
+        for l in levels:
             if l in packages[p].hints:
-                v = packages[p].hints[l]
-
                 # check that version exists
-                if v in packages[p].vermap.keys():
-                    logging.info("package '%s' stability '%s' override to version '%s'" % (p, l, v))
-                    # assign version to level
-                    packages[p].stability[l] = v
-                    # and remove from list of unallocated levels
-                    levels.remove(l)
-                else:
+                v = packages[p].hints[l]
+                if v not in packages[p].vermap.keys():
                     logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
                     error = True
 
-        # 'test' version must be explicit
-        if 'test' in levels:
-            levels.remove('test')
+        # assign a version to each stability level
+        packages[p].stability = defaultdict()
 
         # sort in order from highest to lowest version
+        for v in sorted(packages[p].vermap.keys(), key=lambda v:LooserVersion(v), reverse=True):
+            level_found = False
+
+            while True:
+                # no stability levels left
+                if len(levels) == 0:
+                    # XXX: versions which don't correspond to any stability level
+                    # should be reported, we might want to remove them at some point
+                    logging.info("package '%s' has no stability levels left for version '%s'" % (p, v))
+                    break
+
+                l = levels[0]
+
+                # if current stability level has an override
+                if l in packages[p].hints:
+                    # if we haven't reached that version yet
+                    if v != packages[p].hints[l]:
+                        break
+                    else:
+                        logging.info("package '%s' stability '%s' override to version '%s'" % (p, l, v))
+                else:
+                    # level 'test' must be assigned by override
+                    if l == 'test':
+                        levels.remove(l)
+                        # go around again to check for override at the new level
+                        continue
+
+                level_found = True
+                logging.info("package '%s' stability '%s' assigned version '%s'" % (p, l, v))
+                break
+
+            if not level_found:
+                continue
+
+            # assign version to level
+            packages[p].stability[l] = v
+            # and remove from list of unallocated levels
+            levels.remove(l)
+
+        # verify that versions have files
         for v in sorted(packages[p].vermap.keys(), key=lambda v:LooserVersion(v), reverse=True):
             required_categories = []
 
@@ -157,6 +183,10 @@ def validate_packages(args, packages):
                 if 'install' in packages[p].vermap[v]:
                     if not is_empty[packages[p].vermap[v]['install']]:
                         required_categories.append('source')
+
+            # XXX: actually we should verify that a source tarfile must exist
+            # for every install tarfile version, but it may be either in this
+            # package or in the external-source package...
 
             # similarly, we should verify that each version has an install
             # tarfile, unless this is a source-only package.  Unfortunately, the
@@ -172,19 +202,11 @@ def validate_packages(args, packages):
 #                    error = True
                     pass
 
-            # assign a version to each stability level
-            if len(levels) > 0:
-                packages[p].stability[levels.pop(0)] = v
-            else:
-                # XXX: versions which don't correspond to any stability level
-                # should be reported, we might want to remove them at some point
-#                logging.error("package '%s' has no stability levels left for version '%s'" % (p, v))
-                pass
-
         # for historical reasons, add cygwin to requires if not already present,
-        # the package is not source-only, not empty, and not on the list to
-        # avoid doing this for (this approximates what 'autodep' did)
-        if has_install and (not all(is_empty.values())) and (p not in ['base-cygwin']):
+        # the package is not source-only, not empty, not only contains symlinks,
+        # and not on the list to avoid doing this for
+        # (this approximates what 'autodep' did)
+        if has_install and (not all(is_empty.values())) and (p not in ['base-cygwin', 'gcc4-core', 'gcc4-g++']):
             requires = packages[p].hints.get('requires', '')
 
             if not re.search(r'\bcygwin\b', requires):
@@ -273,14 +295,15 @@ def write_setup_ini(args, packages):
                         t = packages[p].vermap[version]['install']
                         tar_line('install', args.arch, packages[p], t, f)
 
-                    if 'external-source' in packages[p].hints:
-                        # follow external-source
+                    # look for corresponding source in this package first
+                    if 'source' in packages[p].vermap[version]:
+                        t = packages[p].vermap[version]['source']
+                        tar_line('source', args.arch, packages[p], t, f)
+                    # if that doesn't exist, follow external-source
+                    elif 'external-source' in packages[p].hints:
                         s = packages[p].hints['external-source']
                         t = packages[s].vermap[version]['source']
                         tar_line('source', args.arch, packages[s], t, f)
-                    elif 'source' in packages[p].vermap[version]:
-                        t = packages[p].vermap[version]['source']
-                        tar_line('source', args.arch, packages[p], t, f)
 
             if 'message' in packages[p].hints:
                 print("message: %s" % packages[p].hints['message'], file=f)
