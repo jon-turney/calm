@@ -108,6 +108,8 @@ def scan(m, arch):
 
             if f.startswith('-'):
                 logging.error("file deletion request %s not implemented yet" % f)
+            # XXX: tar files must conform to P-V-R naming convention. fail if
+            # they don't, or there are any unexpected files
             elif re.search('.tar.*$', f):
                 dest = os.path.join(releasedir, p, f)
                 if os.path.isfile(dest):
@@ -146,7 +148,7 @@ def scan(m, arch):
                 # itself for when that file hasn't yet been created by
                 # sourceware.org scripts)
                 if not dryrun:
-                    os.system('cd %s ; sha512.sum * >sha512.sum', os.pathjoin(releasedir, p))
+                    os.system('cd %s ; sha512.sum * >sha512.sum', os.path.join(releasedir, p))
 
 #
 #

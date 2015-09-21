@@ -31,13 +31,13 @@ import argparse
 # keys which always have a value which may be multiline
 multilinevalkeys = [ 'ldesc', 'message']
 # keys which always have a value
-valkeys = [ 'curr', 'prev', 'test', 'category', 'external-source', 'autodep', 'noautodep', 'sdesc' ]
+valkeys = [ 'curr', 'prev', 'test', 'category', 'external-source', 'sdesc' ]
 # keys which may have an empty value
 optvalkeys = [ 'requires' ]
 # keys which must have an empty value
 novalkeys = ['skip' ]
-# obsolete key used by _update_info_dir we accept as valid for the moment
-obsoletekeys = [ 'incver_ifdep' ]
+# obsolete keys used by autodep mechanism we accept as valid for the moment
+obsoletekeys = [ 'autodep', 'noautodep', 'incver_ifdep' ]
 
 hintkeys = multilinevalkeys + valkeys + optvalkeys + novalkeys + obsoletekeys
 
@@ -124,7 +124,7 @@ def setup_hint_parse(fn):
                     value = match.group(2)
 
                     if not key in hintkeys:
-                        errors.append('unknown setup key %s at line %d' % (fn, key, i))
+                        errors.append('unknown setup key %s at line %d' % (key, i))
                         continue
 
                     # store the key:value

@@ -92,12 +92,15 @@ def read_packages(rel_area, arch):
             tars = {}
             missing = False
 
-            # tar filenames must match the P-V-R convention.  P must match the
-            # package name, V can contain anything, for R we allow some some
-            # strings other than simple number, but it's unclear that is a good
-            # idea
-            for f in list(filter(lambda f: re.search(r'^' + re.escape(p) + '-.+-([0-9.]|alpha|bzr|git|hg|P|rc)*(-src|)\.tar\.(xz|bz2|gz)$', f), files)):
+            for f in list(filter(lambda f: re.search(r'\.tar.*$', f), files)):
                 files.remove(f)
+
+                # warn if tar filename doesn't follow P-V-R naming convention
+                #
+                # P must match the package name, V can contain anything
+                # (including a '-'), R must start with a number
+                if not re.match(r'^' + re.escape(p) + '-.+-\d[0-9a-zA-Z.]*(-src|)\.tar\.(xz|bz2|gz)$', f):
+                    logging.warning("tar file %s in package '%s' doesn't follow naming convention" % (f, p))
 
                 tars[f] = {}
                 tars[f]['size'] = os.path.getsize(os.path.join(releasedir, relpath, f))
