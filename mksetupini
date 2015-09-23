@@ -34,30 +34,11 @@ import re
 import logging
 import os
 import sys
-from distutils.version import LooseVersion
 from collections import defaultdict
 
 import common_constants
 import package
-
-#
-#
-#
-class LooserVersion(LooseVersion):
-    #override
-    def _cmp(self, other):
-        try:
-            return super(LooserVersion, self)._cmp(other)
-        except TypeError:
-            # When unorderable, compare the version strings instead
-            if isinstance(other, str):
-                other = LooseVersion(other)
-            if self.vstring == other.vstring:
-                return 0
-            if self.vstring < other.vstring:
-                return -1
-            if self.vstring > other.vstring:
-                return 1
+from version import SetupVersion
 
 #
 #
@@ -88,7 +69,7 @@ def validate_packages(args, packages):
                     logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
                     error = True
 
-        # XXX: a package appearing it it's own requires should be disallowed
+        # XXX: a package appearing in it's own requires should be disallowed
 
         # if external-source is used, the package must exist
         if 'external-source' in packages[p].hints:
@@ -133,7 +114,7 @@ def validate_packages(args, packages):
         packages[p].stability = defaultdict()
 
         # sort in order from highest to lowest version
-        for v in sorted(packages[p].vermap.keys(), key=lambda v:LooserVersion(v), reverse=True):
+        for v in sorted(packages[p].vermap.keys(), key=lambda v:SetupVersion(v), reverse=True):
             level_found = False
 
             while True:
@@ -164,6 +145,8 @@ def validate_packages(args, packages):
                 logging.info("package '%s' stability '%s' assigned version '%s'" % (p, l, v))
                 break
 
+                # XXX: still not quite right if overrides are out of order
+
             if not level_found:
                 continue
 
@@ -173,7 +156,7 @@ def validate_packages(args, packages):
             levels.remove(l)
 
         # verify that versions have files
-        for v in sorted(packages[p].vermap.keys(), key=lambda v:LooserVersion(v), reverse=True):
+        for v in sorted(packages[p].vermap.keys(), key=lambda v:SetupVersion(v), reverse=True):
             required_categories = []
 
             # a source tarfile must exist for every version, unless

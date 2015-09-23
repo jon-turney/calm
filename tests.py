@@ -34,6 +34,7 @@ import unittest
 
 import hint
 import pkg2html
+from version import SetupVersion
 
 class TestMain(unittest.TestCase):
     def test_hint_parser(self):
@@ -86,6 +87,29 @@ class TestMain(unittest.TestCase):
                         self.assertMultiLineEqual(e.read(), r.read())
                 else:
                     logging.info("%s identical", os.path.join(relpath, f))
+
+    def test_version_sort(self):
+        test_data = [ [ "1.0.0", "2.0.0", -1 ],
+                      [ ".0.0", "2.0.0", -1 ],
+                      [ "alpha", "beta", -1 ],
+                      [ "1.0", "1.0.0", -1 ],
+                      [ "2.456", "2.1000", -1 ],
+                      [ "2.1000", "3.111", -1 ],
+                      [ "2.001", "2.1", 0 ],
+                      [ "2.34", "2.34", 0 ],
+                      [ "6.1.2-4", "6.3.8-1", -1 ],
+                      [ "1.7.3.0-2", "2.0.0-b8-1", -1 ],
+                      [ "041206-1", "200090325-1", -1 ],
+#                      [ "0.6.7-1", "0.6.7+20150214+git3a710f9-1", 1 ],
+#                      [ "3.4.1-1", "3.4b1-1", 1 ],
+        ]
+
+        for d in test_data:
+            a = SetupVersion(d[0])
+            b = SetupVersion(d[1])
+            e = d[2]
+            self.assertEqual(SetupVersion.__cmp__(a, b), e, msg='%s %s %d' % (a, b, e))
+            self.assertEqual(SetupVersion.__cmp__(b, a), -e, msg='%s %s %d' % (a, b, -e))
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
