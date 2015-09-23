@@ -32,9 +32,35 @@ import pprint
 import types
 import unittest
 
-import hint
-import pkg2html
 from version import SetupVersion
+import hint
+import maintainers
+import pkg2html
+
+#
+# helper function
+#
+# write results to the file 'results'
+# read expected from the file 'expected'
+# compare them
+#
+
+def compare_with_expected_file(test, dirpath, results):
+    results_str = pprint.pformat(results, width=120)
+
+    # save results in a file
+    with open(os.path.join(dirpath, 'results'), 'w') as f:
+        print(results_str, file=f)
+
+    # read expected from a file
+    with open(os.path.join(dirpath, 'expected')) as f:
+        expected = f.read().rstrip()
+
+    test.assertMultiLineEqual(expected, results_str)
+
+#
+#
+#
 
 class TestMain(unittest.TestCase):
     def test_hint_parser(self):
@@ -45,16 +71,7 @@ class TestMain(unittest.TestCase):
                 with self.subTest(package=os.path.basename(dirpath)):
                     logging.info('Reading %s' % os.path.join(dirpath, 'setup.hint'))
                     results = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
-
-                    # save results in a file
-                    with open(os.path.join(dirpath, 'results'), 'w') as f:
-                        pprint.pprint(results, stream=f, width=120)
-
-                    # read expected from a file
-                    with open(os.path.join(dirpath, 'expected')) as f:
-                        expected = eval(f.read())
-
-                    self.assertEqual(expected, results)
+                    compare_with_expected_file(self, dirpath, results)
 
 #
 # something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
@@ -110,6 +127,15 @@ class TestMain(unittest.TestCase):
             e = d[2]
             self.assertEqual(SetupVersion.__cmp__(a, b), e, msg='%s %s %d' % (a, b, e))
             self.assertEqual(SetupVersion.__cmp__(b, a), -e, msg='%s %s %d' % (a, b, -e))
+
+    def test_maint_pkglist(self):
+        self.maxDiff = None
+
+        mlist = {}
+        mlist = maintainers.Maintainer.add_directories(mlist, 'testdata/homes')
+        mlist = maintainers.Maintainer.add_packages(mlist, 'testdata/pkglist/cygwin-pkg-maint', None)
+
+        compare_with_expected_file(self, 'testdata/pkglist', mlist)
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)

@@ -24,11 +24,11 @@
 #
 # project constants
 #
-
-# XXX: make these settable via command line options, with defaults?
+# Generally these are defaults for values settable via command line options
+#
 
 # base directory for maintainer upload directories
-HOMEDIRS='/sourceware/cygwin-staging/home'
+HOMEDIR='/sourceware/cygwin-staging/home'
 
 # the 'release area', contains all released files, which are rsync'ed to mirrors
 #FTP='/var/ftp/pub/cygwin'

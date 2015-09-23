@@ -1,0 +1,2500 @@
+4ti2                                         Yue Ren/Marco Atzeri
+a2ps                                         Yaakov Selkowitz
+aalib                                        Dr. Volker Zell
+abook                                        Jari Aalto
+accerciser                                   Yaakov Selkowitz
+activity-log-manager                         Yaakov Selkowitz
+adobe-source-code-pro-fonts                  Yaakov Selkowitz
+adobe-source-sans-pro-fonts                  Yaakov Selkowitz
+adobe-source-serif-pro-fonts                 Yaakov Selkowitz
+adwaita-icon-theme                           Yaakov Selkowitz
+aewm++                                       Jari Aalto
+aewm++-goodies                               Jari Aalto
+afio                                         Jari Aalto
+akonadi                                      Yaakov Selkowitz
+alacarte                                     Yaakov Selkowitz
+alef-fonts                                   Yaakov Selkowitz
+algol68g                                     Thomas Wolff
+alternatives                                 ORPHANED (Charles Wilson)
+amd                                          Marco Atzeri
+amor                                         Yaakov Selkowitz
+analitza                                     Yaakov Selkowitz
+anjuta                                       Yaakov Selkowitz
+annoyance-filter                             Jari Aalto
+anthy                                        Yaakov Selkowitz
+antiword                                     Jari Aalto
+apng2gif                                     Jari Aalto
+apngasm                                      Jari Aalto
+apngdis                                      Jari Aalto
+apngopt                                      Jari Aalto
+apngtools                                    Jari Aalto
+appdata-tools                                Yaakov Selkowitz
+appres                                       Yaakov Selkowitz
+appstream-glib                               Yaakov Selkowitz
+arc                                          Jari Aalto
+archivemail                                  Jari Aalto
+aria2                                        ORPHANED
+arj                                          Jari Aalto
+ark                                          Yaakov Selkowitz
+arpack                                       Marco Atzeri
+artwiz-aleczapka-fonts                       Yaakov Selkowitz
+ascii                                        Yaakov Selkowitz
+asciidoc                                     ORPHANED (Eric Blake)
+aspell                                       Dr. Volker Zell
+aspell-de                                    Dr. Volker Zell
+aspell-en                                    Dr. Volker Zell
+aspell-pl                                    Dr. Volker Zell
+aspell-sv                                    Dr. Volker Zell
+astyle                                       ORPHANED (Chris Sutcliffe)
+asymptote                                    Ken Brown
+at-spi2-atk                                  Yaakov Selkowitz
+at-spi2-core                                 Yaakov Selkowitz
+atk1.0                                       Yaakov Selkowitz
+atkmm1.6                                     Yaakov Selkowitz
+AtomicParsley                                David Stacey
+atool                                        Andrew Schulman
+atril                                        Yaakov Selkowitz
+attica                                       Yaakov Selkowitz
+attr                                         Corinna Vinschen
+audiofile                                    Yaakov Selkowitz
+autobuild                                    ORPHANED (Charles Wilson)
+autoconf                                     Yaakov Selkowitz
+autoconf-archive                             Yaakov Selkowitz
+autoconf2.1                                  Yaakov Selkowitz
+autoconf2.5                                  Yaakov Selkowitz
+autogen                                      Yaakov Selkowitz
+automake                                     Yaakov Selkowitz
+automake1.10                                 Yaakov Selkowitz
+automake1.11                                 Yaakov Selkowitz
+automake1.12                                 Yaakov Selkowitz
+automake1.13                                 Yaakov Selkowitz
+automake1.14                                 Yaakov Selkowitz
+automake1.15                                 Yaakov Selkowitz
+automake1.4                                  Yaakov Selkowitz
+automake1.5                                  Yaakov Selkowitz
+automake1.6                                  Yaakov Selkowitz
+automake1.7                                  Yaakov Selkowitz
+automake1.8                                  Yaakov Selkowitz
+automake1.9                                  Yaakov Selkowitz
+automoc4                                     Yaakov Selkowitz
+autossh                                      Andrew Schulman
+autotrace                                    Marco Atzeri
+avahi                                        Yaakov Selkowitz
+aview                                        Jari Aalto
+balance                                      Dr. Volker Zell
+baloo                                        Yaakov Selkowitz
+baloo-widgets                                Yaakov Selkowitz
+baobab                                       Yaakov Selkowitz
+base-cygwin                                  Corinna Vinschen
+base-files                                   Achim Gratz
+bash                                         Eric Blake
+bash-completion                              Eric Blake
+bashdb                                       Eric Blake
+bc                                           Andrew Schulman
+bcrypt                                       Jari Aalto
+bdftopcf                                     Yaakov Selkowitz
+beforelight                                  Yaakov Selkowitz
+biber                                        Ken Brown
+bigreqsproto                                 Yaakov Selkowitz
+bind                                         Yaakov Selkowitz
+binutils                                     Jonathan Yong
+bison                                        Eric Blake
+bitmap                                       Yaakov Selkowitz
+blinken                                      Yaakov Selkowitz
+bmp2png                                      Jari Aalto
+bogofilter                                   Yaakov Selkowitz
+bomber                                       Yaakov Selkowitz
+bool                                         Jari Aalto
+boost                                        Yaakov Selkowitz
+botan1.10                                    Yaakov Selkowitz
+bovo                                         Yaakov Selkowitz
+boxes                                        Jari Aalto
+bsdiff                                       Marco Atzeri
+bsfilter                                     Jari Aalto
+bsflite                                      Dr. Volker Zell
+btf                                          Marco Atzeri
+build-docbook-catalog                        Yaakov Selkowitz
+buildbot-slave                               Jon Turney
+busybox                                      Christian Franke
+bvi                                          Jari Aalto
+byacc                                        ORPHANED
+bzip2                                        Yaakov Selkowitz
+bzr                                          Jari Aalto
+bzr-fastimport                               Ken Brown
+ca-certificates                              Yaakov Selkowitz
+cabextract                                   Stuart Caie
+cadaver                                      Dr. Volker Zell
+cairo                                        Yaakov Selkowitz
+cairomm1.0                                   Yaakov Selkowitz
+caja                                         Yaakov Selkowitz
+caja-actions                                 Yaakov Selkowitz
+caja-extensions                              Yaakov Selkowitz
+caja-follow-symlink                          Yaakov Selkowitz
+caja-python                                  Yaakov Selkowitz
+camd                                         Marco Atzeri
+cantarell-fonts                              Yaakov Selkowitz
+cantor                                       Yaakov Selkowitz
+caribou                                      Yaakov Selkowitz
+catdoc                                       Marco Atzeri
+catgets                                      Corinna Vinschen
+ccache                                       ORPHANED
+cccc                                         Jari Aalto
+ccdoc                                        ORPHANED (Joe Linoff)
+ccolamd                                      Marco Atzeri
+ccrypt                                       Marco Atzeri
+cdargs                                       Jari Aalto
+cddlib                                       Yue Ren/Marco Atzeri
+cdrkit                                       Christian Franke
+celt051                                      Yaakov Selkowitz
+cfget                                        Jari Aalto
+cfourcc                                      Jari Aalto
+cfv                                          Jari Aalto
+cgdb                                         Jari Aalto
+cgoban                                       ORPHANED (Teun Burgers)
+check                                        Yaakov Selkowitz
+checkbashisms                                Jari Aalto
+chere                                        Dave Kilroy
+chewmail                                     Jari Aalto
+chicken                                      Christian Kellermann
+chkconfig                                    Jari Aalto
+cholmod                                      Marco Atzeri
+choqok                                       Yaakov Selkowitz
+clamav                                       Yaakov Selkowitz
+clisp                                        Ken Brown
+cln                                          Yaakov Selkowitz
+cloog-isl                                    Achim Gratz
+clutter-gtk0.10                              Yaakov Selkowitz
+clutter-gtk1.0                               Yaakov Selkowitz
+clutter1.0                                   Yaakov Selkowitz
+cmake                                        Tony Kelman/William A. Hoffman
+cocom                                        Yaakov Selkowitz
+code2html                                    Jari Aalto
+codeville                                    Jari Aalto
+cogl                                         Yaakov Selkowitz
+colamd                                       Marco Atzeri
+colordiff                                    ORPHANED (Kostya Altukhov)
+colorgcc                                     Jari Aalto
+compface                                     Dr. Volker Zell
+compositeproto                               Yaakov Selkowitz
+connect-proxy                                Marco Atzeri
+connectagram                                 Yaakov Selkowitz
+convmv                                       Jari Aalto
+copyright-update                             Jari Aalto
+corebird                                     Yaakov Selkowitz
+coreutils                                    Eric Blake
+corkscrew                                    Jari Aalto
+cpio                                         Corinna Vinschen/Yaakov Selkowitz
+cppcheck                                     David Stacey
+cppi                                         Eric Blake
+cppunit                                      Yaakov Selkowitz
+cramfs                                       ORPHANED (Sam Robb)
+cron                                         Pierre A. Humblet
+crypt                                        Corinna Vinschen
+cscope                                       Jari Aalto
+csih                                         Corinna Vinschen
+ctags                                        Warren Young
+ctorrent                                     Jari Aalto
+ctris                                        ORPHANED
+culmus-fonts                                 Yaakov Selkowitz
+CUnit                                        Marco Atzeri
+curl                                         Yaakov Selkowitz
+cutemaze                                     Yaakov Selkowitz
+cvs                                          Marco Atzeri
+cvs2svn                                      Yaakov Selkowitz
+cvsps                                        ORPHANED (Eric Blake)
+cvsutils                                     Eric Blake
+cxsparse                                     Marco Atzeri
+cygcheck-dep                                 Mikhail Usenko
+cygport                                      Yaakov Selkowitz
+cygrunsrv                                    Corinna Vinschen
+cygutils                                     ORPHANED (Charles Wilson)
+cygwin                                       Corinna Vinschen/Yaakov Selkowitz
+cygwin-devel                                 Corinna Vinschen
+cygwin-doc                                   Jon Turney
+cygwin-x-doc                                 Jon Turney
+cygwin32                                     Yaakov Selkowitz
+cygwin32-binutils                            Yaakov Selkowitz
+cygwin32-bzip2                               Yaakov Selkowitz
+cygwin32-catgets                             Yaakov Selkowitz
+cygwin32-clang                               Yaakov Selkowitz
+cygwin32-cloog-isl                           Yaakov Selkowitz
+cygwin32-crypt                               Yaakov Selkowitz
+cygwin32-default-manifest                    Yaakov Selkowitz
+cygwin32-expat                               Yaakov Selkowitz
+cygwin32-freetype2                           Yaakov Selkowitz
+cygwin32-gcc                                 Yaakov Selkowitz
+cygwin32-gettext                             Yaakov Selkowitz
+cygwin32-gmp                                 Yaakov Selkowitz
+cygwin32-gnutls                              Yaakov Selkowitz
+cygwin32-isl                                 Yaakov Selkowitz
+cygwin32-jbigkit                             Yaakov Selkowitz
+cygwin32-libbfd                              Yaakov Selkowitz
+cygwin32-libedit                             Yaakov Selkowitz
+cygwin32-libffi                              Yaakov Selkowitz
+cygwin32-libiconv                            Yaakov Selkowitz
+cygwin32-libmpc                              Yaakov Selkowitz
+cygwin32-libpng                              Yaakov Selkowitz
+cygwin32-libtasn1                            Yaakov Selkowitz
+cygwin32-libtool                             Yaakov Selkowitz
+cygwin32-libX11                              Yaakov Selkowitz
+cygwin32-libXau                              Yaakov Selkowitz
+cygwin32-libxcb                              Yaakov Selkowitz
+cygwin32-libXdmcp                            Yaakov Selkowitz
+cygwin32-lzo2                                Yaakov Selkowitz
+cygwin32-mpfr                                Yaakov Selkowitz
+cygwin32-ncurses                             Yaakov Selkowitz
+cygwin32-nettle                              Yaakov Selkowitz
+cygwin32-openssl                             Yaakov Selkowitz
+cygwin32-p11-kit                             Yaakov Selkowitz
+cygwin32-pcre                                Yaakov Selkowitz
+cygwin32-pkg-config                          Yaakov Selkowitz
+cygwin32-readline                            Yaakov Selkowitz
+cygwin32-w32api-headers                      Yaakov Selkowitz
+cygwin32-w32api-runtime                      Yaakov Selkowitz
+cygwin32-xproto                              Yaakov Selkowitz
+cygwin32-zlib                                Yaakov Selkowitz
+cygwin64                                     Yaakov Selkowitz
+cygwin64-binutils                            Yaakov Selkowitz
+cygwin64-bzip2                               Yaakov Selkowitz
+cygwin64-catgets                             Yaakov Selkowitz
+cygwin64-clang                               Yaakov Selkowitz
+cygwin64-cloog-isl                           Yaakov Selkowitz
+cygwin64-crypt                               Yaakov Selkowitz
+cygwin64-db                                  Yaakov Selkowitz
+cygwin64-default-manifest                    Yaakov Selkowitz
+cygwin64-e2fsprogs                           Yaakov Selkowitz
+cygwin64-expat                               Yaakov Selkowitz
+cygwin64-fontconfig                          Yaakov Selkowitz
+cygwin64-freetype2                           Yaakov Selkowitz
+cygwin64-gcc                                 Yaakov Selkowitz
+cygwin64-gdbm                                Yaakov Selkowitz
+cygwin64-gettext                             Yaakov Selkowitz
+cygwin64-gmp                                 Yaakov Selkowitz
+cygwin64-gnutls                              Yaakov Selkowitz
+cygwin64-isl                                 Yaakov Selkowitz
+cygwin64-jbigkit                             Yaakov Selkowitz
+cygwin64-libarchive                          Yaakov Selkowitz
+cygwin64-libbfd                              Yaakov Selkowitz
+cygwin64-libdmx                              Yaakov Selkowitz
+cygwin64-libedit                             Yaakov Selkowitz
+cygwin64-libffi                              Yaakov Selkowitz
+cygwin64-libfontenc                          Yaakov Selkowitz
+cygwin64-libgcrypt                           Yaakov Selkowitz
+cygwin64-libgpg-error                        Yaakov Selkowitz
+cygwin64-libICE                              Yaakov Selkowitz
+cygwin64-libiconv                            Yaakov Selkowitz
+cygwin64-libjpeg-turbo                       Yaakov Selkowitz
+cygwin64-libmagic                            Yaakov Selkowitz
+cygwin64-libmpc                              Yaakov Selkowitz
+cygwin64-libpng                              Yaakov Selkowitz
+cygwin64-libSM                               Yaakov Selkowitz
+cygwin64-libssh2                             Yaakov Selkowitz
+cygwin64-libtasn1                            Yaakov Selkowitz
+cygwin64-libtool                             Yaakov Selkowitz
+cygwin64-libX11                              Yaakov Selkowitz
+cygwin64-libXau                              Yaakov Selkowitz
+cygwin64-libXaw                              Yaakov Selkowitz
+cygwin64-libxcb                              Yaakov Selkowitz
+cygwin64-libXcomposite                       Yaakov Selkowitz
+cygwin64-libXdamage                          Yaakov Selkowitz
+cygwin64-libXdmcp                            Yaakov Selkowitz
+cygwin64-libXext                             Yaakov Selkowitz
+cygwin64-libXfixes                           Yaakov Selkowitz
+cygwin64-libXft                              Yaakov Selkowitz
+cygwin64-libXi                               Yaakov Selkowitz
+cygwin64-libxml2                             Yaakov Selkowitz
+cygwin64-libXmu                              Yaakov Selkowitz
+cygwin64-libXpm                              Yaakov Selkowitz
+cygwin64-libXrandr                           Yaakov Selkowitz
+cygwin64-libXrender                          Yaakov Selkowitz
+cygwin64-libxslt                             Yaakov Selkowitz
+cygwin64-libXss                              Yaakov Selkowitz
+cygwin64-libXt                               Yaakov Selkowitz
+cygwin64-lzo2                                Yaakov Selkowitz
+cygwin64-mpfr                                Yaakov Selkowitz
+cygwin64-ncurses                             Yaakov Selkowitz
+cygwin64-nettle                              Yaakov Selkowitz
+cygwin64-openssl                             Yaakov Selkowitz
+cygwin64-p11-kit                             Yaakov Selkowitz
+cygwin64-pcre                                Yaakov Selkowitz
+cygwin64-pixman                              Yaakov Selkowitz
+cygwin64-pkg-config                          Yaakov Selkowitz
+cygwin64-popt                                Yaakov Selkowitz
+cygwin64-python                              Yaakov Selkowitz
+cygwin64-readline                            Yaakov Selkowitz
+cygwin64-sqlite3                             Yaakov Selkowitz
+cygwin64-tcl                                 Yaakov Selkowitz
+cygwin64-tiff                                Yaakov Selkowitz
+cygwin64-tk                                  Yaakov Selkowitz
+cygwin64-util-linux                          Yaakov Selkowitz
+cygwin64-w32api-headers                      Yaakov Selkowitz
+cygwin64-w32api-runtime                      Yaakov Selkowitz
+cygwin64-xcb-util                            Yaakov Selkowitz
+cygwin64-xcb-util-image                      Yaakov Selkowitz
+cygwin64-xcb-util-wm                         Yaakov Selkowitz
+cygwin64-xproto                              Yaakov Selkowitz
+cygwin64-zlib                                Yaakov Selkowitz
+cyrus-sasl                                   David Rothenberger
+damageproto                                  Yaakov Selkowitz
+dash                                         Eric Blake
+db                                           Dr. Volker Zell
+db4.5                                        Dr. Volker Zell
+db4.8                                        Dr. Volker Zell
+dblatex                                      Yaakov Selkowitz
+dbus                                         Yaakov Selkowitz
+dbus-glib                                    Yaakov Selkowitz
+dconf                                        Yaakov Selkowitz
+ddd                                          Jon Turney
+ddir                                         Jari Aalto
+ddrescue                                     Christian Franke
+dejagnu                                      Yaakov Selkowitz
+dejavu-fonts                                 Yaakov Selkowitz
+delta                                        Jari Aalto
+deroff                                       Jari Aalto
+desktop-file-utils                           Yaakov Selkowitz
+devhelp                                      Yaakov Selkowitz
+dhttpd                                       Jari Aalto
+dialog                                       Yaakov Selkowitz
+diffstat                                     Eric Blake
+diffutils                                    Eric Blake
+discus                                       Andrew Schulman
+distcc                                       ORPHANED (Harold L Hunt II)
+djvulibre                                    Yaakov Selkowitz
+dmalloc                                      Jon Turney
+dmtx-utils                                   Yaakov Selkowitz
+dmxproto                                     Yaakov Selkowitz
+docbook-dsssl                                Yaakov Selkowitz
+docbook-sgml30                               Yaakov Selkowitz
+docbook-sgml31                               Yaakov Selkowitz
+docbook-sgml40                               Yaakov Selkowitz
+docbook-sgml41                               Yaakov Selkowitz
+docbook-sgml42                               Yaakov Selkowitz
+docbook-sgml43                               Yaakov Selkowitz
+docbook-sgml44                               Yaakov Selkowitz
+docbook-sgml45                               Yaakov Selkowitz
+docbook-utils                                Yaakov Selkowitz
+docbook-xml-simple10                         Yaakov Selkowitz
+docbook-xml-simple11                         Yaakov Selkowitz
+docbook-xml412                               Yaakov Selkowitz
+docbook-xml42                                Yaakov Selkowitz
+docbook-xml43                                Yaakov Selkowitz
+docbook-xml44                                Yaakov Selkowitz
+docbook-xml45                                Yaakov Selkowitz
+docbook-xsl                                  Yaakov Selkowitz
+docbook-xsl-ns                               Yaakov Selkowitz
+docbook2X                                    Yaakov Selkowitz
+dog                                          Jari Aalto
+dos2unix                                     Erwin Waterlander
+doxygen                                      David Stacey
+duff                                         Jari Aalto
+e2fsimage                                    Yaakov Selkowitz
+e2fsprogs                                    Yaakov Selkowitz
+ebook-tools                                  Yaakov Selkowitz
+ed                                           Marco Atzeri
+editres                                      Yaakov Selkowitz
+editrights                                   Corinna Vinschen
+eekboard                                     Yaakov Selkowitz
+eigen3                                       Yaakov Selkowitz
+ELFIO                                        Serge Lamikhov-Center
+emacs                                        Ken Brown
+emacs-auctex                                 Ken Brown
+email                                        Corinna Vinschen
+empathy                                      Yaakov Selkowitz
+enchant                                      Yaakov Selkowitz
+engrampa                                     Yaakov Selkowitz
+enscript                                     Dr. Volker Zell
+eog                                          Yaakov Selkowitz
+eog-plugins                                  Yaakov Selkowitz
+eom                                          Yaakov Selkowitz
+epiphany                                     Yaakov Selkowitz
+epstool                                      Jari Aalto
+esound                                       Yaakov Selkowitz
+eventlog                                     Corinna Vinschen
+evince                                       Yaakov Selkowitz
+evolution                                    Yaakov Selkowitz
+evolution-data-server                        Yaakov Selkowitz
+evolution-ews                                Yaakov Selkowitz
+exempi                                       Yaakov Selkowitz
+exif                                         Yaakov Selkowitz
+exim                                         Pierre A. Humblet
+exiv2                                        Yaakov Selkowitz
+exo                                          Yaakov Selkowitz
+expat                                        Warren Young
+expect                                       Yaakov Selkowitz
+extra-cmake-modules                          Yaakov Selkowitz
+faience-icon-theme                           Yaakov Selkowitz
+farstream0.2                                 Yaakov Selkowitz
+fbpanel                                      Yaakov Selkowitz
+fbxkb                                        Yaakov Selkowitz
+fcgi                                         Ken Brown
+fcrackzip                                    Jari Aalto
+fdupes                                       Jari Aalto
+fetchmail                                    Corinna Vinschen
+ffcall                                       Ken Brown
+fftw3                                        Marco Atzeri
+figlet                                       Jari Aalto
+file                                         Corinna Vinschen/Yaakov Selkowitz
+file-roller                                  Yaakov Selkowitz
+findutils                                    Eric Blake
+fish                                         Andrew Schulman
+five-or-more                                 Yaakov Selkowitz
+fixesproto                                   Yaakov Selkowitz
+flac                                         David Rothenberger
+flawfinder                                   Jari Aalto
+flex                                         ORPHANED
+flexdll                                      Yaakov Selkowitz
+flint                                        Yue Ren/Marco Atzeri
+flip                                         Jari Aalto
+flog                                         Jari Aalto
+fltk                                         Yaakov Selkowitz
+fluidsynth                                   Yaakov Selkowitz
+focuswriter                                  Yaakov Selkowitz
+folks                                        Yaakov Selkowitz
+font-bitstream-vera-ttf                      Jon Turney
+font-util                                    Yaakov Selkowitz
+fontconfig                                   Yaakov Selkowitz
+fontforge                                    Yaakov Selkowitz
+fontsproto                                   Yaakov Selkowitz
+fonttosfnt                                   Yaakov Selkowitz
+foobillard                                   David Stacey
+fortune-mod                                  Yitzchak Scott-Thoennes
+fossil                                       Jari Aalto
+four-in-a-row                                Yaakov Selkowitz
+freeglut                                     Dr. Volker Zell
+freerdp                                      Yaakov Selkowitz
+freetds                                      Yaakov Selkowitz
+freetype2                                    Yaakov Selkowitz
+fribidi                                      Yaakov Selkowitz
+fslsfonts                                    Yaakov Selkowitz
+fstobdf                                      Yaakov Selkowitz
+fvwm                                         Yaakov Selkowitz
+gaffitter                                    ORPHANED (Kostya Altukhov)
+gamin                                        Yaakov Selkowitz
+garcon                                       Yaakov Selkowitz
+gawk                                         Corinna Vinschen
+gcc                                          Jonathan Yong
+gcc-tools-epoch1-autoconf                    ORPHANED (Charles Wilson)
+gcc-tools-epoch1-automake                    ORPHANED (Charles Wilson)
+gcc-tools-epoch2-autoconf                    ORPHANED (Charles Wilson)
+gcc-tools-epoch2-automake                    ORPHANED (Charles Wilson)
+gccmakedep                                   Yaakov Selkowitz
+GConf2                                       Yaakov Selkowitz
+gconfmm2.6                                   Yaakov Selkowitz
+gcr                                          Yaakov Selkowitz
+gd                                           Dr. Volker Zell
+gdb                                          Corinna Vinschen/Yaakov Selkowitz/Jon Turney
+gdbm                                         Yaakov Selkowitz
+gdk-pixbuf2.0                                Yaakov Selkowitz
+gdl3                                         Yaakov Selkowitz
+gedit                                        Yaakov Selkowitz
+gedit-code-assistance                        Yaakov Selkowitz
+gedit-plugins                                Yaakov Selkowitz
+gendef                                       Jonathan Yong
+geoclue                                      Yaakov Selkowitz
+geocode-glib                                 Yaakov Selkowitz
+GeoIP                                        Yaakov Selkowitz
+GeoIP-database                               Yaakov Selkowitz
+getent                                       Corinna Vinschen
+getmail                                      Jari Aalto
+gettext                                      Yaakov Selkowitz
+ghostscript                                  Dr. Volker Zell
+ghostscript-fonts-other                      Dr. Volker Zell
+ghostscript-fonts-std                        Dr. Volker Zell
+gif2apng                                     Jari Aalto
+giflib                                       Yaakov Selkowitz
+gigolo                                       Yaakov Selkowitz
+girara                                       Yaakov Selkowitz
+git                                          Adam Dinwoodie
+git-oodiff                                   Jari Aalto
+git-review                                   David Rothenberger
+gl2ps                                        Marco Atzeri
+glade                                        Yaakov Selkowitz
+glade2                                       Yaakov Selkowitz
+glade3                                       Yaakov Selkowitz
+gle                                          Yaakov Selkowitz
+glew                                         Yaakov Selkowitz
+glib1.2                                      Yaakov Selkowitz
+glib2.0                                      Yaakov Selkowitz
+glib2.0-networking                           Yaakov Selkowitz
+glibmm2.4                                    Yaakov Selkowitz
+glpk                                         Marco Atzeri
+glproto                                      Yaakov Selkowitz
+glu                                          Yaakov Selkowitz
+glw                                          Yaakov Selkowitz
+gmime2.6                                     Yaakov Selkowitz
+gmp                                          Achim Gratz
+gnome-activity-journal                       Yaakov Selkowitz
+gnome-applets                                Yaakov Selkowitz
+gnome-backgrounds                            Yaakov Selkowitz
+gnome-calculator                             Yaakov Selkowitz
+gnome-chess                                  Yaakov Selkowitz
+gnome-clocks                                 Yaakov Selkowitz
+gnome-code-assistance                        Yaakov Selkowitz
+gnome-common                                 Yaakov Selkowitz
+gnome-contacts                               Yaakov Selkowitz
+gnome-control-center                         Yaakov Selkowitz
+gnome-desktop                                Yaakov Selkowitz
+gnome-devel-docs                             Yaakov Selkowitz
+gnome-dictionary                             Yaakov Selkowitz
+gnome-doc-utils                              Yaakov Selkowitz
+gnome-flashback                              Yaakov Selkowitz
+gnome-font-viewer                            Yaakov Selkowitz
+gnome-getting-started-docs                   Yaakov Selkowitz
+gnome-icon-theme                             Yaakov Selkowitz
+gnome-keyring                                Yaakov Selkowitz
+gnome-klotski                                Yaakov Selkowitz
+gnome-mahjongg                               Yaakov Selkowitz
+gnome-menus                                  Yaakov Selkowitz
+gnome-mime-data                              Yaakov Selkowitz
+gnome-mines                                  Yaakov Selkowitz
+gnome-nibbles                                Yaakov Selkowitz
+gnome-online-accounts                        Yaakov Selkowitz
+gnome-panel                                  Yaakov Selkowitz
+gnome-python                                 Yaakov Selkowitz
+gnome-python-desktop                         Yaakov Selkowitz
+gnome-python-extras                          Yaakov Selkowitz
+gnome-robots                                 Yaakov Selkowitz
+gnome-screenshot                             Yaakov Selkowitz
+gnome-session                                Yaakov Selkowitz
+gnome-settings-daemon                        Yaakov Selkowitz
+gnome-sudoku                                 Yaakov Selkowitz
+gnome-system-log                             Yaakov Selkowitz
+gnome-system-monitor                         Yaakov Selkowitz
+gnome-terminal                               Yaakov Selkowitz
+gnome-tetravex                               Yaakov Selkowitz
+gnome-themes-standard                        Yaakov Selkowitz
+gnome-tweak-tool                             Yaakov Selkowitz
+gnome-user-docs                              Yaakov Selkowitz
+gnome-vfs2                                   Yaakov Selkowitz
+gnome-vfsmm2.6                               Yaakov Selkowitz
+gnu-free-fonts                               Yaakov Selkowitz
+gnubg                                        Dr. Volker Zell
+gnucap                                       Achim Gratz
+gnuchess                                     Yaakov Selkowitz
+gnugo                                        ORPHANED
+gnupg                                        Marco Atzeri
+gnuplot                                      Dr. Volker Zell
+gnutls                                       Dr. Volker Zell
+gob2                                         Yaakov Selkowitz
+gobject-introspection                        Yaakov Selkowitz
+goffice0.10                                  Yaakov Selkowitz
+goffice0.8                                   Yaakov Selkowitz
+gom                                          Yaakov Selkowitz
+goocanvas                                    Yaakov Selkowitz
+goocanvas2.0                                 Yaakov Selkowitz
+goocanvasmm2.0                               Yaakov Selkowitz
+google-breakpad                              Jon Turney
+googlecl                                     ORPHANED (Chris Sutcliffe)
+gottet                                       Yaakov Selkowitz
+gperf                                        Eric Blake
+gpgme                                        Yaakov Selkowitz
+gpicview                                     Yaakov Selkowitz
+gq                                           Dr. Volker Zell
+grace                                        Yaakov Selkowitz
+granatier                                    Yaakov Selkowitz
+GraphicsMagick                               Marco Atzeri
+graphite2                                    Yaakov Selkowitz
+graphviz                                     Yaakov Selkowitz
+greed                                        Jari Aalto
+grep                                         Eric Blake
+grepmail                                     Jari Aalto
+grilo0.2                                     Yaakov Selkowitz
+grilo0.2-plugins                             Yaakov Selkowitz
+groff                                        Achim Gratz
+gsettings-desktop-schemas                    Yaakov Selkowitz
+gsl                                          ORPHANED (Teun Burgers)
+gsm                                          Yaakov Selkowitz
+gstreamer0.10                                Yaakov Selkowitz
+gstreamer0.10-plugins-base                   Yaakov Selkowitz
+gstreamer0.10-plugins-good                   Yaakov Selkowitz
+gstreamer1.0                                 Yaakov Selkowitz
+gstreamer1.0-plugins-base                    Yaakov Selkowitz
+gstreamer1.0-plugins-good                    Yaakov Selkowitz
+gt                                           Yaakov Selkowitz
+gt5                                          Jari Aalto
+gtk-doc                                      Yaakov Selkowitz
+gtk-vnc                                      Yaakov Selkowitz
+gtk1.2                                       Yaakov Selkowitz
+gtk1.2-engines                               Yaakov Selkowitz
+gtk2.0                                       Yaakov Selkowitz
+gtk2.0-engines                               Yaakov Selkowitz
+gtk2.0-engines-murrine                       Yaakov Selkowitz
+gtk2.0-engines-smooth                        Yaakov Selkowitz
+gtk3                                         Yaakov Selkowitz
+gtk3-engines-unico                           Yaakov Selkowitz
+gtkglarea2.0                                 Yaakov Selkowitz
+gtkglext1.0                                  Yaakov Selkowitz
+gtkhtml4.0                                   Yaakov Selkowitz
+gtkmm2.4                                     Yaakov Selkowitz
+gtkmm3.0                                     Yaakov Selkowitz
+gtkperf                                      Mike DePaulo
+gtksourceview2.0                             Yaakov Selkowitz
+gtksourceview3.0                             Yaakov Selkowitz
+gtksourceviewmm2.0                           Yaakov Selkowitz
+gtksourceviewmm3.0                           Yaakov Selkowitz
+gtkspell                                     Yaakov Selkowitz
+gtkspell3                                    Yaakov Selkowitz
+gts                                          Yaakov Selkowitz
+gtypist                                      Yaakov Selkowitz
+gucharmap                                    Yaakov Selkowitz
+guile                                        Marco Atzeri
+guilt                                        Jari Aalto
+gv                                           Dr. Volker Zell
+gvfs                                         Yaakov Selkowitz
+gzip                                         Eric Blake
+harfbuzz                                     Yaakov Selkowitz
+hdf5                                         Marco Atzeri
+hdparm                                       ORPHANED (Christian Franke)
+help2man                                     Yaakov Selkowitz
+hexalate                                     Yaakov Selkowitz
+hexchat                                      Yaakov Selkowitz
+hexedit                                      ORPHANED
+hicolor-icon-theme                           Yaakov Selkowitz
+hidapi                                       Wei-Ren Chen
+highlight                                    Yaakov Selkowitz
+hitori                                       Yaakov Selkowitz
+hostname                                     Christian Franke
+hp2xx                                        Dr. Volker Zell
+html2ps                                      Yaakov Selkowitz
+httpd                                        Yaakov Selkowitz
+httperf                                      Dr. Volker Zell
+httping                                      Jari Aalto
+httptunnel                                   Jari Aalto
+hunspell                                     Yaakov Selkowitz
+hwloc                                        Marco Atzeri
+iagno                                        Yaakov Selkowitz
+ibus                                         Yaakov Selkowitz
+ibus-anthy                                   Yaakov Selkowitz
+ibus-chewing                                 Yaakov Selkowitz
+ibus-gucharmap                               Yaakov Selkowitz
+ibus-handwrite                               Yaakov Selkowitz
+ibus-hangul                                  Yaakov Selkowitz
+ibus-input-pad                               Yaakov Selkowitz
+ibus-kkc                                     Yaakov Selkowitz
+ibus-m17n                                    Yaakov Selkowitz
+ibus-pinyin                                  Yaakov Selkowitz
+ibus-qt                                      Yaakov Selkowitz
+ibus-skk                                     Yaakov Selkowitz
+ibus-unikey                                  Yaakov Selkowitz
+ibus-xkb                                     Yaakov Selkowitz
+iceauth                                      Yaakov Selkowitz
+ico                                          Yaakov Selkowitz
+icon-naming-utils                            Yaakov Selkowitz
+icoutils                                     David Stacey
+icu                                          Ken Brown
+ifile                                        Jari Aalto
+ii                                           Jari Aalto
+ilmbase                                      Yaakov Selkowitz
+im-chooser                                   Yaakov Selkowitz
+ImageMagick                                  Marco Atzeri
+imake                                        Yaakov Selkowitz
+imlib                                        Yaakov Selkowitz
+imlib2                                       Yaakov Selkowitz
+imsettings                                   Yaakov Selkowitz
+inconsolata-fonts                            Yaakov Selkowitz
+indent                                       Jari Aalto
+inetutils                                    ORPHANED (Charles Wilson)
+initscripts                                  Dr. Volker Zell
+input-pad                                    Yaakov Selkowitz
+inputproto                                   Yaakov Selkowitz
+integrit                                     Jari Aalto
+intltool                                     Yaakov Selkowitz
+ioperm                                       ORPHANED (Marcel Telka)
+ipc-utils                                    Corinna Vinschen
+ipcalc                                       Jari Aalto
+iperf                                        Joel Johnson
+iprint                                       Jari Aalto
+irssi                                        Marco Atzeri
+iselect                                      Jari Aalto
+isl                                          Achim Gratz
+iso-codes                                    Yaakov Selkowitz
+isomaster                                    Christian Franke
+itstool                                      Yaakov Selkowitz
+jasper                                       Dr. Volker Zell
+jbigkit                                      Yaakov Selkowitz
+jgraph                                       Dr. Volker Zell
+jlint                                        Jari Aalto
+joe                                          Jari Aalto
+js185                                        Yaakov Selkowitz
+json-c                                       Yaakov Selkowitz
+json-glib1.0                                 Yaakov Selkowitz
+kactivities                                  Yaakov Selkowitz
+kajongg                                      Yaakov Selkowitz
+kalgebra                                     Yaakov Selkowitz
+kalzium                                      Yaakov Selkowitz
+kanagram                                     Yaakov Selkowitz
+kanjistrokeorders-fonts                      Yaakov Selkowitz
+kapman                                       Yaakov Selkowitz
+kapow                                        Yaakov Selkowitz
+kasumi                                       Yaakov Selkowitz
+kate                                         Yaakov Selkowitz
+kate4                                        Yaakov Selkowitz
+katomic                                      Yaakov Selkowitz
+kblackbox                                    Yaakov Selkowitz
+kblocks                                      Yaakov Selkowitz
+kbounce                                      Yaakov Selkowitz
+kbproto                                      Yaakov Selkowitz
+kbrickbuster                                 Yaakov Selkowitz
+kbruch                                       Yaakov Selkowitz
+kcalc                                        Yaakov Selkowitz
+kcharselect                                  Yaakov Selkowitz
+kde-base-artwork                             Yaakov Selkowitz
+kde-baseapps                                 Yaakov Selkowitz
+kde-l10n-ar                                  Yaakov Selkowitz
+kde-l10n-bg                                  Yaakov Selkowitz
+kde-l10n-bs                                  Yaakov Selkowitz
+kde-l10n-ca                                  Yaakov Selkowitz
+kde-l10n-ca-valencia                         Yaakov Selkowitz
+kde-l10n-cs                                  Yaakov Selkowitz
+kde-l10n-da                                  Yaakov Selkowitz
+kde-l10n-de                                  Yaakov Selkowitz
+kde-l10n-el                                  Yaakov Selkowitz
+kde-l10n-en_GB                               Yaakov Selkowitz
+kde-l10n-es                                  Yaakov Selkowitz
+kde-l10n-et                                  Yaakov Selkowitz
+kde-l10n-eu                                  Yaakov Selkowitz
+kde-l10n-fa                                  Yaakov Selkowitz
+kde-l10n-fi                                  Yaakov Selkowitz
+kde-l10n-fr                                  Yaakov Selkowitz
+kde-l10n-ga                                  Yaakov Selkowitz
+kde-l10n-gl                                  Yaakov Selkowitz
+kde-l10n-he                                  Yaakov Selkowitz
+kde-l10n-hi                                  Yaakov Selkowitz
+kde-l10n-hr                                  Yaakov Selkowitz
+kde-l10n-hu                                  Yaakov Selkowitz
+kde-l10n-ia                                  Yaakov Selkowitz
+kde-l10n-id                                  Yaakov Selkowitz
+kde-l10n-is                                  Yaakov Selkowitz
+kde-l10n-it                                  Yaakov Selkowitz
+kde-l10n-ja                                  Yaakov Selkowitz
+kde-l10n-kk                                  Yaakov Selkowitz
+kde-l10n-km                                  Yaakov Selkowitz
+kde-l10n-kn                                  Yaakov Selkowitz
+kde-l10n-ko                                  Yaakov Selkowitz
+kde-l10n-lt                                  Yaakov Selkowitz
+kde-l10n-lv                                  Yaakov Selkowitz
+kde-l10n-mr                                  Yaakov Selkowitz
+kde-l10n-nb                                  Yaakov Selkowitz
+kde-l10n-nds                                 Yaakov Selkowitz
+kde-l10n-nl                                  Yaakov Selkowitz
+kde-l10n-nn                                  Yaakov Selkowitz
+kde-l10n-pa                                  Yaakov Selkowitz
+kde-l10n-pl                                  Yaakov Selkowitz
+kde-l10n-pt                                  Yaakov Selkowitz
+kde-l10n-pt_BR                               Yaakov Selkowitz
+kde-l10n-ro                                  Yaakov Selkowitz
+kde-l10n-ru                                  Yaakov Selkowitz
+kde-l10n-si                                  Yaakov Selkowitz
+kde-l10n-sk                                  Yaakov Selkowitz
+kde-l10n-sl                                  Yaakov Selkowitz
+kde-l10n-sr                                  Yaakov Selkowitz
+kde-l10n-sv                                  Yaakov Selkowitz
+kde-l10n-tg                                  Yaakov Selkowitz
+kde-l10n-th                                  Yaakov Selkowitz
+kde-l10n-tr                                  Yaakov Selkowitz
+kde-l10n-ug                                  Yaakov Selkowitz
+kde-l10n-uk                                  Yaakov Selkowitz
+kde-l10n-vi                                  Yaakov Selkowitz
+kde-l10n-wa                                  Yaakov Selkowitz
+kde-l10n-zh_CN                               Yaakov Selkowitz
+kde-l10n-zh_TW                               Yaakov Selkowitz
+kde-runtime                                  Yaakov Selkowitz
+kde-wallpapers                               Yaakov Selkowitz
+kde-workspace                                Yaakov Selkowitz
+kdeedu-data                                  Yaakov Selkowitz
+kdegraphics-mobipocket                       Yaakov Selkowitz
+kdelibs                                      Yaakov Selkowitz
+kdepimlibs                                   Yaakov Selkowitz
+kdewebdev                                    Yaakov Selkowitz
+kdf                                          Yaakov Selkowitz
+kdiamond                                     Yaakov Selkowitz
+keepassx                                     David Stacey
+keychain                                     Jari Aalto
+kf5-attica                                   Yaakov Selkowitz
+kf5-frameworkintegration                     Yaakov Selkowitz
+kf5-kactivities                              Yaakov Selkowitz
+kf5-kapidox                                  Yaakov Selkowitz
+kf5-karchive                                 Yaakov Selkowitz
+kf5-kauth                                    Yaakov Selkowitz
+kf5-kbookmarks                               Yaakov Selkowitz
+kf5-kcmutils                                 Yaakov Selkowitz
+kf5-kcodecs                                  Yaakov Selkowitz
+kf5-kcompletion                              Yaakov Selkowitz
+kf5-kconfig                                  Yaakov Selkowitz
+kf5-kconfigwidgets                           Yaakov Selkowitz
+kf5-kcoreaddons                              Yaakov Selkowitz
+kf5-kcrash                                   Yaakov Selkowitz
+kf5-kdbusaddons                              Yaakov Selkowitz
+kf5-kdeclarative                             Yaakov Selkowitz
+kf5-kded                                     Yaakov Selkowitz
+kf5-kdelibs4support                          Yaakov Selkowitz
+kf5-kdesignerplugin                          Yaakov Selkowitz
+kf5-kdewebkit                                Yaakov Selkowitz
+kf5-kdnssd                                   Yaakov Selkowitz
+kf5-kdoctools                                Yaakov Selkowitz
+kf5-kemoticons                               Yaakov Selkowitz
+kf5-kglobalaccel                             Yaakov Selkowitz
+kf5-kguiaddons                               Yaakov Selkowitz
+kf5-khtml                                    Yaakov Selkowitz
+kf5-ki18n                                    Yaakov Selkowitz
+kf5-kiconthemes                              Yaakov Selkowitz
+kf5-kidletime                                Yaakov Selkowitz
+kf5-kimageformats                            Yaakov Selkowitz
+kf5-kinit                                    Yaakov Selkowitz
+kf5-kio                                      Yaakov Selkowitz
+kf5-kitemmodels                              Yaakov Selkowitz
+kf5-kitemviews                               Yaakov Selkowitz
+kf5-kjobwidgets                              Yaakov Selkowitz
+kf5-kjs                                      Yaakov Selkowitz
+kf5-kjsembed                                 Yaakov Selkowitz
+kf5-kmediaplayer                             Yaakov Selkowitz
+kf5-knewstuff                                Yaakov Selkowitz
+kf5-knotifications                           Yaakov Selkowitz
+kf5-knotifyconfig                            Yaakov Selkowitz
+kf5-kpackage                                 Yaakov Selkowitz
+kf5-kparts                                   Yaakov Selkowitz
+kf5-kpeople                                  Yaakov Selkowitz
+kf5-kplotting                                Yaakov Selkowitz
+kf5-kpty                                     Yaakov Selkowitz
+kf5-kross                                    Yaakov Selkowitz
+kf5-kross-interpreters                       Yaakov Selkowitz
+kf5-krunner                                  Yaakov Selkowitz
+kf5-kservice                                 Yaakov Selkowitz
+kf5-ktexteditor                              Yaakov Selkowitz
+kf5-ktextwidgets                             Yaakov Selkowitz
+kf5-kunitconversion                          Yaakov Selkowitz
+kf5-kwallet                                  Yaakov Selkowitz
+kf5-kwidgetsaddons                           Yaakov Selkowitz
+kf5-kwindowsystem                            Yaakov Selkowitz
+kf5-kxmlgui                                  Yaakov Selkowitz
+kf5-kxmlrpcclient                            Yaakov Selkowitz
+kf5-libkdegames                              Yaakov Selkowitz
+kf5-libkmahjongg                             Yaakov Selkowitz
+kf5-plasma                                   Yaakov Selkowitz
+kf5-solid                                    Yaakov Selkowitz
+kf5-sonnet                                   Yaakov Selkowitz
+kf5-threadweaver                             Yaakov Selkowitz
+kfilemetadata                                Yaakov Selkowitz
+kfourinline                                  Yaakov Selkowitz
+kgb                                          Jari Aalto
+kgeography                                   Yaakov Selkowitz
+kget                                         Yaakov Selkowitz
+kgoldrunner                                  Yaakov Selkowitz
+kgpg                                         Yaakov Selkowitz
+khangman                                     Yaakov Selkowitz
+khronos-opengl-registry                      Jon Turney
+kig                                          Yaakov Selkowitz
+kigo                                         Yaakov Selkowitz
+killbots                                     Yaakov Selkowitz
+kiriki                                       Yaakov Selkowitz
+kiten                                        Yaakov Selkowitz
+kjumpingcube                                 Yaakov Selkowitz
+klavaro                                      Yaakov Selkowitz
+klettres                                     Yaakov Selkowitz
+klickety                                     Yaakov Selkowitz
+klines                                       Yaakov Selkowitz
+klu                                          Marco Atzeri
+kmahjongg                                    Yaakov Selkowitz
+kmines                                       Yaakov Selkowitz
+kmplot                                       Yaakov Selkowitz
+knavalbattle                                 Yaakov Selkowitz
+knetwalk                                     Yaakov Selkowitz
+kolf                                         Yaakov Selkowitz
+kollision                                    Yaakov Selkowitz
+konquest                                     Yaakov Selkowitz
+konsole                                      Yaakov Selkowitz
+konsole4                                     Yaakov Selkowitz
+konversation                                 Yaakov Selkowitz
+kpat                                         Yaakov Selkowitz
+krb5                                         Yaakov Selkowitz
+krb5-auth-dialog                             Yaakov Selkowitz
+krdc                                         Yaakov Selkowitz
+kreversi                                     Yaakov Selkowitz
+krfb                                         Yaakov Selkowitz
+kshisen                                      Yaakov Selkowitz
+ksirk                                        Yaakov Selkowitz
+ksnakeduel                                   Yaakov Selkowitz
+kspaceduel                                   Yaakov Selkowitz
+ksquares                                     Yaakov Selkowitz
+kstars                                       Yaakov Selkowitz
+ksudoku                                      Yaakov Selkowitz
+ksystemlog                                   Yaakov Selkowitz
+kteatime                                     Yaakov Selkowitz
+ktimer                                       Yaakov Selkowitz
+ktorrent                                     Yaakov Selkowitz
+ktouch                                       Yaakov Selkowitz
+ktuberling                                   Yaakov Selkowitz
+kturtle                                      Yaakov Selkowitz
+kubrick                                      Yaakov Selkowitz
+kwalletmanager                               Yaakov Selkowitz
+kwebkitpart                                  Yaakov Selkowitz
+kwordquiz                                    Yaakov Selkowitz
+lapack                                       Marco Atzeri
+lasem0.4                                     Yaakov Selkowitz
+lcab                                         Jari Aalto
+lcms                                         Dr. Volker Zell
+lcms2                                        Dr. Volker Zell
+ldl                                          Marco Atzeri
+leafpad                                      Yaakov Selkowitz
+leptonica                                    Marco Atzeri
+less                                         Marco Atzeri
+lftp                                         Andrew Schulman
+libao                                        David Rothenberger
+libapr1                                      David Rothenberger
+libaprutil1                                  David Rothenberger
+libarchive                                   Yaakov Selkowitz
+libargp                                      Andrew Schulman
+libart_lgpl_2                                Yaakov Selkowitz
+libassuan                                    ORPHANED (Charles Wilson)
+libasyncns                                   Yaakov Selkowitz
+libbonobo2                                   Yaakov Selkowitz
+libbonoboui2                                 Yaakov Selkowitz
+libcaca                                      Yaakov Selkowitz
+libcanberra                                  Yaakov Selkowitz
+libchamplain0.12                             Yaakov Selkowitz
+libchewing                                   Yaakov Selkowitz
+libcroco0.6                                  Yaakov Selkowitz
+libdaemon                                    Yaakov Selkowitz
+libdatrie                                    Yaakov Selkowitz
+libdbusmenu-qt                               Yaakov Selkowitz
+libdbusmenu-qt5                              Yaakov Selkowitz
+libdiscid                                    Dr. Volker Zell
+libdmapsharing3.0                            Yaakov Selkowitz
+libdmtx                                      Yaakov Selkowitz
+libdmx                                       Yaakov Selkowitz
+libdv                                        Yaakov Selkowitz
+libebml                                      David Stacey
+libedit                                      Corinna Vinschen
+libelf                                       Yaakov Selkowitz
+libEMF                                       Dr. Volker Zell
+libepoxy                                     Yaakov Selkowitz
+liberation-fonts                             Yaakov Selkowitz
+libesmtp                                     Yaakov Selkowitz
+libevent                                     Yaakov Selkowitz
+libexif                                      Yaakov Selkowitz
+libfakesu                                    Daniel Boland
+libffi                                       Yaakov Selkowitz
+libfm                                        Yaakov Selkowitz
+libfontenc                                   Yaakov Selkowitz
+libfpx                                       Dr. Volker Zell
+libFS                                        Yaakov Selkowitz
+libgc                                        Bob Heckel
+libgcrypt                                    Yaakov Selkowitz
+libgda5.0                                    Yaakov Selkowitz
+libgdamm5.0                                  Yaakov Selkowitz
+libgdata                                     Yaakov Selkowitz
+libgee                                       Yaakov Selkowitz
+libgee0.8                                    Yaakov Selkowitz
+libgeotiff                                   Marco Atzeri
+libggi2                                      Peter Rosin
+libggimisc2                                  Peter Rosin
+libggiwmh0                                   Peter Rosin
+libgii1                                      Peter Rosin
+libgit2                                      Yaakov Selkowitz
+libgit2-glib1.0                              Yaakov Selkowitz
+libglade2.0                                  Yaakov Selkowitz
+libglademm2.4                                Yaakov Selkowitz
+libgnome-keyring                             Yaakov Selkowitz
+libgnome2                                    Yaakov Selkowitz
+libgnomecanvas2                              Yaakov Selkowitz
+libgnomecanvasmm2.6                          Yaakov Selkowitz
+libgnomekbd                                  Yaakov Selkowitz
+libgnomemm2.6                                Yaakov Selkowitz
+libgnomeui2                                  Yaakov Selkowitz
+libgnomeuimm2.6                              Yaakov Selkowitz
+libgpg-error                                 Yaakov Selkowitz
+libgsf                                       Yaakov Selkowitz
+libgtop2.0                                   Yaakov Selkowitz
+libgucharmap                                 Yaakov Selkowitz
+libgweather                                  Yaakov Selkowitz
+libgxps                                      Yaakov Selkowitz
+libhangul                                    Yaakov Selkowitz
+libical                                      Yaakov Selkowitz
+libICE                                       Yaakov Selkowitz
+libiconv                                     Yaakov Selkowitz
+libid3tag                                    Yaakov Selkowitz
+libIDL2                                      Yaakov Selkowitz
+libidn                                       Dr. Volker Zell
+libiodbc                                     Yaakov Selkowitz
+libjpeg-turbo                                Yaakov Selkowitz
+libkate                                      David Rothenberger
+libkdeedu                                    Yaakov Selkowitz
+libkdegames                                  Yaakov Selkowitz
+libkeduvocdocument                           Yaakov Selkowitz
+libkkc                                       Yaakov Selkowitz
+libkkc-data                                  Yaakov Selkowitz
+libkmahjongg                                 Yaakov Selkowitz
+libksba                                      ORPHANED (Charles Wilson)
+libktorrent                                  Yaakov Selkowitz
+libLASi                                      Yaakov Selkowitz
+liblqr1                                      Yaakov Selkowitz
+liblzo2                                      Dr. Volker Zell
+libmangle                                    Jonathan Yong
+libmatekbd                                   Yaakov Selkowitz
+libmateweather                               Yaakov Selkowitz
+libmatroska                                  David Stacey
+libmcrypt                                    Dr. Volker Zell
+libmediaart1.0                               Yaakov Selkowitz
+libmetalink                                  Yaakov Selkowitz
+libmikmod                                    Yaakov Selkowitz
+libmng                                       Dr. Volker Zell
+libmodplug                                   Yaakov Selkowitz
+libmspack                                    Yaakov Selkowitz
+libnfc                                       Marcos Vives Del Sol
+libnice                                      Yaakov Selkowitz
+libnotify                                    Yaakov Selkowitz
+liboauth                                     Yaakov Selkowitz
+libogg                                       David Rothenberger
+libotf                                       Yaakov Selkowitz
+libpaper                                     Yaakov Selkowitz
+libpeas                                      Yaakov Selkowitz
+libpipeline                                  Erwin Waterlander
+libpng                                       Yaakov Selkowitz
+libpng10                                     Yaakov Selkowitz
+libpng12                                     Yaakov Selkowitz
+libpng14                                     Yaakov Selkowitz
+libpng15                                     Yaakov Selkowitz
+libproxy                                     Yaakov Selkowitz
+libpst                                       Yaakov Selkowitz
+libqalculate                                 Yaakov Selkowitz
+libquvi0.9                                   Yaakov Selkowitz
+libquvi0.9-scripts                           Yaakov Selkowitz
+libqzeitgeist                                Yaakov Selkowitz
+librest0.7                                   Yaakov Selkowitz
+librsvg2                                     Yaakov Selkowitz
+librsync                                     David Rothenberger
+libsamplerate                                Yaakov Selkowitz
+libsecret1                                   Yaakov Selkowitz
+libshout                                     Yaakov Selkowitz
+libsigc2.0                                   Yaakov Selkowitz
+libsigsegv                                   Eric Blake
+libskk                                       Yaakov Selkowitz
+libSM                                        Yaakov Selkowitz
+libsmi                                       Dr. Volker Zell
+libsndfile                                   Yaakov Selkowitz
+libsoup2.4                                   Yaakov Selkowitz
+libspectre                                   Yaakov Selkowitz
+libspiro                                     Yaakov Selkowitz
+libssh                                       Yaakov Selkowitz
+libssh2                                      Yaakov Selkowitz
+libtasn1                                     Dr. Volker Zell
+libtextcat                                   ORPHANED (Reini Urban)
+libthai                                      Yaakov Selkowitz
+libtheora                                    David Rothenberger
+libtimidity                                  Yaakov Selkowitz
+libtirpc                                     Yaakov Selkowitz
+libtool                                      Yaakov Selkowitz
+libtorrent                                   Marco Atzeri
+libungif                                     Yaakov Selkowitz
+libuninameslist                              Yaakov Selkowitz
+libunique1.0                                 Yaakov Selkowitz
+libunique3.0                                 Yaakov Selkowitz
+libunistring                                 Erwin Waterlander
+libusb-win32                                 Yaakov Selkowitz
+libusb1.0                                    Yaakov Selkowitz
+libustr                                      ORPHANED (Charles Wilson)
+libverto                                     Yaakov Selkowitz
+libvncserver                                 Yaakov Selkowitz
+libvoikko                                    Yaakov Selkowitz
+libvorbis                                    David Rothenberger
+libvpx                                       Yaakov Selkowitz
+libwebp                                      Yaakov Selkowitz
+libWindowsWM                                 Yaakov Selkowitz
+libwmf                                       Dr. Volker Zell
+libwnck                                      Yaakov Selkowitz
+libwnck3                                     Yaakov Selkowitz
+libX11                                       Yaakov Selkowitz
+libXau                                       Yaakov Selkowitz
+libXaw                                       Yaakov Selkowitz
+libXaw3d                                     Yaakov Selkowitz
+libxcb                                       Yaakov Selkowitz
+libXcomposite                                Yaakov Selkowitz
+libXcursor                                   Yaakov Selkowitz
+libxcwm                                      Jon Turney
+libXdamage                                   Yaakov Selkowitz
+libXdmcp                                     Yaakov Selkowitz
+libXext                                      Yaakov Selkowitz
+libxfce4ui                                   Yaakov Selkowitz
+libxfce4util                                 Yaakov Selkowitz
+libxfcegui4                                  Yaakov Selkowitz
+libXfixes                                    Yaakov Selkowitz
+libXfont                                     Yaakov Selkowitz
+libXft                                       Yaakov Selkowitz
+libXi                                        Yaakov Selkowitz
+libXinerama                                  Yaakov Selkowitz
+libxkbcommon                                 Yaakov Selkowitz
+libxkbfile                                   Yaakov Selkowitz
+libxklavier                                  Yaakov Selkowitz
+libxml++2.6                                  Yaakov Selkowitz
+libxml2                                      Yaakov Selkowitz
+libXmu                                       Yaakov Selkowitz
+libXpm                                       Yaakov Selkowitz
+libXpm-noX                                   ORPHANED (Charles Wilson)
+libXrandr                                    Yaakov Selkowitz
+libXrender                                   Yaakov Selkowitz
+libXres                                      Yaakov Selkowitz
+libXScrnSaver                                Yaakov Selkowitz
+libxslt                                      Yaakov Selkowitz
+libXt                                        Yaakov Selkowitz
+libXtst                                      Yaakov Selkowitz
+libytnef                                     Yaakov Selkowitz
+libzeitgiest1.0                              Yaakov Selkowitz
+libzip                                       Yaakov Selkowitz
+licensecheck                                 Jari Aalto
+lightsoff                                    Yaakov Selkowitz
+lighttpd                                     Yaakov Selkowitz
+lilypond                                     Marco Atzeri
+linklint                                     Jari Aalto
+links                                        Jari Aalto
+linux-libertine-fonts                        Yaakov Selkowitz
+listres                                      Yaakov Selkowitz
+llvm                                         Yaakov Selkowitz
+lndir                                        Yaakov Selkowitz
+login                                        Corinna Vinschen/Yaakov Selkowitz
+logiweb                                      Klaus Grue
+lrzip                                        Yaakov Selkowitz
+lskat                                        Yaakov Selkowitz
+lua                                          Yaakov Selkowitz
+lua-bit                                      Yaakov Selkowitz
+lua-crypto                                   Yaakov Selkowitz
+lua-json                                     Yaakov Selkowitz
+lua-lfs                                      Yaakov Selkowitz
+lua-logging                                  Yaakov Selkowitz
+lua-lpeg                                     Yaakov Selkowitz
+lua-luadoc                                   Yaakov Selkowitz
+lua-lxp                                      Yaakov Selkowitz
+lua-socket                                   Yaakov Selkowitz
+lua5.1                                       Yaakov Selkowitz
+luit                                         Yaakov Selkowitz
+lv                                           Jari Aalto
+lxappearance                                 Yaakov Selkowitz
+lxappearance-obconf                          Yaakov Selkowitz
+lxde-common                                  Yaakov Selkowitz
+lxde-icon-theme                              Yaakov Selkowitz
+lxinput                                      Yaakov Selkowitz
+lxmenu-data                                  Yaakov Selkowitz
+lxpanel                                      Yaakov Selkowitz
+lxsession                                    Yaakov Selkowitz
+lxtask                                       Yaakov Selkowitz
+lxterminal                                   Yaakov Selkowitz
+lynx                                         Corinna Vinschen
+lyx                                          Marco Atzeri
+lzip                                         Jonathan Yong
+lziprecover                                  Jonathan Yong
+lzo2                                         Dr. Volker Zell
+lzop                                         Jari Aalto
+m17n-contrib                                 Yaakov Selkowitz
+m17n-db                                      Yaakov Selkowitz
+m17n-lib                                     Yaakov Selkowitz
+m4                                           Eric Blake
+mairix                                       Jari Aalto
+make                                         Marco Atzeri
+makedepend                                   Yaakov Selkowitz
+makepasswd                                   Jari Aalto
+makeself                                     Jari Aalto
+malaga                                       Yaakov Selkowitz
+man-db                                       Chris J. Breisch/Yaakov Selkowitz
+maradns                                      ORPHANED (Steven Monai)
+marble                                       Yaakov Selkowitz
+marco                                        Yaakov Selkowitz
+marisa                                       Yaakov Selkowitz
+mate-applets                                 Yaakov Selkowitz
+mate-backgrounds                             Yaakov Selkowitz
+mate-calc                                    Yaakov Selkowitz
+mate-common                                  Yaakov Selkowitz
+mate-control-center                          Yaakov Selkowitz
+mate-desktop                                 Yaakov Selkowitz
+mate-dialogs                                 Yaakov Selkowitz
+mate-icon-theme                              Yaakov Selkowitz
+mate-media                                   Yaakov Selkowitz
+mate-menus                                   Yaakov Selkowitz
+mate-notification-daemon                     Yaakov Selkowitz
+mate-panel                                   Yaakov Selkowitz
+mate-session-manager                         Yaakov Selkowitz
+mate-settings-daemon                         Yaakov Selkowitz
+mate-system-monitor                          Yaakov Selkowitz
+mate-terminal                                Yaakov Selkowitz
+mate-themes                                  Yaakov Selkowitz
+mate-themes-extras                           Yaakov Selkowitz
+mate-utils                                   Yaakov Selkowitz
+mathomatic                                   ORPHANED (Reini Urban)
+maxima                                       Achim Gratz
+mboxcheck                                    Jari Aalto
+mc                                           Marco Atzeri
+mcpp                                         Yaakov Selkowitz
+mcrypt                                       Dr. Volker Zell
+md5deep                                      Achim Gratz
+mdbtools                                     Yaakov Selkowitz
+mDNSResponder                                Yaakov Selkowitz
+menu-cache                                   Yaakov Selkowitz
+mercurial                                    Jari Aalto
+mesa                                         Yaakov Selkowitz
+mesa-demos                                   Yaakov Selkowitz
+metacity                                     Yaakov Selkowitz
+metis                                        Marco Atzeri
+mhash                                        ORPHANED
+micro-httpd                                  Jari Aalto
+midori                                       Yaakov Selkowitz
+mined                                        Thomas Wolff
+ming                                         Dr. Volker Zell
+mingw-binutils                               ORPHANED (Charles Wilson)
+mingw-bzip2                                  ORPHANED (Charles Wilson)
+mingw-gcc                                    ORPHANED (Charles Wilson)
+mingw-libgcrypt                              ORPHANED (Charles Wilson)
+mingw-libgpg-error                           ORPHANED (Charles Wilson)
+mingw-pthreads                               ORPHANED (Charles Wilson)
+mingw-runtime                                ORPHANED (Chris Sutcliffe)
+mingw-w32api                                 ORPHANED (Chris Sutcliffe)
+mingw-xz                                     ORPHANED (Charles Wilson)
+mingw-zlib                                   ORPHANED (Charles Wilson)
+mingw64-i686-binutils                        Jonathan Yong
+mingw64-i686-bzip2                           Yaakov Selkowitz
+mingw64-i686-gcc                             Jonathan Yong
+mingw64-i686-google-breakpad                 Jon Turney
+mingw64-i686-headers                         Jonathan Yong
+mingw64-i686-hidapi                          Wei-Ren Chen
+mingw64-i686-libgcrypt                       Yaakov Selkowitz
+mingw64-i686-libgpg-error                    Yaakov Selkowitz
+mingw64-i686-pkg-config                      Yaakov Selkowitz
+mingw64-i686-pthreads                        Jonathan Yong
+mingw64-i686-runtime                         Jonathan Yong
+mingw64-i686-windows-default-manifest        Jonathan Yong
+mingw64-i686-winpthreads                     Jonathan Yong
+mingw64-i686-xz                              Yaakov Selkowitz
+mingw64-i686-zlib                            Yaakov Selkowitz
+mingw64-x86_64-binutils                      Jonathan Yong
+mingw64-x86_64-bzip2                         Yaakov Selkowitz
+mingw64-x86_64-gcc                           Jonathan Yong
+mingw64-x86_64-google-breakpad               Jon Turney
+mingw64-x86_64-headers                       Jonathan Yong
+mingw64-x86_64-hidapi                        Wei-Ren Chen
+mingw64-x86_64-libgcrypt                     Yaakov Selkowitz
+mingw64-x86_64-libgpg-error                  Yaakov Selkowitz
+mingw64-x86_64-pkg-config                    Yaakov Selkowitz
+mingw64-x86_64-pthreads                      Jonathan Yong
+mingw64-x86_64-runtime                       Jonathan Yong
+mingw64-x86_64-windows-default-manifest      Jonathan Yong
+mingw64-x86_64-winpthreads                   Jonathan Yong
+mingw64-x86_64-xz                            Yaakov Selkowitz
+mingw64-x86_64-zlib                          Yaakov Selkowitz
+mintty                                       Thomas Wolff
+mkcomposecache                               Yaakov Selkowitz
+mkfontdir                                    Yaakov Selkowitz
+mkfontscale                                  Yaakov Selkowitz
+mksh                                         ORPHANED (Chris Sutcliffe)
+mkvtoolnix                                   David Stacey
+mm-common                                    Yaakov Selkowitz
+mmv                                          Jari Aalto
+monotone                                     Yaakov Selkowitz
+mosh                                         Achim Gratz
+most                                         Jari Aalto
+motif                                        Yaakov Selkowitz
+mousepad                                     Yaakov Selkowitz
+mousetweaks                                  Yaakov Selkowitz
+mozo                                         Yaakov Selkowitz
+mpclib                                       Achim Gratz
+mpfr                                         Achim Gratz
+mscgen                                       David Stacey
+msmtp                                        Jari Aalto
+mt                                           Corinna Vinschen
+mtd                                          ORPHANED (Sam Robb)
+multitail                                    Dr. Volker Zell
+mutt                                         Marco Atzeri
+mutter                                       Yaakov Selkowitz
+mysql                                        Yaakov Selkowitz
+naim                                         ORPHANED (Jonathan C. Allen)
+nano                                         Yaakov Selkowitz
+nas                                          Yaakov Selkowitz
+nasm                                         Dean Scarff
+nautilus                                     Yaakov Selkowitz
+nc                                           Corinna Vinschen
+nc6                                          Corinna Vinschen
+ncdu                                         Christian Franke
+ncftp                                        Jari Aalto
+ncompress                                    Yaakov Selkowitz
+ncurses                                      Yaakov Selkowitz
+nedit                                        Yaakov Selkowitz
+neon                                         Dr. Volker Zell
+net-snmp                                     David Rothenberger
+netcdf                                       Marco Atzeri
+netcdf-cxx4                                  Marco Atzeri
+netcdf-fortran                               Marco Atzeri
+netpbm                                       Yaakov Selkowitz
+nettle                                       Dr. Volker Zell
+newmail                                      Jari Aalto
+nfrotz                                       ORPHANED (Charles Wilson)
+nfs-server                                   ORPHANED (Sam Robb)
+ngspice                                      Marco Atzeri
+ninvaders                                    David Stacey
+nmh                                          David Levine
+nosleep                                      Andrew Schulman
+notification-daemon                          Yaakov Selkowitz
+novprog                                      Yaakov Selkowitz
+nrss                                         Jari Aalto
+nspr                                         Yaakov Selkowitz
+nss                                          Yaakov Selkowitz
+ntl                                          Yue Ren/Marco Atzeri
+nttcp                                        Jari Aalto
+obconf                                       Yaakov Selkowitz
+ocaml                                        Damien Doligez
+ocaml-facile                                 Yaakov Selkowitz
+oclock                                       Yaakov Selkowitz
+octave                                       Marco Atzeri
+octave-bim                                   Marco Atzeri
+octave-cgi                                   Marco Atzeri
+octave-communications                        Marco Atzeri
+octave-control                               Marco Atzeri
+octave-data-smoothing                        Marco Atzeri
+octave-database                              Marco Atzeri
+octave-dataframe                             Marco Atzeri
+octave-divand                                Marco Atzeri
+octave-doctest                               Marco Atzeri
+octave-econometrics                          Marco Atzeri
+octave-financial                             Marco Atzeri
+octave-fl-core                               Marco Atzeri
+octave-fpl                                   Marco Atzeri
+octave-fuzzy-logic-toolkit                   Marco Atzeri
+octave-ga                                    Marco Atzeri
+octave-general                               Marco Atzeri
+octave-generate_html                         Marco Atzeri
+octave-geometry                              Marco Atzeri
+octave-image                                 Marco Atzeri
+octave-instrument-control                    Marco Atzeri
+octave-integration                           Marco Atzeri
+octave-interval                              Marco Atzeri
+octave-io                                    Marco Atzeri
+octave-level-set                             Marco Atzeri
+octave-linear-algebra                        Marco Atzeri
+octave-lssa                                  Marco Atzeri
+octave-ltfat                                 Marco Atzeri
+octave-mapping                               Marco Atzeri
+octave-mechanics                             Marco Atzeri
+octave-miscellaneous                         Marco Atzeri
+octave-mpi                                   Marco Atzeri
+octave-msh                                   Marco Atzeri
+octave-mvn                                   Marco Atzeri
+octave-nan                                   Marco Atzeri
+octave-ncarray                               Marco Atzeri
+octave-netcdf                                Marco Atzeri
+octave-nurbs                                 Marco Atzeri
+octave-ocs                                   Marco Atzeri
+octave-octcdf                                Marco Atzeri
+octave-octclip                               Marco Atzeri
+octave-octproj                               Marco Atzeri
+octave-odepkg                                Marco Atzeri
+octave-optics                                Marco Atzeri
+octave-optim                                 Marco Atzeri
+octave-optiminterp                           Marco Atzeri
+octave-parallel                              Marco Atzeri
+octave-quaternion                            Marco Atzeri
+octave-queueing                              Marco Atzeri
+octave-secs1d                                Marco Atzeri
+octave-secs2d                                Marco Atzeri
+octave-secs3d                                Marco Atzeri
+octave-signal                                Marco Atzeri
+octave-sockets                               Marco Atzeri
+octave-specfun                               Marco Atzeri
+octave-splines                               Marco Atzeri
+octave-statistics                            Marco Atzeri
+octave-stk                                   Marco Atzeri
+octave-strings                               Marco Atzeri
+octave-struct                                Marco Atzeri
+octave-tisean                                Marco Atzeri
+octave-tsa                                   Marco Atzeri
+octave-vrml                                  Marco Atzeri
+odbc-mysql                                   Yaakov Selkowitz
+odbc-psql                                    Yaakov Selkowitz
+odbc-sqlite3                                 Yaakov Selkowitz
+odt2txt                                      Jari Aalto
+offlineimap                                  Jari Aalto
+ogmtools                                     Jari Aalto
+okteta                                       Yaakov Selkowitz
+okteta4                                      Yaakov Selkowitz
+onc-rpc-devel                                Pavel Fedin
+onig                                         Marco Atzeri
+oodiff                                       Jari Aalto
+openal                                       Yaakov Selkowitz
+openblas                                     Marco Atzeri
+openbox                                      Yaakov Selkowitz
+opencdk                                      Dr. Volker Zell
+openexr                                      Yaakov Selkowitz
+openjade                                     Yaakov Selkowitz
+openjpeg                                     Yaakov Selkowitz
+openldap                                     Dr. Volker Zell
+openmpi                                      Marco Atzeri
+OpenSP                                       Yaakov Selkowitz
+openssh                                      Corinna Vinschen
+openssl                                      Corinna Vinschen/Yaakov Selkowitz
+optipng                                      Jari Aalto
+opus                                         Yaakov Selkowitz
+opusfile                                     Yaakov Selkowitz
+orage                                        Yaakov Selkowitz
+ORBit2                                       Yaakov Selkowitz
+orc                                          Yaakov Selkowitz
+orpie                                        Andrew Schulman
+outguess                                     Jari Aalto
+overpass-fonts                               Yaakov Selkowitz
+oxygen-fonts                                 Yaakov Selkowitz
+oxygen-icons                                 Yaakov Selkowitz
+p11-kit                                      Yaakov Selkowitz
+p7zip                                        Tony Kelman
+pairs                                        Yaakov Selkowitz
+pakchois                                     Dr. Volker Zell
+pal                                          ORPHANED (Jari Aalto)
+palapeli                                     Yaakov Selkowitz
+pango1.0                                     Yaakov Selkowitz
+pangomm1.4                                   Yaakov Selkowitz
+pangox-compat                                Yaakov Selkowitz
+paprefs                                      Yaakov Selkowitz
+par                                          David Levine
+parley                                       Yaakov Selkowitz
+patch                                        Corinna Vinschen
+patcher                                      Jari Aalto
+patchutils                                   Eric Blake
+pavucontrol                                  Yaakov Selkowitz
+pax                                          Jari Aalto
+pbzip2                                       Marco Atzeri
+pcmanfm                                      Yaakov Selkowitz
+pcre                                         Yaakov Selkowitz
+pdf2djvu                                     Yaakov Selkowitz
+pdftk                                        David Rothenberger
+peg-e                                        Yaakov Selkowitz
+perl                                         Achim Gratz
+perl-Algorithm-Diff                          Achim Gratz
+perl-Alien-wxWidgets                         Yaakov Selkowitz
+perl-Archive-Zip                             Achim Gratz/Yaakov Selkowitz
+perl-Authen-SASL                             Yaakov Selkowitz
+perl-autovivification                        Achim Gratz/Ken Brown
+perl-B-Generate                              Achim Gratz
+perl-Business-ISBN                           Achim Gratz/Ken Brown
+perl-Business-ISBN-Data                      Achim Gratz/Ken Brown
+perl-Business-ISMN                           Achim Gratz/Ken Brown
+perl-Business-ISSN                           Achim Gratz/Ken Brown
+perl-Cairo                                   Yaakov Selkowitz
+perl-Cairo-GObject                           Yaakov Selkowitz
+perl-Capture-Tiny                            Achim Gratz/Ken Brown
+perl-Carp                                    Achim Gratz
+perl-CGI                                     Yaakov Selkowitz
+perl-Class-XSAccessor                        Achim Gratz
+perl-Clone                                   Achim Gratz/Yaakov Selkowitz
+perl-common-sense                            Achim Gratz
+perl-Compress-Bzip2                          Achim Gratz
+perl-Config-AutoConf                         Achim Gratz/Ken Brown
+perl-Config-Perl-V                           Achim Gratz
+perl-Config-Tiny                             Achim Gratz
+perl-CPAN-Changes                            Achim Gratz
+perl-CPAN-DistnameInfo                       Achim Gratz
+perl-CPAN-Meta                               Achim Gratz
+perl-CPAN-Meta-Check                         Achim Gratz
+perl-CPAN-Meta-Requirements                  Achim Gratz
+perl-CPAN-Meta-YAML                          Achim Gratz
+perl-CPAN-Reporter                           Achim Gratz
+perl-CPAN-Testers-Report                     Achim Gratz
+perl-Crypt-OpenSSL-Bignum                    Achim Gratz
+perl-Crypt-OpenSSL-DSA                       Achim Gratz
+perl-Crypt-OpenSSL-EC                        Achim Gratz
+perl-Crypt-OpenSSL-ECDSA                     Achim Gratz
+perl-Crypt-OpenSSL-Random                    Achim Gratz
+perl-Crypt-OpenSSL-RSA                       Achim Gratz
+perl-Data-Alias                              Achim Gratz
+perl-Data-Compare                            Achim Gratz/Ken Brown
+perl-Data-Diver                              Achim Gratz/Ken Brown
+perl-Data-Dump                               Achim Gratz/Ken Brown
+perl-Data-GUID                               Achim Gratz
+perl-Data-OptList                            Achim Gratz
+perl-Data-UUID                               Achim Gratz
+perl-Date-Simple                             Achim Gratz/Ken Brown
+perl-DBD-mysql                               Achim Gratz/Yaakov Selkowitz
+perl-DBD-SQLite                              Achim Gratz/Yaakov Selkowitz
+perl-DBI                                     Achim Gratz/Yaakov Selkowitz
+perl-Devel-Autoflush                         Achim Gratz
+perl-Devel-Symdump                           Achim Gratz
+perl-Digest-BubbleBabble                     Achim Gratz
+perl-Digest-GOST                             Achim Gratz
+perl-Digest-HMAC                             Achim Gratz/Yaakov Selkowitz
+perl-Digest-SHA1                             Achim Gratz/Yaakov Selkowitz
+perl-Encode-EUCJPASCII                       Achim Gratz/Ken Brown
+perl-Encode-HanExtra                         Achim Gratz/Ken Brown
+perl-Encode-ISO2022                          Achim Gratz
+perl-Encode-JIS0213                          Achim Gratz
+perl-Encode-JIS2K                            Achim Gratz/Ken Brown
+perl-Encode-Locale                           Achim Gratz/Yaakov Selkowitz
+perl-Error                                   Achim Gratz
+perl-Exporter-Tiny                           Achim Gratz
+perl-ExtUtils-CBuilder                       Achim Gratz
+perl-ExtUtils-Depends                        Achim Gratz/Yaakov Selkowitz
+perl-ExtUtils-F77                            Achim Gratz
+perl-ExtUtils-LibBuilder                     Achim Gratz/Ken Brown
+perl-ExtUtils-MakeMaker                      Achim Gratz
+perl-ExtUtils-PkgConfig                      Achim Gratz/Yaakov Selkowitz
+perl-File-Copy-Recursive                     Achim Gratz
+perl-File-Find-HomeDir                       Achim Gratz
+perl-File-Find-Object                        Achim Gratz
+perl-File-Find-Object-Rule                   Achim Gratz
+perl-File-Find-Rule                          Achim Gratz/Ken Brown
+perl-File-Listing                            Achim Gratz/Yaakov Selkowitz
+perl-File-pushd                              Achim Gratz
+perl-File-Slurp                              Achim Gratz/Ken Brown
+perl-File-Slurp-Tiny                         Achim Gratz
+perl-File-Slurp-Unicode                      Achim Gratz/Ken Brown
+perl-File-Which                              Achim Gratz
+perl-GD                                      Yaakov Selkowitz
+perl-Getopt-ArgvFile                         Achim Gratz/Yaakov Selkowitz
+perl-gettext                                 Achim Gratz/Yaakov Selkowitz
+perl-Glib                                    Yaakov Selkowitz
+perl-Glib-Object-Introspection               Yaakov Selkowitz
+perl-Gnome2                                  Yaakov Selkowitz
+perl-Gnome2-Canvas                           Yaakov Selkowitz
+perl-Gnome2-GConf                            Yaakov Selkowitz
+perl-Gnome2-Rsvg                             Yaakov Selkowitz
+perl-Gnome2-VFS                              Yaakov Selkowitz
+perl-Gnome2-Vte                              Yaakov Selkowitz
+perl-Gnome2-Wnck                             Yaakov Selkowitz
+perl-GStreamer                               Yaakov Selkowitz
+perl-GStreamer-Interfaces                    Yaakov Selkowitz
+perl-Gtk2                                    Yaakov Selkowitz
+perl-Gtk2-GladeXML                           Yaakov Selkowitz
+perl-Gtk2-Notify                             Yaakov Selkowitz
+perl-Gtk2-SourceView2                        Yaakov Selkowitz
+perl-Gtk2-Spell                              Yaakov Selkowitz
+perl-Gtk2-Unique                             Yaakov Selkowitz
+perl-Gtk2-WebKit                             Yaakov Selkowitz
+perl-Gtk3                                    Yaakov Selkowitz
+perl-HTML-Parser                             Achim Gratz/Yaakov Selkowitz
+perl-HTML-Tagset                             Achim Gratz/Yaakov Selkowitz
+perl-HTTP-Cookies                            Achim Gratz/Yaakov Selkowitz
+perl-HTTP-Daemon                             Achim Gratz/Yaakov Selkowitz
+perl-HTTP-Date                               Achim Gratz/Yaakov Selkowitz
+perl-HTTP-Message                            Achim Gratz/Yaakov Selkowitz
+perl-HTTP-Negotiate                          Achim Gratz/Yaakov Selkowitz
+perl-inc-latest                              Achim Gratz
+perl-Inline                                  Achim Gratz
+perl-Inline-Files                            Achim Gratz
+perl-IO-CaptureOutput                        Achim Gratz
+perl-IO-HTML                                 Achim Gratz/Ken Brown
+perl-IO-Prompt-Tiny                          Achim Gratz
+perl-IO-Socket-INET6                         Achim Gratz
+perl-IO-Socket-IP                            Achim Gratz/Yaakov Selkowitz
+perl-IO-Socket-SSL                           Achim Gratz/Yaakov Selkowitz
+perl-IO-String                               Achim Gratz
+perl-IO-Tty                                  Achim Gratz
+perl-IPC-Cmd                                 Achim Gratz
+perl-IPC-Run                                 Achim Gratz
+perl-IPC-Run3                                Achim Gratz/Ken Brown
+perl-JSON                                    Achim Gratz
+perl-JSON-PP                                 Achim Gratz
+perl-JSON-XS                                 Achim Gratz
+perl-libwww-perl                             Achim Gratz
+perl-List-AllUtils                           Achim Gratz/Ken Brown
+perl-List-MoreUtils                          Achim Gratz/Ken Brown
+perl-Locale-gettext                          Achim Gratz/Yaakov Selkowitz
+perl-Log-Log4perl                            Achim Gratz/Ken Brown
+perl-LWP-MediaTypes                          Achim Gratz/Yaakov Selkowitz
+perl-LWP-Protocol-https                      Achim Gratz/Ken Brown
+perl-MailTools                               Yaakov Selkowitz
+perl-Metabase-Client-Simple                  Achim Gratz
+perl-Metabase-Fact                           Achim Gratz
+perl-MIME-Base32                             Achim Gratz
+perl-MIME-Charset                            Achim Gratz/Ken Brown
+perl-Module-Build                            Achim Gratz
+perl-Module-Metadata                         Achim Gratz
+perl-Module-Pluggable                        Yaakov Selkowitz
+perl-Module-ScanDeps                         Achim Gratz/Yaakov Selkowitz
+perl-Module-Signature                        Achim Gratz
+perl-Mozilla-CA                              Achim Gratz/Ken Brown
+perl-Net-DNS                                 Achim Gratz
+perl-Net-DNS-SEC                             Achim Gratz
+perl-Net-HTTP                                Achim Gratz/Yaakov Selkowitz
+perl-Net-IP                                  Achim Gratz
+perl-Net-SMTP-SSL                            Yaakov Selkowitz
+perl-Net-SSLeay                              Achim Gratz/Yaakov Selkowitz
+perl-Number-Compare                          Achim Gratz/Ken Brown
+perl-OpenGL                                  Yaakov Selkowitz
+perl-PadWalker                               Achim Gratz
+perl-Pango                                   Yaakov Selkowitz
+perl-PAR                                     Achim Gratz/Yaakov Selkowitz
+perl-PAR-Dist                                Achim Gratz/Yaakov Selkowitz
+perl-PAR-Packer                              Yaakov Selkowitz
+perl-Params-Util                             Achim Gratz/Yaakov Selkowitz
+perl-Parse-CPAN-Meta                         Achim Gratz
+perl-Parse-RecDescent                        Achim Gratz
+perl-Path-Class                              Achim Gratz
+perl-Pod-Coverage                            Achim Gratz
+perl-Pod-Escapes                             Achim Gratz
+perl-Pod-Simple                              Achim Gratz
+perl-POD2-Base                               Achim Gratz
+perl-Probe-Perl                              Achim Gratz
+perl-Proc-ProcessTable                       Achim Gratz/Yaakov Selkowitz
+perl-Readonly                                Achim Gratz/Ken Brown
+perl-Readonly-XS                             Achim Gratz/Ken Brown
+perl-Regexp-Common                           Achim Gratz/Ken Brown
+perl-Scalar-List-Utils                       Achim Gratz
+perl-SGMLSpm                                 Yaakov Selkowitz
+perl-Socket                                  Achim Gratz/Yaakov Selkowitz
+perl-Socket6                                 Achim Gratz
+perl-Spiffy                                  Achim Gratz
+perl-Sub-Exporter                            Achim Gratz
+perl-Sub-Install                             Achim Gratz
+perl-Sub-Uplevel                             Achim Gratz
+perl-Tee                                     Achim Gratz
+perl-Term-ReadKey                            Achim Gratz/Yaakov Selkowitz
+perl-Term-ReadLine-Gnu                       Achim Gratz/Yaakov Selkowitz
+perl-Term-ReadLine-Perl                      Achim Gratz
+perl-TermReadKey                             Achim Gratz
+perl-Test-Base                               Achim Gratz
+perl-Test-CPAN-Meta                          Achim Gratz
+perl-Test-Deep                               Achim Gratz
+perl-Test-Differences                        Achim Gratz
+perl-Test-Exception                          Achim Gratz
+perl-Test-Fatal                              Achim Gratz
+perl-Test-LeakTrace                          Achim Gratz
+perl-Test-NoWarnings                         Achim Gratz
+perl-Test-Pod                                Achim Gratz
+perl-Test-Pod-Coverage                       Achim Gratz
+perl-Test-Reporter                           Achim Gratz
+perl-Test-Reporter-Transport-Metabase        Achim Gratz
+perl-Test-Requires                           Achim Gratz
+perl-Test-Script                             Achim Gratz
+perl-Test-Simple                             Achim Gratz
+perl-Test-TrailingSpace                      Achim Gratz
+perl-Test-Warn                               Achim Gratz
+perl-Test-Warnings                           Achim Gratz
+perl-Test-Without-Module                     Achim Gratz
+perl-Test-YAML                               Achim Gratz
+perl-Text-BibTeX                             Achim Gratz/Ken Brown
+perl-Text-CharWidth                          Achim Gratz/Yaakov Selkowitz
+perl-Text-CSV                                Achim Gratz/David Stacey
+perl-Text-CSV_XS                             Achim Gratz/David Stacey
+perl-Text-Diff                               Achim Gratz
+perl-Text-Glob                               Achim Gratz/Ken Brown
+perl-Text-Roman                              Achim Gratz/Ken Brown
+perl-Text-WrapI18N                           Achim Gratz/Yaakov Selkowitz
+perl-Tie-Cycle                               Achim Gratz/Ken Brown
+perl-TimeDate                                Achim Gratz/Yaakov Selkowitz
+perl-Tk                                      Yaakov Selkowitz
+perl-Tk-Canvas-GradientColor                 Yaakov Selkowitz
+perl-Tk-ColoredButton                        Yaakov Selkowitz
+perl-Tk-EntryCheck                           Yaakov Selkowitz
+perl-Tk-Getopt                               Yaakov Selkowitz
+perl-Tk-Pod                                  Yaakov Selkowitz
+perl-Try-Tiny                                Achim Gratz
+perl-Types-Serialiser                        Achim Gratz
+perl-Unicode-Collate                         Achim Gratz/Ken Brown
+perl-Unicode-GCString                        Achim Gratz/Ken Brown
+perl-Unicode-LineBreak                       Achim Gratz/Ken Brown
+perl-Unicode-Normalize                       Achim Gratz/Ken Brown
+perl-URI                                     Achim Gratz/Yaakov Selkowitz
+perl-Win32                                   Achim Gratz
+perl-WWW-Curl                                Achim Gratz
+perl-WWW-RobotRules                          Achim Gratz/Yaakov Selkowitz
+perl-Wx                                      Yaakov Selkowitz
+perl-XML-LibXML                              Achim Gratz/Yaakov Selkowitz
+perl-XML-LibXML-Simple                       Achim Gratz/Ken Brown
+perl-XML-LibXSLT                             Achim Gratz/Ken Brown
+perl-XML-NamespaceSupport                    Achim Gratz/Yaakov Selkowitz
+perl-XML-Parser                              Achim Gratz/Yaakov Selkowitz
+perl-XML-SAX                                 Achim Gratz/Yaakov Selkowitz
+perl-XML-SAX-Base                            Achim Gratz/Yaakov Selkowitz
+perl-XML-SAX-Expat                           Achim Gratz
+perl-XML-Simple                              Achim Gratz/Yaakov Selkowitz
+perl-XML-Writer                              Achim Gratz/Ken Brown
+perl-YAML                                    Achim Gratz/Yaakov Selkowitz
+perl-YAML-LibYAML                            Achim Gratz
+phodav                                       Yaakov Selkowitz
+phonon                                       Yaakov Selkowitz
+phonon-backend-gstreamer                     Yaakov Selkowitz
+phonon4qt5                                   Yaakov Selkowitz
+phonon4qt5-backend-gstreamer                 Yaakov Selkowitz
+php                                          Yaakov Selkowitz
+php-Archive_Tar                              Yaakov Selkowitz
+php-Console_Getopt                           Yaakov Selkowitz
+php-jsonc                                    Yaakov Selkowitz
+php-PEAR                                     Yaakov Selkowitz
+php-Structures_Graph                         Yaakov Selkowitz
+php-XML_Util                                 Yaakov Selkowitz
+picard                                       Dr. Volker Zell
+picmi                                        Yaakov Selkowitz
+pinentry                                     ORPHANED (Charles Wilson)
+pinfo                                        Andrew Schulman
+ping                                         Marco Atzeri
+pixman                                       Yaakov Selkowitz
+pkg-config                                   Yaakov Selkowitz
+pl                                           Corinna Vinschen
+planet                                       Yaakov Selkowitz
+ploticus                                     Andrew Schulman
+ploticus-doc                                 Andrew Schulman
+plotutils                                    Marco Atzeri
+pluma                                        Yaakov Selkowitz
+pluma-plugins                                Yaakov Selkowitz
+pngcheck                                     Jari Aalto
+pngcrush                                     Jari Aalto
+pngquant                                     Jari Aalto
+po4a                                         Yaakov Selkowitz
+poco                                         David Stacey
+poppler                                      Yaakov Selkowitz
+poppler-data                                 Yaakov Selkowitz
+popt                                         ORPHANED
+portaudio                                    Yaakov Selkowitz
+portmidi                                     Yaakov Selkowitz
+posh                                         Jari Aalto
+postfix                                      Christian Franke
+postgresql                                   Marco Atzeri
+potrace                                      Jari Aalto
+presentproto                                 Yaakov Selkowitz
+prison                                       Yaakov Selkowitz
+pristine-tar                                 Jari Aalto
+procmail                                     Daniel Boland
+procps                                       Corinna Vinschen
+proj                                         Marco Atzeri
+protobuf                                     ORPHANED (Reini Urban)
+pscan                                        Jari Aalto
+psmisc                                       Corinna Vinschen
+pstoedit                                     Dr. Volker Zell
+pstotext                                     Jari Aalto
+pth                                          ORPHANED (Charles Wilson)
+pugixml                                      David Stacey
+pulseaudio                                   Yaakov Selkowitz
+pure-ftpd                                    Marco Atzeri
+putty                                        Yaakov Selkowitz
+pv                                           Aaron Schneider
+pwgen                                        Jari Aalto
+pwget                                        Jari Aalto
+pylint                                       Jari Aalto
+python                                       Yaakov Selkowitz
+python-backports.ssl_match_hostname          ORPHANED (Yaakov Selkowitz)
+python-beautifulsoup                         Yaakov Selkowitz
+python-bsddb3                                Yaakov Selkowitz
+python-cairo                                 Yaakov Selkowitz
+python-cffi                                  Yaakov Selkowitz
+python-chardet                               Yaakov Selkowitz
+python-crypto                                Jari Aalto
+python-cryptography                          Yaakov Selkowitz
+python-cython                                Yaakov Selkowitz
+python-dbus                                  Yaakov Selkowitz
+python-discid                                Dr. Volker Zell
+python-doc                                   Yaakov Selkowitz
+python-docutils                              Tony Kelman
+python-enum34                                Yaakov Selkowitz
+python-fastimport                            Ken Brown
+python-feedparser                            Jari Aalto
+python-gdata                                 ORPHANED (Chris Sutcliffe)
+python-gi                                    Yaakov Selkowitz
+python-gobject                               Yaakov Selkowitz
+python-goocanvas                             Yaakov Selkowitz
+python-gst0.10                               Yaakov Selkowitz
+python-gtk2.0                                Yaakov Selkowitz
+python-gtksourceview2                        Yaakov Selkowitz
+python-h5py                                  Chris LeBlanc
+python-htmltmpl                              Yaakov Selkowitz
+python-imaging                               Yaakov Selkowitz
+python-jinja2                                Tony Kelman
+python-logilab-astng                         Jari Aalto
+python-logilab-common                        Jari Aalto
+python-lxml                                  Yaakov Selkowitz
+python-mako                                  Yaakov Selkowitz
+python-markupsafe                            Yaakov Selkowitz
+python-mutagen                               Dr. Volker Zell
+python-mx                                    Yaakov Selkowitz
+python-numpy                                 Yaakov Selkowitz
+python-opengl                                Yaakov Selkowitz
+python-opengl-accelerate                     Yaakov Selkowitz
+python-openssl                               Yaakov Selkowitz
+python-orbit                                 Yaakov Selkowitz
+python-paramiko                              Jari Aalto
+python-ply                                   Yaakov Selkowitz
+python-pyasn1                                Yaakov Selkowitz
+python-pycparser                             Yaakov Selkowitz
+python-pygame                                Yaakov Selkowitz
+python-pygments                              Yaakov Selkowitz
+python-pykde4                                Yaakov Selkowitz
+python-pypdf                                 Yaakov Selkowitz
+python-pyqt4                                 Yaakov Selkowitz
+python-pyqt5                                 Yaakov Selkowitz
+python-pyrex                                 Yaakov Selkowitz
+python-reportlab                             Yaakov Selkowitz
+python-requests                              Yaakov Selkowitz
+python-setuptools                            Yaakov Selkowitz
+python-simplejson                            Yaakov Selkowitz
+python-sip                                   Yaakov Selkowitz
+python-six                                   Yaakov Selkowitz
+python-sphinx                                Tony Kelman
+python-twisted                               Yaakov Selkowitz
+python-unidecode                             Yaakov Selkowitz
+python-urllib3                               Yaakov Selkowitz
+python-webkit                                Yaakov Selkowitz
+python-xdg                                   Yaakov Selkowitz
+python-yaml                                  Yaakov Selkowitz
+python-zope.interface                        Yaakov Selkowitz
+python3                                      Yaakov Selkowitz
+python3-bsddb3                               Yaakov Selkowitz
+python3-cairo                                Yaakov Selkowitz
+python3-cffi                                 Yaakov Selkowitz
+python3-chardet                              Yaakov Selkowitz
+python3-cryptography                         Yaakov Selkowitz
+python3-cython                               Yaakov Selkowitz
+python3-dbus                                 Yaakov Selkowitz
+python3-doc                                  Yaakov Selkowitz
+python3-h5py                                 Chris LeBlanc
+python3-imaging                              Yaakov Selkowitz
+python3-lxml                                 Yaakov Selkowitz
+python3-mako                                 Yaakov Selkowitz
+python3-markupsafe                           Yaakov Selkowitz
+python3-numpy                                Yaakov Selkowitz
+python3-openssl                              Yaakov Selkowitz
+python3-ply                                  Yaakov Selkowitz
+python3-pyasn1                               Yaakov Selkowitz
+python3-pycparser                            Yaakov Selkowitz
+python3-pygments                             Yaakov Selkowitz
+python3-pykde4                               Yaakov Selkowitz
+python3-pyqt4                                Yaakov Selkowitz
+python3-pyqt5                                Yaakov Selkowitz
+python3-requests                             Yaakov Selkowitz
+python3-setuptools                           Yaakov Selkowitz
+python3-simplejson                           Yaakov Selkowitz
+python3-sip                                  Yaakov Selkowitz
+python3-six                                  Yaakov Selkowitz
+python3-unidecode                            Yaakov Selkowitz
+python3-urllib3                              Yaakov Selkowitz
+python3-xdg                                  Yaakov Selkowitz
+python3-yaml                                 Yaakov Selkowitz
+python3-zope.interface                       Yaakov Selkowitz
+pyzy                                         Yaakov Selkowitz
+qca                                          Yaakov Selkowitz
+qhull                                        Marco Atzeri
+qimageblitz                                  Yaakov Selkowitz
+qiv                                          Jari Aalto
+qjson                                        Yaakov Selkowitz
+qoauth                                       Yaakov Selkowitz
+qqwing                                       Yaakov Selkowitz
+qrencode                                     Yaakov Selkowitz
+qrupdate                                     Marco Atzeri
+qscintilla2                                  Yaakov Selkowitz
+qsf                                          Jari Aalto
+qt3                                          Yaakov Selkowitz
+qt4                                          Yaakov Selkowitz
+qt4-webkit                                   Yaakov Selkowitz
+qt5-base                                     Yaakov Selkowitz
+qt5-declarative                              Yaakov Selkowitz
+qt5-doc                                      Yaakov Selkowitz
+qt5-enginio                                  Yaakov Selkowitz
+qt5-graphicaleffects                         Yaakov Selkowitz
+qt5-imageformats                             Yaakov Selkowitz
+qt5-location                                 Yaakov Selkowitz
+qt5-multimedia                               Yaakov Selkowitz
+qt5-quick1                                   Yaakov Selkowitz
+qt5-quickcontrols                            Yaakov Selkowitz
+qt5-script                                   Yaakov Selkowitz
+qt5-serialport                               Yaakov Selkowitz
+qt5-svg                                      Yaakov Selkowitz
+qt5-tools                                    Yaakov Selkowitz
+qt5-translations                             Yaakov Selkowitz
+qt5-webchannel                               Yaakov Selkowitz
+qt5-webkit                                   Yaakov Selkowitz
+qt5-webkit-examples                          Yaakov Selkowitz
+qt5-websockets                               Yaakov Selkowitz
+qt5-x11extras                                Yaakov Selkowitz
+qt5-xmlpatterns                              Yaakov Selkowitz
+quadrapassel                                 Yaakov Selkowitz
+quilt                                        Jari Aalto
+quvi                                         Yaakov Selkowitz
+R                                            Marco Atzeri
+randrproto                                   Yaakov Selkowitz
+rarian                                       Yaakov Selkowitz
+rats                                         Jari Aalto
+rbio                                         Marco Atzeri
+rc                                           Jari Aalto
+rcs                                          Achim Gratz
+rdiff-backup                                 David Rothenberger
+rdtool                                       Jari Aalto
+readline                                     Eric Blake
+rebase                                       Corinna Vinschen
+recode                                       Corinna Vinschen
+recordproto                                  Yaakov Selkowitz
+regina-rexx                                  Mark Hessling
+renameutils                                  Jari Aalto
+renattach                                    Jari Aalto
+rendercheck                                  Yaakov Selkowitz
+renderproto                                  Yaakov Selkowitz
+resourceproto                                Yaakov Selkowitz
+rgb                                          Yaakov Selkowitz
+ristretto                                    Yaakov Selkowitz
+rlwrap                                       Corinna Vinschen
+rng-tools                                    Corinna Vinschen
+robodoc                                      Yaakov Selkowitz
+robots                                       Corinna Vinschen
+rocs                                         Yaakov Selkowitz
+rodent-icon-theme                            Yaakov Selkowitz
+rpcbind                                      Pavel Fedin
+rpm                                          Pavel Fedin
+rsh                                          ORPHANED (Charles Wilson)
+rsnapshot                                    Jari Aalto
+rstart                                       Yaakov Selkowitz
+rsync                                        Jari Aalto
+rtf2html-htdig                               Jari Aalto
+rtorrent                                     Marco Atzeri
+ruby                                         Yaakov Selkowitz
+ruby-actionmailer                            Yaakov Selkowitz
+ruby-actionpack                              Yaakov Selkowitz
+ruby-actionview                              Yaakov Selkowitz
+ruby-activejob                               Yaakov Selkowitz
+ruby-activemodel                             Yaakov Selkowitz
+ruby-activerecord                            Yaakov Selkowitz
+ruby-activerecord-deprecated_finders         Yaakov Selkowitz
+ruby-activesupport                           Yaakov Selkowitz
+ruby-arel                                    Yaakov Selkowitz
+ruby-atk                                     Yaakov Selkowitz
+ruby-bcrypt                                  Yaakov Selkowitz
+ruby-bigdecimal                              Yaakov Selkowitz
+ruby-binding_of_caller                       Yaakov Selkowitz
+ruby-builder                                 Yaakov Selkowitz
+ruby-bundler                                 Yaakov Selkowitz
+ruby-byebug                                  Yaakov Selkowitz
+ruby-cairo                                   Yaakov Selkowitz
+ruby-cairo-gobject                           Yaakov Selkowitz
+ruby-celluloid                               Yaakov Selkowitz
+ruby-clutter                                 Yaakov Selkowitz
+ruby-clutter-gtk                             Yaakov Selkowitz
+ruby-coffee-rails                            Yaakov Selkowitz
+ruby-coffee-script                           Yaakov Selkowitz
+ruby-coffee-script-source                    Yaakov Selkowitz
+ruby-columnize                               Yaakov Selkowitz
+ruby-curses                                  Yaakov Selkowitz
+ruby-dbus                                    Yaakov Selkowitz
+ruby-debug_inspector                         Yaakov Selkowitz
+ruby-erubis                                  Yaakov Selkowitz
+ruby-execjs                                  Yaakov Selkowitz
+ruby-gdk3                                    Yaakov Selkowitz
+ruby-gdk_pixbuf2                             Yaakov Selkowitz
+ruby-gettext                                 Yaakov Selkowitz
+ruby-gio2                                    Yaakov Selkowitz
+ruby-glib2                                   Yaakov Selkowitz
+ruby-globalid                                Yaakov Selkowitz
+ruby-gobject-introspection                   Yaakov Selkowitz
+ruby-goocanvas1                              Yaakov Selkowitz
+ruby-goocanvas2                              Yaakov Selkowitz
+ruby-gstreamer0.10                           Yaakov Selkowitz
+ruby-gstreamer1.0                            Yaakov Selkowitz
+ruby-gtk2                                    Yaakov Selkowitz
+ruby-gtk3                                    Yaakov Selkowitz
+ruby-gtksourceview2                          Yaakov Selkowitz
+ruby-gtksourceview3                          Yaakov Selkowitz
+ruby-hike                                    Yaakov Selkowitz
+ruby-hitimes                                 Yaakov Selkowitz
+ruby-hoe                                     Yaakov Selkowitz
+ruby-i18n                                    Yaakov Selkowitz
+ruby-io-console                              Yaakov Selkowitz
+ruby-jbuilder                                Yaakov Selkowitz
+ruby-journey                                 Yaakov Selkowitz
+ruby-jquery-rails                            Yaakov Selkowitz
+ruby-json                                    Yaakov Selkowitz
+ruby-kgio                                    Yaakov Selkowitz
+ruby-listen                                  Yaakov Selkowitz
+ruby-locale                                  Yaakov Selkowitz
+ruby-loofah                                  Yaakov Selkowitz
+ruby-mail                                    Yaakov Selkowitz
+ruby-mime-types                              Yaakov Selkowitz
+ruby-minitest                                Yaakov Selkowitz
+ruby-minitest4                               Yaakov Selkowitz
+ruby-minitest5                               Yaakov Selkowitz
+ruby-molinillo                               Yaakov Selkowitz
+ruby-multi_json                              Yaakov Selkowitz
+ruby-mysql2                                  Yaakov Selkowitz
+ruby-net-http-persistent                     Yaakov Selkowitz
+ruby-nokogiri                                Yaakov Selkowitz
+ruby-oj                                      Yaakov Selkowitz
+ruby-pango                                   Yaakov Selkowitz
+ruby-pg                                      Yaakov Selkowitz
+ruby-pkg-config                              Yaakov Selkowitz
+ruby-polyglot                                Yaakov Selkowitz
+ruby-poppler                                 Yaakov Selkowitz
+ruby-psych                                   Yaakov Selkowitz
+ruby-racc                                    Yaakov Selkowitz
+ruby-rack                                    Yaakov Selkowitz
+ruby-rack-cache                              Yaakov Selkowitz
+ruby-rack-ssl                                Yaakov Selkowitz
+ruby-rack-test                               Yaakov Selkowitz
+ruby-rails                                   Yaakov Selkowitz
+ruby-rails-deprecated_sanitizer              Yaakov Selkowitz
+ruby-rails-dom-testing                       Yaakov Selkowitz
+ruby-rails-html-sanitizer                    Yaakov Selkowitz
+ruby-railties                                Yaakov Selkowitz
+ruby-raindrops                               Yaakov Selkowitz
+ruby-rake                                    Yaakov Selkowitz
+ruby-rake-compiler                           Yaakov Selkowitz
+ruby-rdoc                                    Yaakov Selkowitz
+ruby-rsvg2                                   Yaakov Selkowitz
+ruby-sass                                    Yaakov Selkowitz
+ruby-sass-rails                              Yaakov Selkowitz
+ruby-sdoc                                    Yaakov Selkowitz
+ruby-sprockets                               Yaakov Selkowitz
+ruby-sprockets-rails                         Yaakov Selkowitz
+ruby-sqlite3                                 Yaakov Selkowitz
+ruby-test-unit                               Yaakov Selkowitz
+ruby-text                                    Yaakov Selkowitz
+ruby-thor                                    Yaakov Selkowitz
+ruby-thread_safe                             Yaakov Selkowitz
+ruby-tilt                                    Yaakov Selkowitz
+ruby-timers                                  Yaakov Selkowitz
+ruby-treetop                                 Yaakov Selkowitz
+ruby-turbolinks                              Yaakov Selkowitz
+ruby-tzinfo                                  Yaakov Selkowitz
+ruby-uglifier                                Yaakov Selkowitz
+ruby-unicorn                                 Yaakov Selkowitz
+ruby-vte                                     Yaakov Selkowitz
+ruby-vte3                                    Yaakov Selkowitz
+ruby-web-console                             Yaakov Selkowitz
+ruby-webkit-gtk2                             Yaakov Selkowitz
+ruby-yajl                                    Yaakov Selkowitz
+rubygems                                     Yaakov Selkowitz
+run                                          Achim Gratz
+run2                                         ORPHANED (Charles Wilson)
+rxp                                          Jari Aalto
+rxvt                                         ORPHANED (Charles Wilson)
+rxvt-unicode                                 Yaakov Selkowitz
+rzip                                         Jari Aalto
+scons                                        David Rothenberger
+scowl                                        Yaakov Selkowitz
+screen                                       Andrew Schulman
+scrnsaverproto                               Yaakov Selkowitz
+scsh                                         ORPHANED (Reini Urban)
+SDL                                          Yaakov Selkowitz
+SDL2                                         Yaakov Selkowitz
+SDL2_image                                   Yaakov Selkowitz
+SDL2_mixer                                   Yaakov Selkowitz
+SDL2_net                                     Yaakov Selkowitz
+SDL2_ttf                                     Yaakov Selkowitz
+SDL_gfx                                      Yaakov Selkowitz
+SDL_image                                    Yaakov Selkowitz
+SDL_mixer                                    Yaakov Selkowitz
+SDL_net                                      Yaakov Selkowitz
+SDL_Pango                                    Yaakov Selkowitz
+SDL_sound                                    Yaakov Selkowitz
+SDL_ttf                                      Yaakov Selkowitz
+seahorse                                     Yaakov Selkowitz
+sed                                          Corinna Vinschen
+sendmail                                     Daniel Boland
+sendxmpp                                     Jari Aalto
+serf                                         David Rothenberger
+sessreg                                      Yaakov Selkowitz
+setxkbmap                                    Yaakov Selkowitz
+sgml-common                                  Yaakov Selkowitz
+sgrep                                        Jari Aalto
+shared-mime-info                             Yaakov Selkowitz
+sharutils                                    Eric Blake
+shed                                         Jari Aalto
+showfont                                     Yaakov Selkowitz
+shutdown                                     Frank Fesevur
+sic                                          Jari Aalto
+signify                                      Jari Aalto
+simsu                                        Yaakov Selkowitz
+since                                        Jari Aalto
+singular                                     Yue Ren/Marco Atzeri
+sitecopy                                     Andrew Schulman
+sj-fonts                                     Yaakov Selkowitz
+skkdic                                       Yaakov Selkowitz
+sl                                           Yaakov Selkowitz
+slang                                        Marco Atzeri
+slrn                                         Marco Atzeri
+smartmontools                                Christian Franke
+smproxy                                      Yaakov Selkowitz
+sng                                          Andrew Schulman
+snownews                                     Yaakov Selkowitz
+socat                                        Andrew Schulman
+sound-theme-freedesktop                      Yaakov Selkowitz
+source-highlight                             Yaakov Selkowitz
+sox                                          Yaakov Selkowitz
+spambayes                                    Jari Aalto
+spamoracle                                   Jari Aalto
+speex                                        David Rothenberger
+spice-gtk                                    Yaakov Selkowitz
+spice-protocol                               Yaakov Selkowitz
+splint                                       Jari Aalto
+splitpatch                                   Jari Aalto
+spqr                                         Marco Atzeri
+sqlite3                                      Jan Nijtmans
+squid                                        Dr. Volker Zell
+ssh-pageant                                  Michael Wild
+ssmtp                                        Corinna Vinschen
+startup-notification                         Yaakov Selkowitz
+steghide                                     Jari Aalto
+step                                         Yaakov Selkowitz
+stgit                                        Jari Aalto
+stow                                         Andrew Schulman
+strigi                                       Yaakov Selkowitz
+stunnel                                      Andrew Schulman
+subversion                                   David Rothenberger
+suck                                         Jari Aalto
+sudoku                                       Jari Aalto
+suite3270                                    Peter A. Castro
+suitesparseconfig                            Marco Atzeri
+sunrpc                                       ORPHANED (Charles Wilson)
+suomi-malaga                                 Yaakov Selkowitz
+surf                                         Yue Ren/Marco Atzeri
+svm                                          Ken Brown
+svn-load                                     Jari Aalto
+svn_load_dirs                                David Rothenberger
+sweeper                                      Yaakov Selkowitz
+swell-foop                                   Yaakov Selkowitz
+swig                                         Yaakov Selkowitz
+symlinks                                     Jari Aalto
+syslog-ng                                    Corinna Vinschen
+sysvinit                                     Dr. Volker Zell
+t1lib                                        Dr. Volker Zell
+tack                                         ORPHANED
+taglib                                       Yaakov Selkowitz
+tailor                                       Jari Aalto
+tali                                         Yaakov Selkowitz
+tanglet                                      Yaakov Selkowitz
+tar                                          Eric Blake
+task                                         Federico Hernandez
+tcl                                          Yaakov Selkowitz
+tcl-itcl                                     Yaakov Selkowitz
+tcl-itk                                      Yaakov Selkowitz
+tcl-iwidgets                                 Yaakov Selkowitz
+tcl-tix                                      Yaakov Selkowitz
+tcl-tk                                       Yaakov Selkowitz
+tcl-togl                                     Yaakov Selkowitz
+tcm                                          Dr. Volker Zell
+tcp_wrappers                                 ORPHANED (Charles Wilson)
+tcsh                                         Corinna Vinschen
+tdb                                          Yaakov Selkowitz
+ted                                          Dr. Volker Zell
+telepathy-farstream                          Yaakov Selkowitz
+telepathy-gabble                             Yaakov Selkowitz
+telepathy-glib                               Yaakov Selkowitz
+telepathy-idle                               Yaakov Selkowitz
+telepathy-logger                             Yaakov Selkowitz
+telepathy-mission-control                    Yaakov Selkowitz
+telepathy-qt                                 Yaakov Selkowitz
+terminus-fonts                               Yaakov Selkowitz
+tesseract-ocr                                Marco Atzeri
+tetzle                                       Yaakov Selkowitz
+texi2html                                    Dr. Volker Zell
+texinfo                                      Ken Brown
+texlive                                      Ken Brown
+texlive-collection-basic                     Ken Brown
+texlive-collection-basic-doc                 Ken Brown
+texlive-collection-bibtexextra               Ken Brown
+texlive-collection-bibtexextra-doc           Ken Brown
+texlive-collection-binextra                  Ken Brown
+texlive-collection-binextra-doc              Ken Brown
+texlive-collection-context                   Ken Brown
+texlive-collection-context-doc               Ken Brown
+texlive-collection-fontsextra                Ken Brown
+texlive-collection-fontsextra-doc            Ken Brown
+texlive-collection-fontsrecommended          Ken Brown
+texlive-collection-fontsrecommended-doc      Ken Brown
+texlive-collection-fontutils                 Ken Brown
+texlive-collection-fontutils-doc             Ken Brown
+texlive-collection-formatsextra              Ken Brown
+texlive-collection-games                     Ken Brown
+texlive-collection-genericextra              Ken Brown
+texlive-collection-genericextra-doc          Ken Brown
+texlive-collection-genericrecommended        Ken Brown
+texlive-collection-genericrecommended-doc    Ken Brown
+texlive-collection-htmlxml                   Ken Brown
+texlive-collection-humanities                Ken Brown
+texlive-collection-humanities-doc            Ken Brown
+texlive-collection-langafrican               Ken Brown
+texlive-collection-langarabic                Ken Brown
+texlive-collection-langchinese               Ken Brown
+texlive-collection-langcjk                   Ken Brown
+texlive-collection-langcyrillic              Ken Brown
+texlive-collection-langczechslovak           Ken Brown
+texlive-collection-langenglish               Ken Brown
+texlive-collection-langeuropean              Ken Brown
+texlive-collection-langfrench                Ken Brown
+texlive-collection-langgerman                Ken Brown
+texlive-collection-langgreek                 Ken Brown
+texlive-collection-langindic                 Ken Brown
+texlive-collection-langitalian               Ken Brown
+texlive-collection-langjapanese              Ken Brown
+texlive-collection-langkorean                Ken Brown
+texlive-collection-langother                 Ken Brown
+texlive-collection-langpolish                Ken Brown
+texlive-collection-langportuguese            Ken Brown
+texlive-collection-langspanish               Ken Brown
+texlive-collection-latex                     Ken Brown
+texlive-collection-latex-doc                 Ken Brown
+texlive-collection-latexextra                Ken Brown
+texlive-collection-latexextra-doc            Ken Brown
+texlive-collection-latexrecommended          Ken Brown
+texlive-collection-latexrecommended-doc      Ken Brown
+texlive-collection-luatex                    Ken Brown
+texlive-collection-luatex-doc                Ken Brown
+texlive-collection-mathextra                 Ken Brown
+texlive-collection-mathextra-doc             Ken Brown
+texlive-collection-metapost                  Ken Brown
+texlive-collection-metapost-doc              Ken Brown
+texlive-collection-music                     Ken Brown
+texlive-collection-music-doc                 Ken Brown
+texlive-collection-omega                     Ken Brown
+texlive-collection-pictures                  Ken Brown
+texlive-collection-pictures-doc              Ken Brown
+texlive-collection-plainextra                Ken Brown
+texlive-collection-pstricks                  Ken Brown
+texlive-collection-pstricks-doc              Ken Brown
+texlive-collection-publishers                Ken Brown
+texlive-collection-publishers-doc            Ken Brown
+texlive-collection-science                   Ken Brown
+texlive-collection-science-doc               Ken Brown
+texlive-collection-xetex                     Ken Brown
+texlive-collection-xetex-doc                 Ken Brown
+TeXmacs                                      Marco Atzeri
+tftp                                         Gernot Hillier
+Thunar                                       Yaakov Selkowitz
+tidy                                         Yaakov Selkowitz
+tiff                                         Yaakov Selkowitz
+tig                                          Jari Aalto
+tigervnc                                     Yaakov Selkowitz
+time                                         Andrew Schulman
+timidity++                                   Yaakov Selkowitz
+tin                                          Corinna Vinschen
+tinyirc                                      Jari Aalto
+tinyxml2                                     David Stacey
+tirc                                         Jari Aalto
+tmux                                         Michael Wild
+tnef                                         Jari Aalto
+tnftp                                        Jari Aalto
+totem                                        Yaakov Selkowitz
+totem-pl-parser                              Yaakov Selkowitz
+transfig                                     Dr. Volker Zell
+transmission                                 Yaakov Selkowitz
+transset                                     Yaakov Selkowitz
+trayer                                       Yaakov Selkowitz
+tree                                         Jari Aalto
+ttcp                                         Jari Aalto
+tumbler                                      Yaakov Selkowitz
+twm                                          Yaakov Selkowitz
+txt2regex                                    Jari Aalto
+typespeed                                    ORPHANED
+tzcode                                       Corinna Vinschen/Yaakov Selkowitz
+ucl                                          Achim Gratz
+ucspi-tcp                                    ORPHANED (Steven Monai)
+udunits                                      Marco Atzeri
+umfpack                                      Marco Atzeri
+unace                                        Jari Aalto
+unalz                                        Jari Aalto
+unifdef                                      Jari Aalto
+unifont                                      Yaakov Selkowitz
+unison2.27                                   Andrew Schulman
+unison2.32                                   Andrew Schulman
+unison2.40                                   Andrew Schulman
+unison2.45                                   Andrew Schulman
+unison2.48                                   Andrew Schulman
+units                                        ORPHANED
+unrtf                                        Jari Aalto
+untex                                        Jari Aalto
+unzip                                        Yaakov Selkowitz
+upower                                       Yaakov Selkowitz
+upx                                          Achim Gratz
+urlgrabber                                   Jari Aalto
+usbredir                                     Yaakov Selkowitz
+usbutils                                     Yaakov Selkowitz
+util-linux                                   Yaakov Selkowitz
+uw-imap                                      Dr. Volker Zell
+vala                                         Yaakov Selkowitz
+varnish                                      Jorge Díaz
+vfu                                          Jari Aalto
+viewres                                      Yaakov Selkowitz
+vim                                          Yaakov Selkowitz
+vinagre                                      Yaakov Selkowitz
+vino                                         Yaakov Selkowitz
+vorbis-tools                                 David Rothenberger
+vte                                          Yaakov Selkowitz
+vte2.90                                      Yaakov Selkowitz
+vte2.91                                      Yaakov Selkowitz
+w32api-headers                               Jonathan Yong
+w32api-runtime                               Jonathan Yong
+w3m                                          Bob Heckel
+wavpack                                      Yaakov Selkowitz
+wcd                                          Jari Aalto
+wdiff                                        Jari Aalto
+webcheck                                     Jari Aalto
+webkitgtk                                    Yaakov Selkowitz
+webrtc-audio-processing                      Yaakov Selkowitz
+weechat                                      Sebastien Helleu
+wget                                         Eric Blake
+which                                        David Rothenberger
+whois                                        David Rothenberger
+wiggle                                       Jari Aalto
+wildmidi                                     Yaakov Selkowitz
+WindowMaker                                  Yaakov Selkowitz
+windows-default-manifest                     Corinna Vinschen
+windowswmproto                               Yaakov Selkowitz
+WordNet                                      Dr. Volker Zell
+wput                                         Jari Aalto
+wtf                                          ORPHANED (Chris Sutcliffe)
+wxWidgets2.8                                 Yaakov Selkowitz
+wxWidgets3.0                                 Yaakov Selkowitz
+x11perf                                      Yaakov Selkowitz
+xapian-bindings                              Yaakov Selkowitz
+xapian-core                                  Yaakov Selkowitz
+xarchiver                                    Yaakov Selkowitz
+xauth                                        Yaakov Selkowitz
+xbiff                                        Yaakov Selkowitz
+xbitmaps                                     Yaakov Selkowitz
+xcalc                                        Yaakov Selkowitz
+xcb-proto                                    Yaakov Selkowitz
+xcb-util                                     Yaakov Selkowitz
+xcb-util-cursor                              Yaakov Selkowitz
+xcb-util-image                               Yaakov Selkowitz
+xcb-util-keysyms                             Yaakov Selkowitz
+xcb-util-renderutil                          Yaakov Selkowitz
+xcb-util-wm                                  Yaakov Selkowitz
+xclip                                        Dr. Volker Zell
+xclipboard                                   Yaakov Selkowitz
+xclock                                       Yaakov Selkowitz
+xcmiscproto                                  Yaakov Selkowitz
+xcmsdb                                       Yaakov Selkowitz
+xcompmgr                                     Yaakov Selkowitz
+xconsole                                     Yaakov Selkowitz
+xcursor-themes                               Yaakov Selkowitz
+xcursorgen                                   Yaakov Selkowitz
+xdbedizzy                                    Yaakov Selkowitz
+xdelta                                       Marco Atzeri
+xdelta3                                      Marco Atzeri
+xdg-user-dirs                                Yaakov Selkowitz
+xdg-user-dirs-gtk                            Yaakov Selkowitz
+xditview                                     Yaakov Selkowitz
+xdpyinfo                                     Yaakov Selkowitz
+xedit                                        Yaakov Selkowitz
+xemacs                                       Dr. Volker Zell
+xemacs-mule-sumo                             Dr. Volker Zell
+xemacs-sumo                                  Dr. Volker Zell
+xerces-c                                     Yaakov Selkowitz
+xev                                          Yaakov Selkowitz
+xextproto                                    Yaakov Selkowitz
+xeyes                                        Yaakov Selkowitz
+xf86-video-dummy                             Yaakov Selkowitz
+xf86-video-nested                            Yaakov Selkowitz
+xf86bigfontproto                             Yaakov Selkowitz
+xfce-themes                                  Yaakov Selkowitz
+xfce4-appfinder                              Yaakov Selkowitz
+xfce4-clipman-plugin                         Yaakov Selkowitz
+xfce4-cpugraph-plugin                        Yaakov Selkowitz
+xfce4-dev-tools                              Yaakov Selkowitz
+xfce4-dict                                   Yaakov Selkowitz
+xfce4-embed-plugin                           Yaakov Selkowitz
+xfce4-equake-plugin                          Yaakov Selkowitz
+xfce4-eyes-plugin                            Yaakov Selkowitz
+xfce4-fsguard-plugin                         Yaakov Selkowitz
+xfce4-genmon-plugin                          Yaakov Selkowitz
+xfce4-mailwatch-plugin                       Yaakov Selkowitz
+xfce4-mixer                                  Yaakov Selkowitz
+xfce4-notes-plugin                           Yaakov Selkowitz
+xfce4-notifyd                                Yaakov Selkowitz
+xfce4-panel                                  Yaakov Selkowitz
+xfce4-places-plugin                          Yaakov Selkowitz
+xfce4-screenshooter                          Yaakov Selkowitz
+xfce4-session                                Yaakov Selkowitz
+xfce4-settings                               Yaakov Selkowitz
+xfce4-smartbookmark-plugin                   Yaakov Selkowitz
+xfce4-taskmanager                            Yaakov Selkowitz
+xfce4-terminal                               Yaakov Selkowitz
+xfce4-time-out-plugin                        Yaakov Selkowitz
+xfce4-timer-plugin                           Yaakov Selkowitz
+xfce4-verve-plugin                           Yaakov Selkowitz
+xfce4-weather-plugin                         Yaakov Selkowitz
+xfce4-whiskermenu-plugin                     Yaakov Selkowitz
+xfce4-wmdock-plugin                          Yaakov Selkowitz
+xfce4-xkb-plugin                             Yaakov Selkowitz
+xfconf                                       Yaakov Selkowitz
+xfd                                          Yaakov Selkowitz
+xfdesktop                                    Yaakov Selkowitz
+xfig                                         Dr. Volker Zell
+xfontsel                                     Yaakov Selkowitz
+xfs                                          Yaakov Selkowitz
+xfsinfo                                      Yaakov Selkowitz
+xfwm4                                        Yaakov Selkowitz
+xfwm4-themes                                 Yaakov Selkowitz
+xgc                                          Yaakov Selkowitz
+xgraph                                       Jari Aalto
+xhost                                        Yaakov Selkowitz
+xineramaproto                                Yaakov Selkowitz
+xinetd                                       Corinna Vinschen
+xinit                                        Yaakov Selkowitz
+xinput                                       Yaakov Selkowitz
+xkbcomp                                      Yaakov Selkowitz
+xkbevd                                       Yaakov Selkowitz
+xkbprint                                     Yaakov Selkowitz
+xkbutils                                     Yaakov Selkowitz
+xkeyboard-config                             Yaakov Selkowitz
+xkill                                        Yaakov Selkowitz
+xlaunch                                      Jon Turney
+xlhtml                                       Jari Aalto
+xload                                        Yaakov Selkowitz
+xloadimage                                   David Stacey
+xlogo                                        Yaakov Selkowitz
+xlsatoms                                     Yaakov Selkowitz
+xlsclients                                   Yaakov Selkowitz
+xlsfonts                                     Yaakov Selkowitz
+xlsx2csv                                     Jari Aalto
+xmag                                         Yaakov Selkowitz
+xman                                         Yaakov Selkowitz
+xmessage                                     Yaakov Selkowitz
+xmh                                          Yaakov Selkowitz
+XmHTML                                       Dr. Volker Zell
+xmlstarlet                                   David Stacey
+xmlto                                        Yaakov Selkowitz
+xmltoman                                     Yaakov Selkowitz
+xmodmap                                      Yaakov Selkowitz
+xmon                                         Jon Turney
+xmore                                        Yaakov Selkowitz
+xorg-cf-files                                Yaakov Selkowitz
+xorg-docs                                    Yaakov Selkowitz
+xorg-scripts                                 Yaakov Selkowitz
+xorg-server                                  Jon Turney
+xorg-sgml-doctools                           Yaakov Selkowitz
+xorg-util-macros                             Yaakov Selkowitz
+xorg-x11-fonts                               Yaakov Selkowitz
+xpdf                                         Dr. Volker Zell
+xpr                                          Yaakov Selkowitz
+xprop                                        Yaakov Selkowitz
+xproto                                       Yaakov Selkowitz
+xrandr                                       Yaakov Selkowitz
+xrdb                                         Yaakov Selkowitz
+xrefresh                                     Yaakov Selkowitz
+xscope                                       Yaakov Selkowitz
+xset                                         Yaakov Selkowitz
+xsetroot                                     Yaakov Selkowitz
+xsm                                          Yaakov Selkowitz
+xsri                                         ORPHANED (Charles Wilson)
+xstdcmap                                     Yaakov Selkowitz
+xtail                                        Jari Aalto
+xterm                                        Yaakov Selkowitz
+XtoW                                         Jon Turney
+xtrans                                       Yaakov Selkowitz
+xview                                        Jon Turney
+xwd                                          Yaakov Selkowitz
+xwin-xdg-menu                                Jon Turney
+xwininfo                                     Yaakov Selkowitz
+xwinwm                                       Yaakov Selkowitz
+xwud                                         Yaakov Selkowitz
+xz                                           Yaakov Selkowitz
+yakuake                                      Yaakov Selkowitz
+yaml                                         Yaakov Selkowitz
+yasm                                         David Stacey
+yelp                                         Yaakov Selkowitz
+yelp-tools                                   Yaakov Selkowitz
+yelp-xsl                                     Yaakov Selkowitz
+ytree                                        Jari Aalto
+zathura                                      Yaakov Selkowitz
+zathura-cb                                   Yaakov Selkowitz
+zathura-djvu                                 Yaakov Selkowitz
+zathura-pdf-poppler                          Yaakov Selkowitz
+zathura-ps                                   Yaakov Selkowitz
+zeitgeist                                    Yaakov Selkowitz
+zeitgeist-datasources                        Yaakov Selkowitz
+zenity                                       Yaakov Selkowitz
+zinnia                                       Yaakov Selkowitz
+zinnia-tomoe                                 Yaakov Selkowitz
+zip                                          Yaakov Selkowitz
+zlib                                         Yaakov Selkowitz
+znc                                          Alexey Sokolov
+zoo                                          Jari Aalto
+zsh                                          Peter A. Castro
+zsync                                        Jari Aalto
+zziplib                                      Yaakov Selkowitz
+_autorebase                                  Achim Gratz
+_update-info-dir                             ORPHANED

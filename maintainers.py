@@ -34,80 +34,86 @@
 #   it, and want to allow the maintainer to change it)
 #
 
+import logging
 import os
 import re
-import logging
-
-import common_constants
 
 class Maintainer(object):
     _homedirs = ''
-    _list = {}
 
-    def __init__(self, name):
+    def __init__(self, name, email=None, pkgs=None):
+        if email == None:
+            email = []
+        if pkgs == None:
+            pkgs = []
+
         self.name = name
-        self.email = ''
-        self.pkgs = []
+        self.email = email
+        self.pkgs = pkgs
+
+    def __repr__(self):
+        return "maintainers.Maintainer('%s', %s, %s)" % (self.name, self.email, self.pkgs)
 
     def homedir(self):
         return os.path.join(Maintainer._homedirs, self.name)
 
-    def get(name):
-        if not name in Maintainer._list:
-            Maintainer._list[name] = Maintainer(name)
+    @staticmethod
+    def find(mlist, name):
+        if not name in mlist:
+            mlist[name] = Maintainer(name)
 
-        return Maintainer._list[name]
+        return mlist[name]
 
-    def keys():
-        return Maintainer._list.keys()
+    # add maintainers which have existing directories
+    @classmethod
+    def add_directories(self, mlist, homedirs):
+        self._homedirs = homedirs
 
-# add maintainers which have existing directories
-def add_maintainer_directories(dir=None):
-    if dir is None:
-        dir = common_constants.HOMEDIRS
-    Maintainer._homedirs = dir
+        for n in os.listdir(homedirs):
+            m = Maintainer.find(mlist, n)
 
-    for n in os.listdir(dir):
-        m = Maintainer.get(n)
+            for e in ['!email', '!mail'] :
+                email = os.path.join(homedirs, m.name, e)
+                if os.path.isfile(email):
+                    with open(email) as f:
+                        for l in f:
+                            # one address per line, ignore blank and comment lines
+                            if l.startswith('#'):
+                                continue
+                            l = l.strip()
+                            if l:
+                                m.email.append(l)
 
-        for e in ['!email', '!mail'] :
-            email = os.path.join(dir, e)
-            if os.path.isfile(email):
-                with open(email) as f:
-                    m.email = f.read()
-                    # XXX: one line per address, ignore blank and comment lines
+        return mlist
 
-# add maintainers from the package maintainers list, with the packages they
-# maintain
-def add_maintainer_packages(pkglist=None, orphanMaint=None):
-    if pkglist is None:
-        pkglist = common_constants.PKGMAINT
+    # add maintainers from the package maintainers list, with the packages they
+    # maintain
+    @staticmethod
+    def add_packages(mlist,  pkglist, orphanMaint):
+        with open(pkglist) as f:
+            for (i, l) in enumerate(f):
+                l = l.rstrip()
 
-    with open(pkglist) as f:
-        for (i, l) in enumerate(f):
-            l = l.rstrip()
+                # match lines of the form '<package> <maintainer(s)>'
+                match = re.match(r'^(\S+)\s+(.+)$', l)
+                if match:
+                    pkg = match.group(1)
+                    m = match.group(2)
 
-            # match lines of the form '<package> <maintainer(s)>'
-            match = re.match(r'^(\S+)\s+(.+)$', l)
-            if match:
-                pkg = match.group(1)
-                m0 = match.group(2)
+                    # orphaned packages get the default maintainer if we have
+                    # one, otherwise are ignored
+                    if m.startswith('ORPHANED'):
+                        if orphanMaint is not None:
+                            m = orphanMaint
+                        else:
+                            continue
 
-                # orphaned packages get the default maintainer if we have
-                # one, otherwise are ignored
-                if m0.startswith('ORPHANED'):
-                    if orphanMaint is not None:
-                        m0 = orphanMaint
-                    else:
-                        continue
+                    # joint maintainers are separated by '/'
+                    for name in m.split('/'):
+                        m = Maintainer.find(mlist, name)
+                        m.pkgs.append(pkg)
 
-                # ensure any metacharacters in pkg are escaped
-                pkg = re.escape(pkg)
+                else:
+                    logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
 
-                # joint maintainers are separated by '/'
-                for name in m0.split('/'):
-                    m = Maintainer.get(name)
-                    m.pkgs.append(pkg)
-
-            else:
-                logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
+        return mlist
