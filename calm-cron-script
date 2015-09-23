@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+
+set -e
+
+FTP=/var/ftp/pub/cygwin
+
+for arch in x86_64 x86 ; do
+    TMPFILE=${FTP}/${arch}/setup.$$
+    INIFILE=${FTP}/${arch}/setup.ini
+    SETUP_VERSION=`./extract-setup-version setup-${arch}.exe`
+
+    ./calm --inifile ${TMPFILE} --setup-version ${SETUP_VERSION} --arch=${arch} --release=cygwin --releasedir=${FTP}/${arch}/release
+
+    # if changed in more than timestamp
+    if [ diff -I^setup-timestamp -w -B -q ${INIFILE} ${TMPFILE} ] ;
+    then
+        # update setup.ini
+        /bin/mv ${TMPFILE} ${INIFILE}
+        # compress
+        /usr/bin/bzip2 <${INIFILE} >${INIFILE/%.ini/.bz2}
+        # re-sign
+        /bin/rm -f ${INIFILE}.sig ${INIFILE/%.ini/.bz2/}.sig
+        /usr/bin/gpg --batch --yes -b ${INIFILE}
+        /usr/bin/gpg --batch --yes -b ${INIFILE/%.ini/.bz2/}.sig
+        # arrange for checksums to be recomputed
+        /bin/rm -f ${FTP}/${arch}/md5.sum ${FTP}/${arch}/sha512.sum
+    else
+        /bin/rm -f ${TMPFILE}
+    fi
+done
