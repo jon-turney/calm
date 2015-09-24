@@ -138,6 +138,11 @@ class TestMain(unittest.TestCase):
         compare_with_expected_file(self, 'testdata/pkglist', mlist)
 
 if __name__ == '__main__':
+    # ensure sha512.sum files exist
+    os.system("find testdata/x86 -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
+    # should remove a sha512.sum file so that we test functioning when it's absent
+    os.unlink('testdata/x86/release/naim/sha512.sum')
+
     logging.getLogger().setLevel(logging.INFO)
     logging.basicConfig(format='%(message)s')
     unittest.main()

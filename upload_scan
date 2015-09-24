@@ -43,45 +43,78 @@ import sys
 
 import buffering_smtp_handler
 import common_constants
-import maintainers
 import hint
+import maintainers
+import package
 
 #
 #
 #
 
-dryrun = False
-
-#
-#
-#
-
-def scan(m, arch):
+def scan(m, arch, args):
     pkgre = '|'.join([re.escape(p) for p in m.pkgs])
 
     basedir = os.path.join(m.homedir(), arch)
-    releasedir = os.path.join(common_constants.FTP, arch)
+    releasedir = os.path.join(args.rel_area, arch)
 
+    packages = defaultdict(package.Package)
     move = defaultdict(list)
     readys = []
+    sums = defaultdict(list)
     error = False
     mtime = 0
 
-    for (dir, subdirs, files) in os.walk(basedir):
-        p = os.path.relpath(dir, basedir)
+    # note mtime of !ready file
+    for ready in [ os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready') ]:
+        if os.path.exists(ready):
+            mtime = os.path.getmtime(ready)
+            logging.info('processing files with mtime older than %d' % (mtime))
+            readys.append(ready)
 
+    # scan package directories
+    for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
+        p = os.path.relpath(dirpath, basedir)
+
+        # skip uninteresting directories
+        if (not files) or (p == 'release'):
+            continue
+
+        logging.info('reading uploads from %s' % dirpath)
+
+        # It really only makes sense for !ready to be in the basedir, or
+        # basedir/release, but historically we have accepted it anywhere, which
+        # affected all files thereafter in some unspecified directory traversal.
+        if '!ready' in files:
+            logging.error("!ready at %s not supported, ignored" % p)
+            files.remove('!ready')
+
+        # only process packages for which we are listed as a maintainer
+        if not re.search(pkgre, os.path.basename(dirpath)):
+            logging.warn("%s is not in the package list for this maintainer" % os.path.basename(dirpath))
+            continue
+
+        # ensure sha512.sum exists
+        # XXX: either we make read_package able to calculate sh512 sum when
+        # sha512.sum doesn't exist, or we make sure shs512.sum exists.  Not
+        # sure which is the better approach.
+        if 'sha512.sum' not in files:
+            logging.info('generating sha512.sum')
+            os.system("cd '%s' ; sha512sum * >sha512.sum" % os.path.join(dirpath))
+            files.append('sha512.sum')
+
+        # filter out files we don't need to consider
         for f in sorted(files):
             fn = os.path.join(basedir, p, f)
             logging.info("processing %s" % fn)
 
-            # note mtime of !ready
-            if f == '!ready':
-                mtime = os.path.getmtime(fn)
-                readys.append(fn)
-                continue
             # ignore !packages (which we no longer use)
             # ignore !mail and !email (which we have already read)
-            elif f.startswith('!'):
+            if f == '!packages' or f == '!mail'  or f == ' !email':
+                files.remove(f)
+                continue
+
+            if f == 'sha512.sum':
+                sums[p].append(fn)
                 continue
 
             # only process files newer than !ready
@@ -90,26 +123,13 @@ def scan(m, arch):
                     logging.warn("ignoring %s as there is no !ready" % f)
                 else:
                     logging.warn("ignoring %s as it is newer than !ready" % f)
-                continue
-
-            # process setup.hint
-            if f == 'setup.hint':
-                if setup_hint_validate(fn):
-                    move[p].append(f)
-                else:
-                    error = True
-                continue
-
-            # only process packages for which we are listed as a maintainer
-            if not re.search(pkgre, f):
-                logging.warn("%s is not in the package list for this maintainer" % f)
+                files.remove(f)
                 continue
 
             if f.startswith('-'):
                 logging.error("file deletion request %s not implemented yet" % f)
-            # XXX: tar files must conform to P-V-R naming convention. fail if
-            # they don't, or there are any unexpected files
-            elif re.search('.tar.*$', f):
+                files.remove(f)
+            else:
                 dest = os.path.join(releasedir, p, f)
                 if os.path.isfile(dest):
                     if filecmp.cmp(dest, fn, shallow=False):
@@ -119,13 +139,17 @@ def scan(m, arch):
                         error = True
                 else:
                     move[p].append(f)
-            else:
-                logging.error("unexpected file %s" % f)
+
+        # read and validate package
+        if files:
+            # strict means we consider warnings as fatal for upload
+            if package.read_package(packages, basedir, dirpath, files, strict=True):
+                error = True
 
     # remove all the !ready files
     for f in readys:
         logging.info("rm %s", f)
-        if not dryrun:
+        if not args.dryrun:
             os.unlink(f)
 
     # only move something if there were no errors
@@ -133,12 +157,18 @@ def scan(m, arch):
         if len(move) > 0:
             for p in move.keys():
                 logging.info("mkdir %s" % os.path.join(releasedir, p))
-                if not dryrun:
+                if not args.dryrun:
                     os.makedirs(os.path.join(releasedir, p), exist_ok=True)
                 for f in move[p]:
                     logging.info("move %s to %s" % (os.path.join(basedir, p, f), os.path.join(releasedir, p, f)))
-                    if not dryrun:
+                    if not args.dryrun:
                         os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+
+                # Remove shs512.sum file in upload directory
+                for f in sums[p]:
+                    logging.info("rm %s", f)
+                    if not args.dryrun:
+                        os.unlink(f)
 
                 # Update sha512.sum file in target directory
                 #
@@ -146,22 +176,8 @@ def scan(m, arch):
                 # rather than having to have a special case to generate the hash
                 # itself for when that file hasn't yet been created by
                 # sourceware.org scripts)
-                if not dryrun:
-                    os.system('cd %s ; sha512.sum * >sha512.sum', os.path.join(releasedir, p))
-
-#
-#
-#
-
-def setup_hint_validate(fn):
-    hints = hint.setup_hint_parse(fn)
-    if 'parse-errors' in hints:
-        for l in hints['parse-errors']:
-            logging.warn("%s: %s" % (fn, l))
-        return False
-
-    logging.info("%s: ok" % fn)
-    return True
+                if not args.dryrun:
+                    os.system("cd '%s' ; sha512sum * >sha512.sum" % os.path.join(releasedir, p))
 
 #
 #
@@ -186,7 +202,7 @@ def main(args):
                     logging_format='%(message)s')
                 logging.getLogger().addHandler(handler)
 
-            scan(m, arch)
+            scan(m, arch, args)
 
             if args.email:
                 handler.close()
@@ -201,12 +217,14 @@ if __name__ == "__main__":
     homedir_default = common_constants.HOMEDIR
     orphanmaint_default =common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
+    relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
     parser.add_argument('--email', action='store', dest = 'email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
+    parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
     parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
     parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
     (args) = parser.parse_args()
@@ -215,8 +233,6 @@ if __name__ == "__main__":
         logging.getLogger().setLevel(logging.INFO)
 
     logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
-
-    dryrun = args.dryrun
 
     if args.email:
         args.email = args.email.split(',')
