@@ -34,11 +34,13 @@ from collections import defaultdict
 import hint
 import common_constants
 
+
 class Package(object):
     def __init__(self):
-        self.path = '' # path to package, relative to release area
+        self.path = ''  # path to package, relative to release area
         self.tars = {}
         self.hints = {}
+
 
 def read_packages(rel_area, arch):
     packages = defaultdict(Package)
@@ -52,6 +54,7 @@ def read_packages(rel_area, arch):
     logging.info("%d packages read" % len(packages))
 
     return packages
+
 
 def read_package(packages, basedir, dirpath, files, strict=False):
     relpath = os.path.relpath(dirpath, basedir)
@@ -78,7 +81,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
         # read sha512.sum
         sha512 = {}
-        if not 'sha512.sum' in files:
+        if 'sha512.sum' not in files:
             logging.warning("missing sha512.sum for package '%s'" % p)
             return True
         else:
@@ -140,6 +143,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         return warnings
     return False
 
+
 #
 # utility to determine if a tar file is empty
 #
@@ -161,6 +165,7 @@ def tarfile_is_empty(tf):
             return True
 
     return False
+
 
 # a sorting which forces packages which begin with '!' to be sorted first,
 # packages which begin with '_" to be sorted last, and others to be sorted

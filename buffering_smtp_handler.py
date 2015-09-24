@@ -20,7 +20,9 @@
 # http://www.red-dove.com/python_logging.html
 #
 
-import logging, logging.handlers
+import logging
+import logging.handlers
+
 
 class BufferingSMTPHandler(logging.handlers.BufferingHandler):
     def __init__(self, mailhost, fromaddr, toaddrs, subject, logging_format):
@@ -36,18 +38,18 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
     def flush(self):
         if len(self.buffer) > 0:
             try:
-#                import smtplib
-#                port = self.mailport
-#                if not port:
-#                    port = smtplib.SMTP_PORT
-#                smtp = smtplib.SMTP(self.mailhost, port)
+                # import smtplib
+                # port = self.mailport
+                # if not port:
+                #     port = smtplib.SMTP_PORT
+                # smtp = smtplib.SMTP(self.mailhost, port)
                 msg = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (self.fromaddr, ','.join(self.toaddrs), self.subject)
                 for record in self.buffer:
                     s = self.format(record)
                     msg = msg + s + "\r\n"
                 print(msg)
-#                smtp.sendmail(self.fromaddr, self.toaddrs, msg)
-#                smtp.quit()
+                # smtp.sendmail(self.fromaddr, self.toaddrs, msg)
+                # smtp.quit()
             except:
                 self.handleError(None)  # no particular record
 

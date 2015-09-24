@@ -24,10 +24,12 @@
 import re
 import logging
 
+
 #
 
 def cmp(a, b):
     return (a > b) - (a < b)
+
 
 #
 # SetupVersion
@@ -66,7 +68,7 @@ class SetupVersion:
 
     def __cmp__(self, other):
         # warn about ill-specified comparisons
-#        SetupVersion._warn_ambiguous_compare(self, other)
+        # SetupVersion._warn_ambiguous_compare(self, other)
 
         # compare V
         c = SetupVersion._compare(self._V, other._V)
@@ -91,7 +93,7 @@ class SetupVersion:
                 # because leading zeros have already been removed, if one number
                 # has more digits, it is greater
                 c = cmp(len(a[i]), len(b[i]))
-                if c!= 0:
+                if c != 0:
                     return c
                 # fallthrough
 

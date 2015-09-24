@@ -47,6 +47,7 @@ import hint
 import maintainers
 import package
 
+
 #
 #
 #
@@ -65,7 +66,7 @@ def scan(m, arch, args):
     mtime = 0
 
     # note mtime of !ready file
-    for ready in [ os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready') ]:
+    for ready in [os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready')]:
         if os.path.exists(ready):
             mtime = os.path.getmtime(ready)
             logging.info('processing files with mtime older than %d' % (mtime))
@@ -109,7 +110,7 @@ def scan(m, arch, args):
 
             # ignore !packages (which we no longer use)
             # ignore !mail and !email (which we have already read)
-            if f == '!packages' or f == '!mail'  or f == ' !email':
+            if f == '!packages' or f == '!mail' or f == ' !email':
                 files.remove(f)
                 continue
 
@@ -154,30 +155,30 @@ def scan(m, arch, args):
 
     # only move something if there were no errors
     if not error:
-        if len(move) > 0:
-            for p in move.keys():
-                logging.info("mkdir %s" % os.path.join(releasedir, p))
+        for p in move:
+            logging.info("mkdir %s" % os.path.join(releasedir, p))
+            if not args.dryrun:
+                os.makedirs(os.path.join(releasedir, p), exist_ok=True)
+            for f in move[p]:
+                logging.info("move %s to %s" % (os.path.join(basedir, p, f), os.path.join(releasedir, p, f)))
                 if not args.dryrun:
-                    os.makedirs(os.path.join(releasedir, p), exist_ok=True)
-                for f in move[p]:
-                    logging.info("move %s to %s" % (os.path.join(basedir, p, f), os.path.join(releasedir, p, f)))
-                    if not args.dryrun:
-                        os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+                    os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
 
-                # Remove shs512.sum file in upload directory
-                for f in sums[p]:
-                    logging.info("rm %s", f)
-                    if not args.dryrun:
-                        os.unlink(f)
-
-                # Update sha512.sum file in target directory
-                #
-                # (this means that upset can use that file unconditionally,
-                # rather than having to have a special case to generate the hash
-                # itself for when that file hasn't yet been created by
-                # sourceware.org scripts)
+            # Remove shs512.sum file in upload directory
+            for f in sums[p]:
+                logging.info("rm %s", f)
                 if not args.dryrun:
-                    os.system("cd '%s' ; sha512sum * >sha512.sum" % os.path.join(releasedir, p))
+                    os.unlink(f)
+
+            # Update sha512.sum file in target directory
+            #
+            # (this means that upset can use that file unconditionally,
+            # rather than having to have a special case to generate the hash
+            # itself for when that file hasn't yet been created by
+            # sourceware.org scripts)
+            if not args.dryrun:
+                os.system("cd '%s' ; sha512sum * >sha512.sum" % os.path.join(releasedir, p))
+
 
 #
 #
@@ -195,7 +196,7 @@ def main(args):
 
             if args.email:
                 handler = buffering_smtp_handler.BufferingSMTPHandler(
-                    mailhost='allegra', #'localhost',
+                    mailhost='allegra',  # 'localhost',
                     fromaddr='cygwin-no-reply@cygwin.com',
                     toaddrs=args.email + m.email,
                     subject="upset messages",
@@ -215,18 +216,18 @@ def main(args):
 
 if __name__ == "__main__":
     homedir_default = common_constants.HOMEDIR
-    orphanmaint_default =common_constants.ORPHANMAINT
+    orphanmaint_default = common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
-    parser.add_argument('--email', action='store', dest = 'email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
+    parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
-    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
-    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
+    parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
 
     if args.verbose:

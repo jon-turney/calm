@@ -28,28 +28,24 @@
 #
 
 # base directory for maintainer upload directories
-HOMEDIR='/sourceware/cygwin-staging/home'
+HOMEDIR = '/sourceware/cygwin-staging/home'
 
 # the 'release area', contains all released files, which are rsync'ed to mirrors
-#FTP='/var/ftp/pub/cygwin'
-FTP='/var/ftp/pub/cygwin-test'
+# FTP = '/var/ftp/pub/cygwin'
+FTP = '/var/ftp/pub/cygwin-test'
 
 # logs are always emailed to these addresses
-#EMAIL='jturney'
-EMAILS='jon.turney@dronecode.org.uk'
+# EMAIL = 'jturney'
+EMAILS = 'jon.turney@dronecode.org.uk'
 
 # these maintainers can upload orphaned packages as well
-ORPHANMAINT="Yaakov Selkowitz"
+ORPHANMAINT = "Yaakov Selkowitz"
 
 # architectures we support
-ARCHES=['x86', 'x86_64' ]
-
+ARCHES = ['x86', 'x86_64']
 
 # base directory for HTML output
-HTDOCS='/www/sourceware/htdocs/cygwin/'
-
-#
-#HTMLBASE='/www/sourceware/htdocs/cygwin/packages'
+HTDOCS = '/www/sourceware/htdocs/cygwin/'
 
 # the list of packages with maintainers
-PKGMAINT='/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'
+PKGMAINT = '/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'

@@ -51,10 +51,11 @@ import maintainers
 #
 #
 
-#cygwin_uid = pwd.getpwnam('cygwin').pw_uid
-#cygstage_gid = grp.getgrnam('cygstage').gr_gid
+# cygwin_uid = pwd.getpwnam('cygwin').pw_uid
+# cygstage_gid = grp.getgrnam('cygstage').gr_gid
 cygwin_uid = pwd.getpwnam('jon').pw_uid
 cygstage_gid = grp.getgrnam('None').gr_gid
+
 
 #
 #
@@ -116,15 +117,15 @@ def main(args):
 
 if __name__ == "__main__":
     homedir_default = common_constants.HOMEDIR
-    orphanmaint_default =common_constants.ORPHANMAINT
+    orphanmaint_default = common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
 
     parser = argparse.ArgumentParser(description='Create maintainer upload directories')
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
-    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
-    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
+    parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
 
     if args.verbose:

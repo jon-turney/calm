@@ -29,17 +29,18 @@ import re
 import argparse
 
 # keys which always have a value which may be multiline
-multilinevalkeys = [ 'ldesc', 'message']
+multilinevalkeys = ['ldesc', 'message']
 # keys which always have a value
-valkeys = [ 'curr', 'prev', 'test', 'category', 'external-source', 'sdesc' ]
+valkeys = ['curr', 'prev', 'test', 'category', 'external-source', 'sdesc']
 # keys which may have an empty value
-optvalkeys = [ 'requires' ]
+optvalkeys = ['requires']
 # keys which must have an empty value
-novalkeys = ['skip' ]
+novalkeys = ['skip']
 # obsolete keys used by autodep mechanism we accept as valid for the moment
-obsoletekeys = [ 'autodep', 'noautodep', 'incver_ifdep' ]
+obsoletekeys = ['autodep', 'noautodep', 'incver_ifdep']
 
 hintkeys = multilinevalkeys + valkeys + optvalkeys + novalkeys + obsoletekeys
+
 
 #
 # A simple lexer to handle multi-line quoted values
@@ -89,12 +90,13 @@ def item_lexer(c):
                     yield (i, o, None)
                     break
             else:
-                yield (i, o , "unterminated quote")
+                yield (i, o, "unterminated quote")
 
             continue
 
         # an unquoted line
         yield (i, o, None)
+
 
 def setup_hint_parse(fn):
     hints = {}
@@ -123,7 +125,7 @@ def setup_hint_parse(fn):
                     key = match.group(1)
                     value = match.group(2)
 
-                    if not key in hintkeys:
+                    if key not in hintkeys:
                         errors.append('unknown setup key %s at line %d' % (key, i))
                         continue
 
@@ -182,6 +184,7 @@ def setup_hint_parse(fn):
 
     return hints
 
+
 #
 #
 #
@@ -215,7 +218,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='setup.hint validator')
     parser.add_argument('files', nargs='*', metavar='filename', help='list of files')
-    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output', default=0)
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
 
     (args) = parser.parse_args()
 

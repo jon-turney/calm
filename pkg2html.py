@@ -25,28 +25,30 @@
 # write package listing HTML files
 #
 # - build a list of all files under HTDOCS/packages/<arch>
-# - for each tar file listed in setup.ini
-# -- if a package listing HTML file doesn't already exist
-# --- write a HTML package listing file listing the tar file contents
-# -- also create a .htaccess file if not present
+# - for each package in the package database
+# --- create a .htaccess file in the package directory, if not present
+# -- for each tar file
+# --- if a package listing HTML file doesn't already exist
+# ---- write a HTML package listing file listing the tar file contents
 # - write packages.inc, the list of packages
 # - remove any listing files for which there was no package
-# - remove any empty directories
+# - remove any empty directories (TBD)
 #
 
-import os
-import glob
-import tarfile
-import time
-import re
-import textwrap
-import logging
-import argparse
-import sys
 from collections import defaultdict
+import argparse
+import glob
+import logging
+import os
+import re
+import sys
+import tarfile
+import textwrap
+import time
 
 import common_constants
 import package
+
 
 #
 #
@@ -61,7 +63,7 @@ def main(args):
 
     toremove = glob.glob(os.path.join(base, '*', '*'))
 
-    for p in packages.keys():
+    for p in packages:
 
         # do nothing for packages marked 'skip'
         if 'skip' in packages[p].hints:
@@ -85,9 +87,10 @@ def main(args):
                                              Options Indexes
                                              IndexOptions -FancyIndexing
                                              AddType text/html 1 2 3 4 5 6 7 8 9'''),
-                                          file=f)
-                    # XXX: omitting 0 here doesn't make much sense
-                    # this doesn't help for src packages, so is it actually having any effect?
+                          file=f)
+                    # XXX: omitting 0 here doesn't make much sense.  and this
+                    # doesn't help for src packages, so is it actually having
+                    # any effect?
 
         #
         # for each tarfile, write tarfile listing
@@ -171,7 +174,7 @@ def main(args):
 
                 header = packages[p].hints['sdesc'].replace('"', '')
 
-                print('<tr><td><a href="' + args.arch + '/' +  p + '">' + p + '</a></td><td>' + header  + '</td></tr>', file=index)
+                print('<tr><td><a href="' + args.arch + '/' + p + '">' + p + '</a></td><td>' + header + '</td></tr>', file=index)
 
             print(textwrap.dedent('''\
                                      </table>
@@ -195,8 +198,8 @@ if __name__ == "__main__":
     parser.add_argument('--force', action='store_true', help="overwrite existing files")
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
-    parser.add_argument('-n', '--dry-run', action='store_true', dest = 'dryrun', help="don't do anything")
-    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
+    parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
 
     if args.verbose:

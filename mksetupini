@@ -40,6 +40,7 @@ import common_constants
 import package
 from version import SetupVersion
 
+
 #
 #
 #
@@ -53,7 +54,8 @@ def main(args):
         return
 
     # write setup.ini
-    write_setup_ini(args, packages);
+    write_setup_ini(args, packages)
+
 
 #
 # validate the package database
@@ -108,7 +110,7 @@ def validate_packages(args, packages):
             if l in packages[p].hints:
                 # check that version exists
                 v = packages[p].hints[l]
-                if v not in packages[p].vermap.keys():
+                if v not in packages[p].vermap:
                     logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
                     error = True
 
@@ -116,7 +118,7 @@ def validate_packages(args, packages):
         packages[p].stability = defaultdict()
 
         # sort in order from highest to lowest version
-        for v in sorted(packages[p].vermap.keys(), key=lambda v:SetupVersion(v), reverse=True):
+        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
             level_found = False
 
             while True:
@@ -162,7 +164,7 @@ def validate_packages(args, packages):
                 packages[p].stability[l] = packages[p].hints[l]
 
         # verify that versions have files
-        for v in sorted(packages[p].vermap.keys(), key=lambda v:SetupVersion(v), reverse=True):
+        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
             required_categories = []
 
             # a source tarfile must exist for every version, unless
@@ -187,8 +189,8 @@ def validate_packages(args, packages):
 
             for c in required_categories:
                 if c not in packages[p].vermap[v]:
-#                    logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
-#                    error = True
+                    # logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
+                    # error = True
                     pass
 
         # for historical reasons, add cygwin to requires if not already present,
@@ -210,6 +212,7 @@ def validate_packages(args, packages):
 
     return not error
 
+
 #
 # write setup.ini
 #
@@ -224,11 +227,11 @@ def write_setup_ini(args, packages):
         #'''), file=f)
 
         if args.release:
-              print("release: %s" % args.release, file=f)
+            print("release: %s" % args.release, file=f)
         print("arch: %s" % args.arch, file=f)
         print("setup-timestamp: %d" % time.time(), file=f)
         if args.setup_version:
-              print("setup-version: %s" % args.setup_version, file=f)
+            print("setup-version: %s" % args.setup_version, file=f)
 
         # for each package
         for p in sorted(packages.keys(), key=package.sort_key):
@@ -270,7 +273,7 @@ def write_setup_ini(args, packages):
                     print("requires: %s" % requires, file=f)
 
             # write tarfile lines for each stability level
-            for level in [ 'curr', 'prev', 'test' ]:
+            for level in ['curr', 'prev', 'test']:
                 if level in packages[p].stability:
                     version = packages[p].stability[level]
                     if level != 'curr':
@@ -294,11 +297,13 @@ def write_setup_ini(args, packages):
             if 'message' in packages[p].hints:
                 print("message: %s" % packages[p].hints['message'], file=f)
 
+
 def tar_line(category, arch, p, t, f):
     fn = os.path.join(arch, p.path, t)
     sha512 = p.tars[t]['sha512']
     size = p.tars[t]['size']
     print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
+
 
 # change the first character of a string to upper case, without altering the
 # rest
@@ -313,8 +318,8 @@ if __name__ == "__main__":
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
-    parser.add_argument('--setup-version' , action='store', metavar='VERSION', help='value for setup-version key')
-    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output')
+    parser.add_argument('--setup-version', action='store', metavar='VERSION', help='value for setup-version key')
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
 
     if args.verbose:

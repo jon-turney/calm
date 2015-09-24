@@ -38,13 +38,14 @@ import logging
 import os
 import re
 
+
 class Maintainer(object):
     _homedirs = ''
 
     def __init__(self, name, email=None, pkgs=None):
-        if email == None:
+        if email is None:
             email = []
-        if pkgs == None:
+        if pkgs is None:
             pkgs = []
 
         self.name = name
@@ -59,7 +60,7 @@ class Maintainer(object):
 
     @staticmethod
     def find(mlist, name):
-        if not name in mlist:
+        if name not in mlist:
             mlist[name] = Maintainer(name)
 
         return mlist[name]
@@ -72,7 +73,7 @@ class Maintainer(object):
         for n in os.listdir(homedirs):
             m = Maintainer.find(mlist, n)
 
-            for e in ['!email', '!mail'] :
+            for e in ['!email', '!mail']:
                 email = os.path.join(homedirs, m.name, e)
                 if os.path.isfile(email):
                     with open(email) as f:
