@@ -69,7 +69,9 @@ def validate_packages(args, packages):
                     logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
                     error = True
 
-        # XXX: a package appearing in it's own requires should be disallowed
+                # a package is should not appear in it's own requires
+                if r == p:
+                    logging.error("package '%s' requires itself" % (p))
 
         # if external-source is used, the package must exist
         if 'external-source' in packages[p].hints:
@@ -142,10 +144,8 @@ def validate_packages(args, packages):
                         continue
 
                 level_found = True
-                logging.info("package '%s' stability '%s' assigned version '%s'" % (p, l, v))
+                logging.debug("package '%s' stability '%s' assigned version '%s'" % (p, l, v))
                 break
-
-                # XXX: still not quite right if overrides are out of order
 
             if not level_found:
                 continue
@@ -154,6 +154,12 @@ def validate_packages(args, packages):
             packages[p].stability[l] = v
             # and remove from list of unallocated levels
             levels.remove(l)
+
+        # lastly, fill in any levels which we skipped over because a higher
+        # stability level was overriden to a lower version
+        for l in levels:
+            if l in packages[p].hints:
+                packages[p].stability[l] = packages[p].hints[l]
 
         # verify that versions have files
         for v in sorted(packages[p].vermap.keys(), key=lambda v:SetupVersion(v), reverse=True):
@@ -201,9 +207,6 @@ def validate_packages(args, packages):
         # as 'skip' (which really means 'source-only' at the moment)
         if not has_install and 'skip' not in packages[p].hints:
             packages[p].hints['skip'] = ''
-
-        # XXX: hint can override the version at a stability level
-        # XXX: all stability levels must exist?
 
     return not error
 

@@ -127,6 +127,10 @@ def setup_hint_parse(fn):
                         errors.append('unknown setup key %s at line %d' % (key, i))
                         continue
 
+                    # check if the key occurs more than once
+                    if key in hints:
+                        errors.append('duplicate key %s' % (key))
+
                     # store the key:value
                     hints[key] = value
 
@@ -182,15 +186,19 @@ def setup_hint_parse(fn):
 #
 #
 
-def main(files):
+def main(args):
     status = 0
 
-    for fn in files:
+    for fn in args.files:
         hints = setup_hint_parse(fn)
 
+        if args.verbose > 1:
+            print(hints)
+
         if 'parse-warnings' in hints:
-            for l in hints['parse-warnings']:
-                print('%s: %s' % (fn, l))
+            if args.verbose > 0:
+                for l in hints['parse-warnings']:
+                    print('%s: %s' % (fn, l))
             status = 1
 
         if 'parse-errors' in hints:
@@ -207,6 +215,8 @@ def main(files):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='setup.hint validator')
     parser.add_argument('files', nargs='*', metavar='filename', help='list of files')
+    parser.add_argument('-v', '--verbose', action='count', dest = 'verbose', help='verbose output', default=0)
+
     (args) = parser.parse_args()
 
-    exit(main(args.files))
+    exit(main(args))
