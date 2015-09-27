@@ -21,8 +21,9 @@
 # THE SOFTWARE.
 #
 
-import re
+import itertools
 import logging
+import re
 
 
 #
@@ -41,18 +42,13 @@ class SetupVersion:
     def __init__(self, version_string):
         self._version_string = version_string
 
-        # split version as V-R, on the last '-', if any
-        split = version_string.rsplit('-', 1)
-        V = split[0]
-        if len(split) > 1:
-            R = split[1]
-        else:
-            R = ''
+        # split version into [V, R], on the last '-', if any
+        split = list(itertools.chain(version_string.rsplit('-', 1), ['']))[:2]
 
-        # then split into numeric and non-numeric sequences
+        # then split each part into numeric and non-numeric sequences.
         # numeric sequences have leading zeroes discarded
-        self._V = [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in re.finditer(r'(\d+|\D+)', V)]
-        self._R = [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in re.finditer(r'(\d+|\D+)', R)]
+        for j, i in enumerate(['V', 'R']):
+            setattr(self, '_' + i, [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in re.finditer(r'(\d+|\D+)', split[j])])
 
     def __str__(self):
         return '%s (V=%s R=%s)' % (self._version_string, str(self._V), str(self._R))

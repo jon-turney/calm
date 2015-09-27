@@ -36,9 +36,9 @@
 from collections import defaultdict
 import argparse
 import filecmp
+import itertools
 import logging
 import os
-import re
 import sys
 
 import buffering_smtp_handler
@@ -52,9 +52,7 @@ import package
 #
 #
 
-def scan(m, arch, args):
-    pkgre = '|'.join([re.escape(p) for p in m.pkgs])
-
+def scan(m, arch, all_packages, args):
     basedir = os.path.join(m.homedir(), arch)
     releasedir = os.path.join(args.rel_area, arch)
 
@@ -74,10 +72,10 @@ def scan(m, arch, args):
 
     # scan package directories
     for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
-        p = os.path.relpath(dirpath, basedir)
+        relpath = os.path.relpath(dirpath, basedir)
 
         # skip uninteresting directories
-        if (not files) or (p == 'release'):
+        if (not files) or (relpath == 'release'):
             continue
 
         logging.info('reading uploads from %s' % dirpath)
@@ -86,12 +84,18 @@ def scan(m, arch, args):
         # basedir/release, but historically we have accepted it anywhere, which
         # affected all files thereafter in some unspecified directory traversal.
         if '!ready' in files:
-            logging.error("!ready at %s not supported, ignored" % p)
+            logging.error("!ready at %s not supported, ignored" % relpath)
             files.remove('!ready')
 
+        # package doesn't appear in package list at all
+        pkgname = os.path.basename(dirpath)
+        if pkgname not in all_packages:
+            logging.error("%s is not in the package list" % pkgname)
+            continue
+
         # only process packages for which we are listed as a maintainer
-        if not re.search(pkgre, os.path.basename(dirpath)):
-            logging.warn("%s is not in the package list for this maintainer" % os.path.basename(dirpath))
+        if pkgname not in m.pkgs:
+            logging.warn("%s is not in the package list for this maintainer" % pkgname)
             continue
 
         # ensure sha512.sum exists
@@ -105,17 +109,17 @@ def scan(m, arch, args):
 
         # filter out files we don't need to consider
         for f in sorted(files):
-            fn = os.path.join(basedir, p, f)
+            fn = os.path.join(dirpath, f)
             logging.info("processing %s" % fn)
 
             # ignore !packages (which we no longer use)
             # ignore !mail and !email (which we have already read)
-            if f == '!packages' or f == '!mail' or f == ' !email':
+            if f in ['!packages', '!mail', '!email']:
                 files.remove(f)
                 continue
 
             if f == 'sha512.sum':
-                sums[p].append(fn)
+                sums[relpath].append(fn)
                 continue
 
             # only process files newer than !ready
@@ -131,7 +135,7 @@ def scan(m, arch, args):
                 logging.error("file deletion request %s not implemented yet" % f)
                 files.remove(f)
             else:
-                dest = os.path.join(releasedir, p, f)
+                dest = os.path.join(releasedir, relpath, f)
                 if os.path.isfile(dest):
                     if filecmp.cmp(dest, fn, shallow=False):
                         logging.warn("identical %s already in release area, ignoring" % f)
@@ -139,7 +143,7 @@ def scan(m, arch, args):
                         logging.error("different %s already in release area" % f)
                         error = True
                 else:
-                    move[p].append(f)
+                    move[relpath].append(f)
 
         # read and validate package
         if files:
@@ -190,6 +194,9 @@ def main(args):
     mlist = maintainers.Maintainer.add_directories(mlist, args.homedir)
     mlist = maintainers.Maintainer.add_packages(mlist, args.pkglist, args.orphanmaint)
 
+    # make the list of all packages
+    all_packages = list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))
+
     for arch in common_constants.ARCHES:
         for name in sorted(mlist.keys()):
             m = mlist[name]
@@ -203,7 +210,7 @@ def main(args):
                     logging_format='%(message)s')
                 logging.getLogger().addHandler(handler)
 
-            scan(m, arch, args)
+            scan(m, arch, all_packages, args)
 
             if args.email:
                 handler.close()

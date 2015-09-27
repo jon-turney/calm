@@ -59,10 +59,8 @@ class Maintainer(object):
         return os.path.join(Maintainer._homedirs, self.name)
 
     @staticmethod
-    def find(mlist, name):
-        if name not in mlist:
-            mlist[name] = Maintainer(name)
-
+    def _find(mlist, name):
+        mlist.setdefault(name, Maintainer(name))
         return mlist[name]
 
     # add maintainers which have existing directories
@@ -71,7 +69,7 @@ class Maintainer(object):
         self._homedirs = homedirs
 
         for n in os.listdir(homedirs):
-            m = Maintainer.find(mlist, n)
+            m = Maintainer._find(mlist, n)
 
             for e in ['!email', '!mail']:
                 email = os.path.join(homedirs, m.name, e)
@@ -111,7 +109,7 @@ class Maintainer(object):
 
                     # joint maintainers are separated by '/'
                     for name in m.split('/'):
-                        m = Maintainer.find(mlist, name)
+                        m = Maintainer._find(mlist, name)
                         m.pkgs.append(pkg)
 
                 else:
