@@ -25,14 +25,21 @@
 # utilities for working with a package database
 #
 
-import os
-import re
-import logging
-import tarfile
 from collections import defaultdict
+import copy
+import difflib
+import logging
+import os
+import pprint
+import re
+import re
+import tarfile
+import textwrap
+import time
 
 import hint
 import common_constants
+from version import SetupVersion
 
 
 class Package(object):
@@ -42,6 +49,9 @@ class Package(object):
         self.hints = {}
 
 
+#
+# read a packages from a directory hierarchy
+#
 def read_packages(rel_area, arch):
     packages = defaultdict(Package)
 
@@ -56,6 +66,9 @@ def read_packages(rel_area, arch):
     return packages
 
 
+#
+# read a single package
+#
 def read_package(packages, basedir, dirpath, files, strict=False):
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
@@ -178,6 +191,306 @@ def sort_key(k):
         k = chr(255) + k
     return k
 
+
+#
+# validate the package database
+#
+def validate_packages(args, packages):
+    error = False
+
+    for p in sorted(packages.keys()):
+        # all packages listed in requires must exist
+        if 'requires' in packages[p].hints:
+            for r in packages[p].hints['requires'].split():
+                if r not in packages:
+                    logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
+                    error = True
+
+                # a package is should not appear in it's own requires
+                if r == p:
+                    logging.error("package '%s' requires itself" % (p))
+
+        # if external-source is used, the package must exist
+        if 'external-source' in packages[p].hints:
+            e = packages[p].hints['external-source']
+            if e not in packages:
+                logging.error("package '%s' refers to nonexistent external-source '%s'" % (p, e))
+                error = True
+
+        packages[p].vermap = defaultdict(defaultdict)
+        has_install = False
+        is_empty = {}
+
+        for t in packages[p].tars:
+            # categorize each tarfile as either 'source' or 'install'
+            if re.search(r'-src\.tar', t):
+                category = 'source'
+            else:
+                category = 'install'
+                has_install = True
+
+                # check if install package is empty
+                is_empty[t] = tarfile_is_empty(os.path.join(args.rel_area, args.arch, packages[p].path, t))
+
+            # extract just the version part from tar filename
+            v = re.sub(r'^' + re.escape(p) + '-', '', t)
+            v = re.sub(r'(-src|)\.tar\.(xz|bz2|gz)$', '', v)
+
+            # store tarfile corresponding to this version and category
+            packages[p].vermap[v][category] = t
+
+        # verify the versions specified for stability level exist
+        levels = ['test', 'curr', 'prev']
+        for l in levels:
+            if l in packages[p].hints:
+                # check that version exists
+                v = packages[p].hints[l]
+                if v not in packages[p].vermap:
+                    logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
+                    error = True
+
+        # assign a version to each stability level
+        packages[p].stability = defaultdict()
+
+        # sort in order from highest to lowest version
+        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            level_found = False
+
+            while True:
+                # no stability levels left
+                if len(levels) == 0:
+                    # XXX: versions which don't correspond to any stability level
+                    # should be reported, we might want to remove them at some point
+                    logging.info("package '%s' has no stability levels left for version '%s'" % (p, v))
+                    break
+
+                l = levels[0]
+
+                # if current stability level has an override
+                if l in packages[p].hints:
+                    # if we haven't reached that version yet
+                    if v != packages[p].hints[l]:
+                        break
+                    else:
+                        logging.info("package '%s' stability '%s' override to version '%s'" % (p, l, v))
+                else:
+                    # level 'test' must be assigned by override
+                    if l == 'test':
+                        levels.remove(l)
+                        # go around again to check for override at the new level
+                        continue
+
+                level_found = True
+                logging.debug("package '%s' stability '%s' assigned version '%s'" % (p, l, v))
+                break
+
+            if not level_found:
+                continue
+
+            # assign version to level
+            packages[p].stability[l] = v
+            # and remove from list of unallocated levels
+            levels.remove(l)
+
+        # lastly, fill in any levels which we skipped over because a higher
+        # stability level was overriden to a lower version
+        for l in levels:
+            if l in packages[p].hints:
+                packages[p].stability[l] = packages[p].hints[l]
+
+        # verify that versions have files
+        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            required_categories = []
+
+            # a source tarfile must exist for every version, unless
+            # - the install tarfile is empty, or
+            # - this package is external-source
+            if 'external-source' not in packages[p].hints:
+                if 'install' in packages[p].vermap[v]:
+                    if not is_empty[packages[p].vermap[v]['install']]:
+                        required_categories.append('source')
+
+            # XXX: actually we should verify that a source tarfile must exist
+            # for every install tarfile version, but it may be either in this
+            # package or in the external-source package...
+
+            # similarly, we should verify that each version has an install
+            # tarfile, unless this is a source-only package.  Unfortunately, the
+            # current data model doesn't clearly identify those.  For the
+            # moment, if we have seen at least one install tarfile, assume we
+            # aren't a source-only package.
+            if has_install:
+                required_categories.append('install')
+
+            for c in required_categories:
+                if c not in packages[p].vermap[v]:
+                    # logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
+                    # error = True
+                    pass
+
+        # for historical reasons, add cygwin to requires if not already present,
+        # the package is not source-only, not empty, not only contains symlinks,
+        # and not on the list to avoid doing this for
+        # (this approximates what 'autodep' did)
+        if has_install and (not all(is_empty.values())) and (p not in ['base-cygwin', 'gcc4-core', 'gcc4-g++']):
+            requires = packages[p].hints.get('requires', '')
+
+            if not re.search(r'\bcygwin\b', requires):
+                if len(requires) > 0:
+                    requires = requires + ' '
+                packages[p].hints['requires'] = requires + 'cygwin'
+
+        # if the package has no install tarfiles (i.e. is source only), mark it
+        # as 'skip' (which really means 'source-only' at the moment)
+        if not has_install and 'skip' not in packages[p].hints:
+            packages[p].hints['skip'] = ''
+
+    return not error
+
+
+#
+# write setup.ini
+#
+def write_setup_ini(args, packages):
+
+    with open(args.inifile, 'w') as f:
+        # write setup.ini header
+        print(textwrap.dedent('''\
+        # This file is automatically generated.  If you edit it, your
+        # edits will be discarded next time the file is generated.
+        # See http://cygwin.com/setup.html for details.
+        #'''), file=f)
+
+        if args.release:
+            print("release: %s" % args.release, file=f)
+        print("arch: %s" % args.arch, file=f)
+        print("setup-timestamp: %d" % time.time(), file=f)
+        if args.setup_version:
+            print("setup-version: %s" % args.setup_version, file=f)
+
+        # for each package
+        for p in sorted(packages.keys(), key=sort_key):
+            # do nothing if 'skip'
+            if 'skip' in packages[p].hints:
+                continue
+
+            # write package data
+            print("\n@ %s" % p, file=f)
+
+            # for historical reasons, we adjust sdesc slightly:
+            #
+            # - strip anything up to and including first ':'
+            # - capitalize first letter
+            # whilst preserving any leading quote
+            #
+            # these are both bad ideas, due to sdesc's which start with a
+            # lower-case command name, or contain perl or ruby module names like
+            # 'Net::HTTP'
+            sdesc = packages[p].hints['sdesc']
+            sdesc = re.sub('^("?)(.*?)("?)$', r'\2', sdesc)
+            if ':' in sdesc:
+                sdesc = re.sub(r'^[^:]+:\s*', '', sdesc)
+            sdesc = '"' + upper_first_character(sdesc) + '"'
+            print("sdesc: %s" % sdesc, file=f)
+
+            if 'ldesc' in packages[p].hints:
+                print("ldesc: %s" % packages[p].hints['ldesc'], file=f)
+
+            # for historical reasons, category names must start with a capital
+            # letter
+            category = ' '.join(map(upper_first_character, packages[p].hints['category'].split()))
+            print("category: %s" % category, file=f)
+
+            if 'requires' in packages[p].hints:
+                # for historical reasons, empty requires are suppressed
+                requires = packages[p].hints['requires']
+                if requires:
+                    print("requires: %s" % requires, file=f)
+
+            # write tarfile lines for each stability level
+            for level in ['curr', 'prev', 'test']:
+                if level in packages[p].stability:
+                    version = packages[p].stability[level]
+                    if level != 'curr':
+                        print("[%s]" % level, file=f)
+                    print("version: %s" % version, file=f)
+
+                    if 'install' in packages[p].vermap[version]:
+                        t = packages[p].vermap[version]['install']
+                        tar_line('install', args.arch, packages[p], t, f)
+
+                    # look for corresponding source in this package first
+                    if 'source' in packages[p].vermap[version]:
+                        t = packages[p].vermap[version]['source']
+                        tar_line('source', args.arch, packages[p], t, f)
+                    # if that doesn't exist, follow external-source
+                    elif 'external-source' in packages[p].hints:
+                        s = packages[p].hints['external-source']
+                        t = packages[s].vermap[version]['source']
+                        tar_line('source', args.arch, packages[s], t, f)
+
+            if 'message' in packages[p].hints:
+                print("message: %s" % packages[p].hints['message'], file=f)
+
+
+# helper function to output details for a particular tar file
+def tar_line(category, arch, p, t, f):
+    fn = os.path.join(arch, p.path, t)
+    sha512 = p.tars[t]['sha512']
+    size = p.tars[t]['size']
+    print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
+
+
+# helper function to change the first character of a string to upper case,
+# without altering the rest
+def upper_first_character(s):
+    return s[:1].upper() + s[1:]
+
+
+#
+# merge two sets of packages
+#
+# for each package which exist in both a and b:
+# - they must exist at the same relative path, or the package from a is used
+# - we combine the list of tarfiles, duplicates are not expected
+# - we use the hints from b, and warn if they are different to the hints for a
+#
+def merge(a, b):
+    # start with a copy of a
+    c = copy.deepcopy(a)
+
+    for p in b:
+        # if the package is in b but not in a, add it to the copy
+        if p not in a:
+            c[p] = b[p]
+        # else, if the package is both in a and b, we have to do a merge
+        else:
+            # package must exist at same relative path
+            if a[p].path != b[p].path:
+                logging.error("package name %s at paths %s and %s" % (p, a[p].path, b[p].path))
+            else:
+                for t in b[p].tars:
+                    if t in c[p].tars:
+                        logging.error("package name %s duplicate tarfile %s" % (p, t))
+                    else:
+                        c[p].tars[t] = b[p].tars[t]
+
+                # use hints from b, but warn that they have changed
+                if a[p].hints != b[p].hints:
+                    c[p].hints = b[p].hints
+
+                    diff = '\n'.join(difflib.ndiff(
+                        pprint.pformat(a[p].hints).splitlines(),
+                        pprint.pformat(b[p].hints).splitlines()))
+
+                    logging.warning("package name %s hints changed\n%s\n" % (p, diff))
+
+    return c
+
+
+#
+#
+#
 if __name__ == "__main__":
     for arch in common_constants.ARCHES:
         packages = read_packages(common_constants.FTP, arch)

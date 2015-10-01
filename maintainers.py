@@ -34,6 +34,7 @@
 #   it, and want to allow the maintainer to change it)
 #
 
+import itertools
 import logging
 import os
 import re
@@ -116,3 +117,17 @@ class Maintainer(object):
                     logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
 
         return mlist
+
+    # create maintainer list
+    @staticmethod
+    def read(args):
+        mlist = {}
+        mlist = Maintainer.add_directories(mlist, args.homedir)
+        mlist = Maintainer.add_packages(mlist, args.pkglist, args.orphanmaint)
+
+        return mlist
+
+    # a list of all packages
+    @staticmethod
+    def all_packages(mlist):
+        return list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))

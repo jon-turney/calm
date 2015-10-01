@@ -22,15 +22,26 @@
 #
 
 #
-# check maintainer upload directories for files to move to release area
+# calm - better than being upset
 #
-# - only process packages for which we are listed as a maintainer
-# - only move things with an mtime earlier than the mtime of the !ready file
-# - validate the syntax of the setup.ini file before moving anything
-# - note if package file already exists in release area with identical contents
-# - error if package file already exist in release area with different contents
-# - remove !ready file
-# - send a report on what we did to the maintainer and project leads
+
+#
+# read packages from release area
+# for each maintainer
+# - read and validate any package uploads
+# - build a list of files to move and remove
+# - merge package sets
+# - validate merged package set
+# - process remove list
+# - on failure
+# -- mail maintainer with errors
+# -- empty move list
+# -- discard merged package set
+# - on success
+# -- process move list
+# -- mail maintainer with movelist
+# -- continue with merged package set
+# write setup.ini file
 #
 
 import argparse
@@ -38,9 +49,9 @@ import logging
 import os
 import sys
 
-import buffering_smtp_handler
 import common_constants
 import maintainers
+import package
 import uploads
 
 
@@ -49,42 +60,47 @@ import uploads
 #
 
 def main(args):
-    # create maintainer list
+    # build package list
+    packages = package.read_packages(args.rel_area, args.arch)
+
+    # validate the package set
+    if not package.validate_packages(args, packages):
+        logging.error("existing package set has errors, not processing uploads or writing setup.ini")
+        return
+
+    # read maintainer list
     mlist = maintainers.Maintainer.read(args)
 
     # make the list of all packages
     all_packages = maintainers.Maintainer.all_packages(mlist)
 
-    for arch in common_constants.ARCHES:
-        args.arch = arch
+    # for each maintainer
+    for name in sorted(mlist.keys()):
+        m = mlist[name]
 
-        for name in sorted(mlist.keys()):
-            m = mlist[name]
+        # XXX: wrap this in a 'mail logs' container
+        # XXX: but only want to send one mail per run to leads
 
-            if args.email:
-                handler = buffering_smtp_handler.BufferingSMTPHandler(
-                    mailhost='allegra',  # 'localhost',
-                    fromaddr='cygwin-no-reply@cygwin.com',
-                    toaddrs=args.email + m.email,
-                    subject="upset messages",
-                    logging_format='%(message)s')
-                logging.getLogger().addHandler(handler)
+        (error, mpackages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
-            # search for and validate uploaded packages
-            (error, packages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+        uploads.remove(args, remove_always)
 
-            # always remove all the !ready files
-            uploads.remove(args, remove_always)
+        if not error:
+            merged_packages = package.merge(packages, mpackages)
 
-            # but only move something if there were no errors
-            if not error:
-                uploads.move_uploaded_packages(m, args, move)
+            # validate the package set
+            if package.validate_packages(args, merged_packages):
+                # process the move list
+                uploads.move(m, args, move)
                 uploads.remove(args, remove_success)
+                # use merged package list
+                packages = merged_packages
+            else:
+                # otherwise we discard move list and merged_packages
+                logging.error("error while merging uploads for %s" % (name))
 
-            if args.email:
-                handler.close()
-                logging.getLogger().removeHandler(handler)
-
+    # write setup.ini
+    package.write_setup_ini(args, packages)
 
 #
 #
@@ -96,12 +112,16 @@ if __name__ == "__main__":
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
 
-    parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
+    parser = argparse.ArgumentParser(description='Upset replacement')
+    parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
     parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
+    parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
+    parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--setup-version', action='store', metavar='VERSION', help='value for setup-version key')
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
