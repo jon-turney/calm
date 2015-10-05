@@ -38,7 +38,7 @@ import logging
 import os
 import sys
 
-import buffering_smtp_handler
+from buffering_smtp_handler import mail_logs
 import common_constants
 import maintainers
 import uploads
@@ -61,29 +61,17 @@ def main(args):
         for name in sorted(mlist.keys()):
             m = mlist[name]
 
-            if args.email:
-                handler = buffering_smtp_handler.BufferingSMTPHandler(
-                    mailhost='allegra',  # 'localhost',
-                    fromaddr='cygwin-no-reply@cygwin.com',
-                    toaddrs=args.email + m.email,
-                    subject="upset messages",
-                    logging_format='%(message)s')
-                logging.getLogger().addHandler(handler)
+            with mail_logs(args.email, toaddrs=args.email + m.email, subject='upset messages') as maint_email:
 
-            # search for and validate uploaded packages
-            (error, packages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+                # search for and validate uploaded packages
+                (error, packages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
-            # always remove all the !ready files
-            uploads.remove(args, remove_always)
+                # always remove all the !ready files
+                uploads.remove(args, remove_always)
 
-            # but only move something if there were no errors
-            if not error:
-                uploads.move_uploaded_packages(m, args, move)
-                uploads.remove(args, remove_success)
-
-            if args.email:
-                handler.close()
-                logging.getLogger().removeHandler(handler)
+                # but only move something if there were no errors
+                if not error:
+                    uploads.move_uploaded_packages(args, move)
 
 
 #

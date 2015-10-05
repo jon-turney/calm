@@ -20,12 +20,18 @@
 # http://www.red-dove.com/python_logging.html
 #
 
+from contextlib import ExitStack
 import logging
 import logging.handlers
 
 
 class BufferingSMTPHandler(logging.handlers.BufferingHandler):
-    def __init__(self, mailhost, fromaddr, toaddrs, subject, logging_format):
+    def __init__(self,
+                 toaddrs,
+                 subject,
+                 mailhost='allegra',  # XXX: should be 'localhost' when debugged
+                 fromaddr='cygwin-no-reply@cygwin.com',
+                 logging_format='%(message)s'):
         logging.handlers.BufferingHandler.__init__(self, capacity=0)
         self.mailhost = mailhost
         self.mailport = None
@@ -47,7 +53,9 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                 for record in self.buffer:
                     s = self.format(record)
                     msg = msg + s + "\r\n"
+                print('-' * 40)
                 print(msg)
+                print('-' * 40)
                 # smtp.sendmail(self.fromaddr, self.toaddrs, msg)
                 # smtp.quit()
             except:
@@ -59,3 +67,26 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
         # the capacity we pass to BufferingHandler is irrelevant since we
         # override shouldFlush so it never indicates we have reached capacity
         return False
+
+    def __enter__(self):
+        logging.getLogger().addHandler(self)
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.close()
+        logging.getLogger().removeHandler(self)
+
+        # process any exception in the with-block normally
+        return False
+
+
+#
+# we only want to mail the logs if the email option was used
+# (otherwise use ExitStack() as a 'do nothing' context)
+#
+
+def mail_logs(enabled, toaddrs, subject):
+    if enabled:
+        return BufferingSMTPHandler(toaddrs, subject)
+
+    return ExitStack()

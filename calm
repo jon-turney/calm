@@ -49,6 +49,7 @@ import logging
 import os
 import sys
 
+from buffering_smtp_handler import mail_logs
 import common_constants
 import maintainers
 import package
@@ -60,47 +61,49 @@ import uploads
 #
 
 def main(args):
-    # build package list
-    packages = package.read_packages(args.rel_area, args.arch)
+    # send one email per run to leads
+    with mail_logs(args.email, toaddrs=args.email, subject='calm messages') as leads_email:
+        # build package list
+        packages = package.read_packages(args.rel_area, args.arch)
 
     # validate the package set
-    if not package.validate_packages(args, packages):
-        logging.error("existing package set has errors, not processing uploads or writing setup.ini")
-        return
+        if not package.validate_packages(args, packages):
+            logging.error("existing package set has errors, not processing uploads or writing setup.ini")
+            return
 
-    # read maintainer list
-    mlist = maintainers.Maintainer.read(args)
+        # read maintainer list
+        mlist = maintainers.Maintainer.read(args)
 
-    # make the list of all packages
-    all_packages = maintainers.Maintainer.all_packages(mlist)
+        # make the list of all packages
+        all_packages = maintainers.Maintainer.all_packages(mlist)
 
-    # for each maintainer
-    for name in sorted(mlist.keys()):
-        m = mlist[name]
+        # for each maintainer
+        for name in sorted(mlist.keys()):
+            m = mlist[name]
 
-        # XXX: wrap this in a 'mail logs' container
-        # XXX: but only want to send one mail per run to leads
+            # also send a mail to each maintainer about their packages
+            with mail_logs(args.email, toaddrs=m.email, subject='calm messages for ' + name) as maint_email:
 
-        (error, mpackages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+                (error, mpackages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
-        uploads.remove(args, remove_always)
+                uploads.remove(args, remove_always)
 
-        if not error:
-            merged_packages = package.merge(packages, mpackages)
+                if not error:
+                    merged_packages = package.merge(packages, mpackages)
 
-            # validate the package set
-            if package.validate_packages(args, merged_packages):
-                # process the move list
-                uploads.move(m, args, move)
-                uploads.remove(args, remove_success)
-                # use merged package list
-                packages = merged_packages
-            else:
-                # otherwise we discard move list and merged_packages
-                logging.error("error while merging uploaded packages for %s" % (name))
+                    # validate the package set
+                    if package.validate_packages(args, merged_packages):
+                        # process the move list
+                        uploads.move(m, args, move)
+                        uploads.remove(args, remove_success)
+                        # use merged package list
+                        packages = merged_packages
+                    else:
+                        # otherwise we discard move list and merged_packages
+                        logging.error("error while merging uploaded packages for %s" % (name))
 
-    # write setup.ini
-    package.write_setup_ini(args, packages)
+        # write setup.ini
+        package.write_setup_ini(args, packages)
 
 #
 #
