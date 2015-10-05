@@ -97,7 +97,7 @@ def main(args):
                 packages = merged_packages
             else:
                 # otherwise we discard move list and merged_packages
-                logging.error("error while merging uploads for %s" % (name))
+                logging.error("error while merging uploaded packages for %s" % (name))
 
     # write setup.ini
     package.write_setup_ini(args, packages)

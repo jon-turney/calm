@@ -48,6 +48,8 @@ def scan(m, all_packages, args):
     error = False
     mtime = 0
 
+    logging.info('reading packages from %s' % (basedir))
+
     # note mtime of !ready file
     for ready in [os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready')]:
         if os.path.exists(ready):
@@ -80,7 +82,7 @@ def scan(m, all_packages, args):
 
         # only process packages for which we are listed as a maintainer
         if pkgname not in m.pkgs:
-            logging.warn("%s is not in the package list for this maintainer" % pkgname)
+            logging.warn("%s is not in the package list for maintainer %s" % (pkgname, m.name))
             continue
 
         # ensure sha512.sum exists

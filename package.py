@@ -124,7 +124,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             # P must match the package name, V can contain anything
             # (including a '-'), R must start with a number
             if not re.match(r'^' + re.escape(p) + '-.+-\d[0-9a-zA-Z.]*(-src|)\.tar\.(xz|bz2|gz)$', f):
-                logging.warning("tar file %s in package '%s' doesn't follow naming convention" % (f, p))
+                logging.warning("tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warning = True
 
             tars[f] = {}
@@ -261,7 +261,7 @@ def validate_packages(args, packages):
                 if len(levels) == 0:
                     # XXX: versions which don't correspond to any stability level
                     # should be reported, we might want to remove them at some point
-                    logging.info("package '%s' has no stability levels left for version '%s'" % (p, v))
+                    logging.debug("package '%s' has no stability levels left for version '%s'" % (p, v))
                     break
 
                 l = levels[0]
@@ -272,7 +272,7 @@ def validate_packages(args, packages):
                     if v != packages[p].hints[l]:
                         break
                     else:
-                        logging.info("package '%s' stability '%s' override to version '%s'" % (p, l, v))
+                        logging.debug("package '%s' stability '%s' override to version '%s'" % (p, l, v))
                 else:
                     # level 'test' must be assigned by override
                     if l == 'test':
@@ -352,6 +352,8 @@ def validate_packages(args, packages):
 # write setup.ini
 #
 def write_setup_ini(args, packages):
+
+    logging.info('writing %s' % (args.inifile))
 
     with open(args.inifile, 'w') as f:
         # write setup.ini header
