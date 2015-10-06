@@ -33,6 +33,7 @@ import os
 import sys
 
 import common_constants
+import hint
 import package
 
 
@@ -51,6 +52,29 @@ def main(args):
     # write setup.ini
     package.write_setup_ini(args, packages)
 
+    if args.stats:
+        stats(packages)
+
+
+#
+#
+#
+
+def stats(packages):
+    # make a histogram of categories
+    histogram = {}
+
+    for c in hint.categories:
+        histogram[c.lower()] = 0
+
+    for p in packages.values():
+        if 'category' in p.hints:
+            for c in p.hints['category'].split():
+                histogram.setdefault(c.lower(), 0)
+                histogram[c.lower()] += 1
+
+    for c in sorted(histogram, key=histogram.get, reverse=True):
+        print('%16s: %4d' % (c, histogram[c]))
 
 #
 #
@@ -63,6 +87,7 @@ if __name__ == "__main__":
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--stats', action='store_true', help='show additional package statistics')
     parser.add_argument('--setup-version', action='store', metavar='VERSION', help='value for setup-version key')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
