@@ -41,6 +41,53 @@ obsoletekeys = ['autodep', 'noautodep', 'incver_ifdep']
 
 hintkeys = multilinevalkeys + valkeys + optvalkeys + novalkeys + obsoletekeys
 
+# valid categories
+categories = ['accessibility',
+              'admin',
+              'archive',
+              'audio',
+              'base',
+              'comm',
+              'database',
+              'debug',
+              'devel',
+              'doc',
+              'editors',
+              'games',
+              'gnome',
+              'graphics',
+              'interpreters',
+              'kde',
+              'libs',
+              'lua',
+              'lxde',
+              'mail',
+              'mate',
+              'math',
+              'mingw',
+              'net',
+              'ocaml',
+              'office',
+              'perl',
+              'php',
+              'publishing',
+              'python',
+              'ruby',
+              'scheme',
+              'science',
+              'security',
+              'shells',
+              'system',
+              'tcl',
+              'text',
+              'utils',
+              'video',
+              'web',
+              'x11',
+              'xfce',
+              '_obsolete',
+              '_postinstalllast']
+
 
 #
 # A simple lexer to handle multi-line quoted values
@@ -143,10 +190,24 @@ def setup_hint_parse(fn):
                     if (key in novalkeys) and (len(value) != 0):
                         errors.append("%s has non-empty value '%s'" % (key, value))
 
+                    # validate all categories are in the category list (case-insensitively)
+                    if key == 'category':
+                        for c in value.split():
+                            if c.lower() not in categories:
+                                errors.append("unknown category '%s'" % (c))
+
+                    # verify that value for ldesc or sdesc is quoted
+                    # (genini forces this)
+                    if key in ['sdesc', 'ldesc']:
+                        if not (value.startswith('"') and value.endswith('"')):
+                            errors.append("%s value '%s' should be quoted" % (key, value))
+
                     # validate that sdesc doesn't contain ':', as that prefix is removed
                     if key == 'sdesc':
                         if ':' in value:
                             warnings.append("sdesc contains ':'")
+
+                    # XXX: maybe should warn if sdesc ends with a '.'
 
                     # only 'ldesc' and 'message' are allowed a multi-line value
                     if (key not in multilinevalkeys) and (len(value.splitlines()) > 1):
@@ -160,18 +221,16 @@ def setup_hint_parse(fn):
                     # warn if value starts with a quote followed by whitespace
                     if re.match(r'^"[ \t]+', value):
                         warnings.append('value for key %s starts with quoted whitespace' % (key))
-
-                    # XXX: perhaps quotes around the value should be mandatory
-                    # for some keys?
                 else:
                     errors.append("unknown setup construct '%s' at line %d" % (item, i))
 
             # if 'skip' isn't present, 'category' and 'sdesc' must be
+            # XXX: genini also requires 'requires' but that seems wrong
             if 'skip' not in hints:
                 mandatory = ['category', 'sdesc']
                 for k in mandatory:
                     if k not in hints:
-                        errors.append("required key '%s' missing")
+                        errors.append("required key '%s' missing" % (k))
 
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')

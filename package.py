@@ -98,6 +98,9 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 logging.error("package '%s': %s" % (p, l))
             logging.error("errors while parsing hints for package '%s'" % p)
             return True
+        if 'parse-warnings' in hints:
+            for l in hints['parse-warnings']:
+                logging.info("package '%s': %s" % (p, l))
 
         # read sha512.sum
         sha512 = {}
@@ -130,7 +133,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             #
             # P must match the package name, V can contain anything
             # (including a '-'), R must start with a number
-            if not re.match(r'^' + re.escape(p) + '-.+-\d[0-9a-zA-Z.]*(-src|)\.tar\.(xz|bz2|gz)$', f):
+            if not re.match(r'^' + re.escape(p) + '-.+-\d[0-9a-zA-Z.]*(-src|)\.tar\.(bz2|gz|lzma|xz)$', f):
                 logging.warning("tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warning = True
 
