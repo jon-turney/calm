@@ -32,7 +32,6 @@ import logging
 import os
 import pprint
 import re
-import re
 import tarfile
 import textwrap
 import time
@@ -42,11 +41,19 @@ import common_constants
 from version import SetupVersion
 
 
+# information we keep about a package
 class Package(object):
     def __init__(self):
         self.path = ''  # path to package, relative to release area
         self.tars = {}
         self.hints = {}
+
+
+# information we keep about a tar file
+class Tar(object):
+    def __init__(self):
+        self.sha512 = ''
+        self.size = 0
 
 
 #
@@ -127,14 +134,14 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 logging.warning("tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warning = True
 
-            tars[f] = {}
-            tars[f]['size'] = os.path.getsize(os.path.join(dirpath, f))
+            tars[f] = Tar()
+            tars[f].size = os.path.getsize(os.path.join(dirpath, f))
 
             if f not in sha512:
                 logging.error("no sha512.sum line for file %s in package '%s'" % (f, p))
                 missing = True
             else:
-                tars[f]['sha512'] = sha512[f]
+                tars[f].sha512 = sha512[f]
 
         if missing:
             return True
@@ -438,8 +445,8 @@ def write_setup_ini(args, packages):
 # helper function to output details for a particular tar file
 def tar_line(category, arch, p, t, f):
     fn = os.path.join(arch, p.path, t)
-    sha512 = p.tars[t]['sha512']
-    size = p.tars[t]['size']
+    sha512 = p.tars[t].sha512
+    size = p.tars[t].size
     print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
 
 
