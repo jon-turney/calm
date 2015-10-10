@@ -29,8 +29,24 @@ from collections import defaultdict
 import filecmp
 import os
 import logging
+import re
 
 import package
+
+
+#
+# verify that the package name pname is either in, or a sub-package of a package
+# in, the list of packages plist, (This avoids the need to have to explicitly
+# list foo, foo-devel, foo-doc, foo-debuginfo, etc. instead of just foo in the
+# package list)
+#
+
+def is_in_package_list(pname, plist):
+    for p in plist:
+        if re.match(r'^' + re.escape(p) + '(-.+|)$', pname, re.IGNORECASE):
+            return True
+
+    return False
 
 
 #
@@ -76,12 +92,12 @@ def scan(m, all_packages, args):
 
         # package doesn't appear in package list at all
         pkgname = os.path.basename(dirpath)
-        if pkgname not in all_packages:
+        if not is_in_package_list(pkgname, all_packages):
             logging.error("%s is not in the package list" % pkgname)
             continue
 
         # only process packages for which we are listed as a maintainer
-        if pkgname not in m.pkgs:
+        if not is_in_package_list(pkgname, m.pkgs):
             logging.warn("%s is not in the package list for maintainer %s" % (pkgname, m.name))
             continue
 
@@ -91,8 +107,9 @@ def scan(m, all_packages, args):
         # sure which is the better approach.
         if 'sha512.sum' not in files:
             logging.info('generating sha512.sum')
-            os.system("cd '%s' ; sha512sum * >sha512.sum" % os.path.join(dirpath))
-            files.append('sha512.sum')
+            if not args.dryrun:
+                os.system("cd '%s' ; sha512sum * >sha512.sum 2>/dev/null" % os.path.join(dirpath))
+                files.append('sha512.sum')
 
         # filter out files we don't need to consider
         for f in sorted(files):
@@ -128,13 +145,14 @@ def scan(m, all_packages, args):
                     if filecmp.cmp(dest, fn, shallow=False):
                         logging.warn("identical %s already in release area, ignoring" % rel_fn)
                     else:
-                        logging.error("different %s already in release area" % rel_fn)
+                        logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % f)
                         error = True
+                    files.remove(f)
                 else:
                     move[relpath].append(f)
 
         # read and validate package
-        if files:
+        if files and any(f != 'sha512.sum' for f in files):
             # strict means we consider warnings as fatal for upload
             if package.read_package(packages, basedir, dirpath, files, strict=True):
                 error = True
@@ -176,4 +194,4 @@ def move(m, args, move):
         # having to have a special case to generate the hash itself for when
         # that file hasn't yet been created by sourceware.org scripts)
         if not args.dryrun:
-            os.system("cd '%s' ; sha512sum * >sha512.sum" % os.path.join(releasedir, p))
+            os.system("cd '%s' ; sha512sum * >sha512.sum 2>/dev/null" % os.path.join(releasedir, p))
