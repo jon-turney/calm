@@ -88,6 +88,12 @@ def main(args):
 
                 uploads.remove(args, remove_always)
 
+                # if there are no uploaded packages for this maintainer, we
+                # don't have anything to do
+                if not mpackages:
+                    logging.info("nothing to do for maintainer %s" % (name))
+                    continue
+
                 if not error:
                     merged_packages = package.merge(packages, mpackages)
 
@@ -98,6 +104,7 @@ def main(args):
                         uploads.remove(args, remove_success)
                         # use merged package list
                         packages = merged_packages
+                        logging.info("added %d packages from maintainer %s" % (len(mpackages), name))
                     else:
                         # otherwise we discard move list and merged_packages
                         logging.error("error while merging uploaded packages for %s" % (name))
