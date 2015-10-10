@@ -54,6 +54,7 @@ class Tar(object):
     def __init__(self):
         self.sha512 = ''
         self.size = 0
+        self.is_empty = False
 
 
 #
@@ -139,6 +140,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
             tars[f] = Tar()
             tars[f].size = os.path.getsize(os.path.join(dirpath, f))
+            tars[f].is_empty = tarfile_is_empty(os.path.join(dirpath, f))
 
             if f not in sha512:
                 logging.error("no sha512.sum line for file %s in package '%s'" % (f, p))
@@ -158,6 +160,40 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         packages[p].hints = hints
         packages[p].tars = tars
         packages[p].path = relpath
+
+        #
+        # now we have read the package, fix some common defects in the hints
+        #
+
+        has_install = False
+        not_all_empty = False
+        for t in tars:
+            if not re.search(r'-src\.tar', t):
+                has_install = True
+                if not tars[t].is_empty:
+                    not_all_empty = True
+
+        # for historical reasons, add cygwin to requires unless:
+        # - it's already present,
+        # - package is source-only,
+        # - install tarfiles are all empty,
+        # - install tarfiles only contain symlinks [gcc4-core, gcc4-g++],
+        # - it's  on the list to avoid doing this for [base-cygwin]
+        # (this approximates what 'autodep' did).
+        if has_install and not_all_empty and (p not in ['base-cygwin', 'gcc4-core', 'gcc4-g++']):
+            requires = packages[p].hints.get('requires', '')
+
+            if not re.search(r'\bcygwin\b', requires):
+                if len(requires) > 0:
+                    requires = requires + ' '
+                packages[p].hints['requires'] = requires + 'cygwin'
+
+        # if the package has no install tarfiles (i.e. is source only), make
+        # sure it is marked as 'skip' (which really means 'source-only' at the
+        # moment)
+        if not has_install and 'skip' not in packages[p].hints:
+            packages[p].hints['skip'] = ''
+            logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
@@ -239,8 +275,7 @@ def validate_packages(args, packages):
                 category = 'install'
                 has_install = True
 
-                # check if install package is empty
-                is_empty[t] = tarfile_is_empty(os.path.join(args.rel_area, args.arch, packages[p].path, t))
+                is_empty[t] = packages[p].tars[t].is_empty
 
             # extract just the version part from tar filename
             v = re.sub(r'^' + re.escape(p) + '-', '', t)
@@ -337,23 +372,6 @@ def validate_packages(args, packages):
                     # logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
                     # error = True
                     pass
-
-        # for historical reasons, add cygwin to requires if not already present,
-        # the package is not source-only, not empty, not only contains symlinks,
-        # and not on the list to avoid doing this for
-        # (this approximates what 'autodep' did)
-        if has_install and (not all(is_empty.values())) and (p not in ['base-cygwin', 'gcc4-core', 'gcc4-g++']):
-            requires = packages[p].hints.get('requires', '')
-
-            if not re.search(r'\bcygwin\b', requires):
-                if len(requires) > 0:
-                    requires = requires + ' '
-                packages[p].hints['requires'] = requires + 'cygwin'
-
-        # if the package has no install tarfiles (i.e. is source only), mark it
-        # as 'skip' (which really means 'source-only' at the moment)
-        if not has_install and 'skip' not in packages[p].hints:
-            packages[p].hints['skip'] = ''
 
     return not error
 
