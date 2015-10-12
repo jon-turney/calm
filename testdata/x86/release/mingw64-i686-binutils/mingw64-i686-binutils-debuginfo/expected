@@ -2,5 +2,6 @@
  'external-source': 'mingw64-i686-binutils',
  'ldesc': '"Debug info for mingw64-i686-binutils"',
  'parse-errors': ['key sdesc has multi-line value'],
+ 'parse-warnings': ['sdesc is much longer than ldesc'],
  'requires': 'cygwin-debuginfo',
  'sdesc': '"This package contains files necessary for debugging the\nmingw64-i686-binutils package with gdb."'}

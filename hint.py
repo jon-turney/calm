@@ -232,6 +232,15 @@ def setup_hint_parse(fn):
                     if k not in hints:
                         errors.append("required key '%s' missing" % (k))
 
+            # warn if ldesc and sdesc seem transposed
+            #
+            # (Unfortunately we can't be totally strict about this, as some
+            # packages like to repeat the basic description in ldesc in every
+            # subpackage, but add to sdesc to distinguish the subpackages)
+            if 'ldesc' in hints:
+                if len(hints['sdesc']) > 2*len(hints['ldesc']):
+                    warnings.append('sdesc is much longer than ldesc')
+
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')
 
