@@ -101,7 +101,7 @@ def main(args):
         if len(m.pkgs) == 0:
             # if they have no packages, suggest removing their upload directory (once)
             if not os.path.exists(defunct):
-                logging.warn("defunct maintainer %s, consider removing their directory?" % name)
+                logging.warning("defunct maintainer %s, consider removing their directory?" % name)
                 if not args.dryrun:
                     open(defunct, 'w').close()
         else:

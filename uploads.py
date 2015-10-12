@@ -98,7 +98,7 @@ def scan(m, all_packages, args):
 
         # only process packages for which we are listed as a maintainer
         if not is_in_package_list(pkgname, m.pkgs):
-            logging.warn("%s is not in the package list for maintainer %s" % (pkgname, m.name))
+            logging.warning("%s is not in the package list for maintainer %s" % (pkgname, m.name))
             continue
 
         # ensure sha512.sum exists
@@ -130,9 +130,9 @@ def scan(m, all_packages, args):
             # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
-                    logging.warn("ignoring %s as there is no !ready" % rel_fn)
+                    logging.warning("ignoring %s as there is no !ready" % rel_fn)
                 else:
-                    logging.warn("ignoring %s as it is newer than !ready" % rel_fn)
+                    logging.warning("ignoring %s as it is newer than !ready" % rel_fn)
                 files.remove(f)
                 continue
 
@@ -143,7 +143,7 @@ def scan(m, all_packages, args):
                 dest = os.path.join(releasedir, relpath, f)
                 if os.path.isfile(dest):
                     if filecmp.cmp(dest, fn, shallow=False):
-                        logging.warn("identical %s already in release area, ignoring" % rel_fn)
+                        logging.warning("identical %s already in release area, ignoring" % rel_fn)
                     else:
                         logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % f)
                         error = True
