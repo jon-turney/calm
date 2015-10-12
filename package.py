@@ -48,6 +48,10 @@ class Package(object):
         self.tars = {}
         self.hints = {}
 
+    def __repr__(self):
+        return "Package('%s', %s, %s)" % (self.path, pprint.pformat(self.tars),
+                                          pprint.pformat(self.hints))
+
 
 # information we keep about a tar file
 class Tar(object):
@@ -55,6 +59,9 @@ class Tar(object):
         self.sha512 = ''
         self.size = 0
         self.is_empty = False
+
+    def __repr__(self):
+        return "Tar('%s', %d, %s)" % (self.sha512, self.size, self.is_empty)
 
 
 #

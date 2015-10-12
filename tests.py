@@ -36,6 +36,7 @@ from version import SetupVersion
 import hint
 import maintainers
 import pkg2html
+import uploads
 
 
 #
@@ -46,15 +47,22 @@ import pkg2html
 # compare them
 #
 
-def compare_with_expected_file(test, dirpath, results):
+def compare_with_expected_file(test, dirpath, results, basename=None):
     results_str = pprint.pformat(results, width=120)
 
+    if basename:
+        results_fn = basename + '.results'
+        expected_fn = basename + '.expected'
+    else:
+        results_fn = 'results'
+        expected_fn = 'expected'
+
     # save results in a file
-    with open(os.path.join(dirpath, 'results'), 'w') as f:
+    with open(os.path.join(dirpath, results_fn), 'w') as f:
         print(results_str, file=f)
 
     # read expected from a file
-    with open(os.path.join(dirpath, 'expected')) as f:
+    with open(os.path.join(dirpath, expected_fn)) as f:
         expected = f.read().rstrip()
 
     test.assertMultiLineEqual(expected, results_str)
@@ -147,6 +155,32 @@ class TestMain(unittest.TestCase):
         mlist = maintainers.Maintainer.add_packages(mlist, 'testdata/pkglist/cygwin-pkg-maint', None)
 
         compare_with_expected_file(self, 'testdata/pkglist', mlist)
+
+    def test_scan_uploads(self):
+        self.maxDiff = None
+
+        args = types.SimpleNamespace()
+        setattr(args, 'arch', 'x86')
+        setattr(args, 'rel_area', 'testdata')
+        setattr(args, 'dryrun', False)
+
+        pkglist = ['testpackage']
+
+        mlist = {}
+        mlist = maintainers.Maintainer.add_directories(mlist, 'testdata/homes')
+        m = mlist['Blooey McFooey']
+        m.pkgs.append('testpackage')
+
+        ready_fn = os.path.join(m.homedir(), 'x86', '!ready')
+        os.system('touch "%s"' % (ready_fn))
+
+        (error, packages, move, remove_always, remove_success) = uploads.scan(m, pkglist, args)
+
+        self.assertEqual(error, False)
+        compare_with_expected_file(self, 'testdata/uploads', move, 'move')
+        self.assertEqual(remove_always, [ready_fn])
+        self.assertEqual(remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/sha512.sum'])
+        compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')
 
 if __name__ == '__main__':
     # ensure sha512.sum files exist

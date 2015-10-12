@@ -1,3 +1,5 @@
 htdocs
 results
+*.results
 sha512.sum
+\!ready
