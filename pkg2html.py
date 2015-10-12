@@ -61,6 +61,27 @@ def main(args):
     base = os.path.join(args.htdocs, args.arch)
     os.makedirs(base, exist_ok=True)
 
+    #
+    # write base directory .htaccess, if needed
+    #
+    # XXX: we should probably force trying to access the base directory to
+    # redirect to the package list page, as having the server index this
+    # directory makes this URL very expensive to serve if someone stumbles onto
+    # it by accident)
+    #
+
+    htaccess = os.path.join(base, '.htaccess')
+    if not os.path.exists(htaccess):
+        logging.info('Writing %s' % htaccess)
+        if not args.dryrun:
+            with open(htaccess, 'w') as f:
+
+                print(textwrap.dedent('''\
+                                         Options Indexes FollowSymLinks Includes
+                                         IndexOptions FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified IconHeight=10 IconWidth=10
+                                         AddIcon /icons/ball.gray.gif ^^DIRECTORY^^'''),
+                      file=f)
+
     toremove = glob.glob(os.path.join(base, '*', '*'))
 
     for p in packages:
@@ -113,7 +134,9 @@ def main(args):
                             header = header + " (source code)"
                         else:
                             header = header + " (installed binaries and support files)"
-                        # XXX: also recognize '-debuginfo' ?
+                        # XXX: also recognize '-devel', '-doc', '-debuginfo' ?
+                        # XXX: '(utilities)', '(runtime)'
+                        # XXX: and work out if it's runtime library?
 
                         print(textwrap.dedent('''\
                                                  <html>

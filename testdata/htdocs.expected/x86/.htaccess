@@ -1,0 +1,3 @@
+Options Indexes FollowSymLinks Includes
+IndexOptions FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified IconHeight=10 IconWidth=10
+AddIcon /icons/ball.gray.gif ^^DIRECTORY^^
