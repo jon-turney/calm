@@ -39,6 +39,7 @@ import time
 import hint
 import common_constants
 from version import SetupVersion
+import past_mistakes
 
 
 # information we keep about a package
@@ -93,6 +94,10 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # the package name is always the directory name
         p = os.path.basename(dirpath)
 
+        if not re.match(r'^[\w\-._+]*$', p):
+            logging.error("package name contains illegal characters" % p)
+            return True
+
         # check for duplicate package names at different paths
         if p in packages:
             logging.error("duplicate package name at paths %s and %s" %
@@ -139,11 +144,17 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
             # warn if tar filename doesn't follow P-V-R naming convention
             #
-            # P must match the package name, V can contain anything
-            # (including a '-'), R must start with a number
-            if not re.match(r'^' + re.escape(p) + '-.+-\d[0-9a-zA-Z.]*(-src|)\.tar\.(bz2|gz|lzma|xz)$', f):
+            # P must match the package name, V can contain anything, R must
+            # start with a number
+            match = re.match(r'^' + re.escape(p) + '-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
+            if not match:
                 logging.warning("tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warning = True
+            # historically, V can contain a '-' (since we can use the fact we
+            # already know P to split unambiguously), but this is a bad idea.
+            elif '-' in match.group(1):
+                lvl = logging.WARNING if p not in past_mistakes.hyphen_in_version else logging.INFO
+                logging.log(lvl, "tar file '%s' in package '%s' contains '-' in version" % (f, p))
 
             tars[f] = Tar()
             tars[f].size = os.path.getsize(os.path.join(dirpath, f))
@@ -261,7 +272,8 @@ def validate_packages(args, packages):
 
                 # a package is should not appear in it's own requires
                 if r == p:
-                    logging.error("package '%s' requires itself" % (p))
+                    lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.INFO
+                    logging.log(lvl, "package '%s' requires itself" % (p))
 
         # if external-source is used, the package must exist
         if 'external-source' in packages[p].hints:
