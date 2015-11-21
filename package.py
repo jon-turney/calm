@@ -140,7 +140,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         tars = {}
         missing = False
 
-        for f in list(filter(lambda f: re.search(r'\.tar.*$', f), files)):
+        for f in list(filter(lambda f: re.match(r'^' + re.escape(p) + r'.*\.tar.*$', f), files)):
             files.remove(f)
 
             # warn if tar filename doesn't follow P-V-R naming convention
@@ -303,6 +303,13 @@ def validate_packages(args, packages):
             # extract just the version part from tar filename
             v = re.sub(r'^' + re.escape(p) + '-', '', t)
             v = re.sub(r'(-src|)\.tar\.(xz|bz2|gz)$', '', v)
+
+            # for each version, a package can contain at most one source tar
+            # file and at most one install tar file.  warn if we have too many
+            # (for e.g. both a .xz and .bz2 install tar file)
+            if category in packages[p].vermap[v]:
+                logging.error("package '%s' has more than one %s tar file for version '%s'" % (p, category, v))
+                error = True
 
             # store tarfile corresponding to this version and category
             packages[p].vermap[v][category] = t
