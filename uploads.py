@@ -35,21 +35,6 @@ import package
 
 
 #
-# verify that the package name pname is either in, or a sub-package of a package
-# in, the list of packages plist, (This avoids the need to have to explicitly
-# list foo, foo-devel, foo-doc, foo-debuginfo, etc. instead of just foo in the
-# package list)
-#
-
-def is_in_package_list(pname, plist):
-    for p in plist:
-        if re.match(r'^' + re.escape(p) + '(-.+|)$', pname, re.IGNORECASE):
-            return True
-
-    return False
-
-
-#
 #
 #
 
@@ -91,14 +76,13 @@ def scan(m, all_packages, args):
             files.remove('!ready')
 
         # package doesn't appear in package list at all
-        pkgname = os.path.basename(dirpath)
-        if not is_in_package_list(pkgname, all_packages):
-            logging.error("%s is not in the package list" % pkgname)
+        if not package.is_in_package_list(relpath, all_packages):
+            logging.error("%s is not in the package list" % relpath)
             continue
 
         # only process packages for which we are listed as a maintainer
-        if not is_in_package_list(pkgname, m.pkgs):
-            logging.warning("%s is not in the package list for maintainer %s" % (pkgname, m.name))
+        if not package.is_in_package_list(relpath, m.pkgs):
+            logging.warning("%s is not in the package list for maintainer %s" % (relpath, m.name))
             continue
 
         # ensure sha512.sum exists

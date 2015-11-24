@@ -77,6 +77,20 @@ def main(args):
         # make the list of all packages
         all_packages = maintainers.Maintainer.all_packages(mlist)
 
+        # validate that all packages are in the package list
+        for p in sorted(packages):
+            # ignore skip packages
+            if 'skip' in packages[p].hints:
+                continue
+            # ignore obsolete packages
+            if '_obsolete' in packages[p].hints['category']:
+                continue
+            # ignore subpackages
+            if packages[p].path.count('/') > 1:
+                continue
+            if not package.is_in_package_list(packages[p].path, all_packages):
+                logging.error("%s is not in the package list" % (p))
+
         # for each maintainer
         for name in sorted(mlist.keys()):
             m = mlist[name]

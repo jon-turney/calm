@@ -563,6 +563,28 @@ def merge(a, b):
 
 
 #
+# verify that the package ppath is in the list of packages plist
+#
+# (This means that a maintainer can upload a package with any name, provided the
+# path contains one allowed for that maintainer)
+#
+# This avoids the need to have to explicitly list foo, foo_autorebase,
+# foo-devel, foo-doc, foo-debuginfo, libfoo0, girepository-foo, etc. instead of
+# just foo in the package list
+#
+# But means only the rule that a package can't exist in multiple paths prevents
+# arbitrary package upload.
+#
+
+def is_in_package_list(ppath, plist):
+    for p in plist:
+        if re.search(r'/' + re.escape(p) + r'(/|$)', ppath, re.IGNORECASE):
+            return True
+
+    return False
+
+
+#
 #
 #
 if __name__ == "__main__":
