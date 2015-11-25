@@ -10,5 +10,6 @@
           'the traditional lint checks are improved by exploiting this additional\n'
           'setinformation."',
  'parse-errors': ['key sdesc has multi-line value'],
+ 'parse-warnings': ["sdesc ends with '.'"],
  'requires': 'cygwin',
  'sdesc': '"Check C programs for security vulnerabilities and programming\nmistakes."'}
