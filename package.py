@@ -373,6 +373,24 @@ def validate_packages(args, packages):
             if l in packages[p].hints:
                 packages[p].stability[l] = packages[p].hints[l]
 
+        # If, for every stability level, the install tarball is empty and there
+        # is no source tarball, we should probably be marked obsolete
+        if 'skip' not in packages[p].hints:
+            if '_obsolete' not in packages[p].hints['category']:
+                has_something = False
+
+                for l in ['test', 'curr', 'prev']:
+                    if l in packages[p].stability:
+                        v = packages[p].stability[l]
+                        if 'source' in packages[p].vermap[v]:
+                            has_something = True
+                        elif 'install' in packages[p].vermap[v]:
+                            if not packages[p].tars[packages[p].vermap[v]['install']].is_empty:
+                                has_something = True
+
+                if not has_something:
+                    logging.warning("package '%s' has empty install tar file and no source for all levels, but it's not in the _obsolete category" % (p))
+
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
     for p in sorted(packages.keys()):
