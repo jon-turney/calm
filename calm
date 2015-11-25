@@ -66,7 +66,7 @@ def main(args):
         # build package list
         packages = package.read_packages(args.rel_area, args.arch)
 
-    # validate the package set
+        # validate the package set
         if not package.validate_packages(args, packages):
             logging.error("existing package set has errors, not processing uploads or writing setup.ini")
             return

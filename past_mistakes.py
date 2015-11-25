@@ -82,3 +82,35 @@ hyphen_in_version = [
 self_requires = [
     'cygwin-debuginfo'
 ]
+
+# these are packages which only contain data, symlinks or scripts and thus
+# function as their own source
+self_source = [
+    'R_autorebase',
+    '_autorebase',  # older versions were self-source, but current one isn't
+    '_update-info-dir',
+    'base-cygwin',
+    'base-files',  # older versions were self-source, but current one isn't
+    'chere',
+    'cygcheck-dep',
+    'gcc4-core',
+    'gcc4-g++',
+    'tesseract-ocr-deu',  # unclear how these are delivered by upstream and how they are packaged
+    'tesseract-ocr-deu-f',
+    'tesseract-ocr-eng',
+    'tesseract-ocr-fra',
+    'tesseract-ocr-ita',
+    'tesseract-ocr-nld',
+    'tesseract-ocr-por',
+    'tesseract-ocr-spa',
+    'tesseract-ocr-vie',
+    'tesseract-training-core',
+    'tesseract-training-deu',
+    'tesseract-training-eng',
+    'tesseract-training-fra',
+    'tesseract-training-ita',
+    'tesseract-training-nld',
+    'tesseract-training-por',
+    'tesseract-training-spa',
+    'tesseract-training-vie',
+]

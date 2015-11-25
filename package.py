@@ -60,6 +60,7 @@ class Tar(object):
         self.sha512 = ''
         self.size = 0
         self.is_empty = False
+        self.is_used = False
 
     def __repr__(self):
         return "Tar('%s', %d, %s)" % (self.sha512, self.size, self.is_empty)
@@ -213,6 +214,11 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             packages[p].hints['skip'] = ''
             logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
 
+        # note if the package is self-source
+        # XXX: this should really be defined as a setup.hint key
+        if p in past_mistakes.self_source:
+            packages[p].hints['self-source'] = ''
+
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
 
@@ -283,7 +289,6 @@ def validate_packages(args, packages):
                 error = True
 
         packages[p].vermap = defaultdict(defaultdict)
-        has_install = False
         is_empty = {}
 
         for t in packages[p].tars:
@@ -292,7 +297,6 @@ def validate_packages(args, packages):
                 category = 'source'
             else:
                 category = 'install'
-                has_install = True
 
                 is_empty[t] = packages[p].tars[t].is_empty
 
@@ -362,35 +366,49 @@ def validate_packages(args, packages):
             if l in packages[p].hints:
                 packages[p].stability[l] = packages[p].hints[l]
 
-        # verify that versions have files
+    # make another pass to verify a source tarfile exists for every install
+    # tarfile version
+    for p in sorted(packages.keys()):
         for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
-            required_categories = []
+            if 'install' not in packages[p].vermap[v]:
+                continue
 
-            # a source tarfile must exist for every version, unless
-            # - the install tarfile is empty, or
-            # - this package is external-source
-            if 'external-source' not in packages[p].hints:
-                if 'install' in packages[p].vermap[v]:
-                    if not is_empty[packages[p].vermap[v]['install']]:
-                        required_categories.append('source')
+            # source tarfile may be either in this package or in the
+            # external-source package
+            #
+            # mark the source tarfile as being used by an install tarfile
+            if 'source' in packages[p].vermap[v]:
+                packages[p].tars[packages[p].vermap[v]['source']].is_used = True
+                continue
 
-            # XXX: actually we should verify that a source tarfile must exist
-            # for every install tarfile version, but it may be either in this
-            # package or in the external-source package...
+            if 'external-source' in packages[p].hints:
+                es_p = packages[p].hints['external-source']
+                if es_p in packages:
+                    if 'source' in packages[es_p].vermap[v]:
+                        packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
+                        continue
 
-            # similarly, we should verify that each version has an install
-            # tarfile, unless this is a source-only package.  Unfortunately, the
-            # current data model doesn't clearly identify those.  For the
-            # moment, if we have seen at least one install tarfile, assume we
-            # aren't a source-only package.
-            if has_install:
-                required_categories.append('install')
+            # unless the install tarfile is empty
+            if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
+                continue
 
-            for c in required_categories:
-                if c not in packages[p].vermap[v]:
-                    # logging.error("package '%s' version '%s' is missing %s tarfile" % (p, v, c))
-                    # error = True
-                    pass
+            # unless this package is marked as 'self-source'
+            if 'self-source' in packages[p].hints:
+                continue
+
+            logging.error("package '%s' version '%s' is missing source" % (p, v))
+            error = True
+
+    # make another pass to verify that each source tarfile version has at least
+    # one corresponding install tarfile, in some package.
+    for p in sorted(packages.keys()):
+        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            if 'source' not in packages[p].vermap[v]:
+                continue
+
+            if not packages[p].tars[packages[p].vermap[v]['source']].is_used:
+                logging.error("package '%s' version '%s' source has no install tarfile" % (p, v))
+                error = True
 
     return not error
 
