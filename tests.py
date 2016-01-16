@@ -174,10 +174,10 @@ class TestMain(unittest.TestCase):
         ready_fn = os.path.join(m.homedir(), 'x86', '!ready')
         os.system('touch "%s"' % (ready_fn))
 
-        (error, packages, move, remove_always, remove_success) = uploads.scan(m, pkglist, args)
+        (error, packages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, pkglist, args)
 
         self.assertEqual(error, False)
-        compare_with_expected_file(self, 'testdata/uploads', move, 'move')
+        compare_with_expected_file(self, 'testdata/uploads', to_relarea, 'move')
         self.assertEqual(remove_always, [ready_fn])
         self.assertEqual(remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/sha512.sum'])
         compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')

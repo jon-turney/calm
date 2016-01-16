@@ -581,6 +581,18 @@ def merge(a, b):
 
 
 #
+# delete a file from a package set
+#
+
+def delete(packages, path, fn):
+    for p in packages:
+        if p.relpath == path:
+            for t in packages[p].tars:
+                if t == fn:
+                    del packages[p].tars[t]
+
+
+#
 # verify that the package ppath is in the list of packages plist
 #
 # (This means that a maintainer can upload a package with any name, provided the

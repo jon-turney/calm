@@ -64,14 +64,15 @@ def main(args):
             with mail_logs(args.email, toaddrs=(args.email or []) + m.email, subject='upset messages') as maint_email:
 
                 # search for and validate uploaded packages
-                (error, packages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+                (error, packages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
                 # always remove all the !ready files
                 uploads.remove(args, remove_always)
 
                 # but only move something if there were no errors
                 if not error:
-                    uploads.move_uploaded_packages(args, move)
+                    uploads.move_to_vault(args, to_vault)
+                    uploads.move_to_relarea(m, args, to_relarea)
 
 
 #
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     orphanmaint_default = common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
+    vault_default = common_constants.VAULT
 
     parser = argparse.ArgumentParser(description='Move files from maintainer upload directories to release area')
     parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
@@ -90,6 +92,7 @@ if __name__ == "__main__":
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()

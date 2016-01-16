@@ -49,3 +49,6 @@ HTDOCS = '/www/sourceware/htdocs/cygwin/'
 
 # the list of packages with maintainers
 PKGMAINT = '/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'
+
+# removed files archive directory
+VAULT = '/sourceware/snapshot-tmp/cygwin'

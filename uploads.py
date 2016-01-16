@@ -44,6 +44,7 @@ def scan(m, all_packages, args):
 
     packages = defaultdict(package.Package)
     move = defaultdict(list)
+    vault = defaultdict(list)
     readys = []
     sums = []
     error = False
@@ -121,7 +122,7 @@ def scan(m, all_packages, args):
                 continue
 
             if f.startswith('-'):
-                logging.error("file deletion request %s not implemented yet" % rel_fn)
+                vault[relpath].append(f[1:])
                 files.remove(f)
             else:
                 dest = os.path.join(releasedir, relpath, f)
@@ -141,7 +142,7 @@ def scan(m, all_packages, args):
             if package.read_package(packages, basedir, dirpath, files, strict=True):
                 error = True
 
-    return (error, packages, move, readys, sums)
+    return (error, packages, move, vault, readys, sums)
 
 
 #
@@ -159,18 +160,15 @@ def remove(args, readys):
 #
 #
 
-def move(m, args, move):
-    basedir = os.path.join(m.homedir(), args.arch)
-    releasedir = os.path.join(args.rel_area, args.arch)
-
-    for p in move:
-        logging.info("mkdir %s" % os.path.join(releasedir, p))
+def move(args, movelist, fromdir, todir):
+    for p in movelist:
+        logging.info("mkdir %s" % os.path.join(todir, p))
         if not args.dryrun:
-            os.makedirs(os.path.join(releasedir, p), exist_ok=True)
-        for f in move[p]:
-            logging.info("move %s to %s" % (os.path.join(basedir, p, f), os.path.join(releasedir, p, f)))
+            os.makedirs(os.path.join(todir, p), exist_ok=True)
+        for f in movelist[p]:
+            logging.info("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
             if not args.dryrun:
-                os.rename(os.path.join(basedir, p, f), os.path.join(releasedir, p, f))
+                os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
 
         # Update sha512.sum file in target directory
         #
@@ -178,4 +176,12 @@ def move(m, args, move):
         # having to have a special case to generate the hash itself for when
         # that file hasn't yet been created by sourceware.org scripts)
         if not args.dryrun:
-            os.system("cd '%s' ; sha512sum * >sha512.sum 2>/dev/null" % os.path.join(releasedir, p))
+            os.system("cd '%s' ; sha512sum * >sha512.sum 2>/dev/null" % os.path.join(todir, p))
+
+
+def move_to_relarea(m, args, movelist):
+    move(args, movelist, os.path.join(m.homedir(), args.arch), os.path.join(args.rel_area, args.arch))
+
+
+def move_to_vault(args, movelist):
+    move(args, movelist, os.path.join(args.rel_area, args.arch), os.path.join(args.vault, args.arch))

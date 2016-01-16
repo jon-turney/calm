@@ -31,6 +31,7 @@
 # - read and validate any package uploads
 # - build a list of files to move and remove
 # - merge package sets
+# - remove from the package set files which are to be removed
 # - validate merged package set
 # - process remove list
 # - on failure
@@ -98,7 +99,7 @@ def main(args):
             # also send a mail to each maintainer about their packages
             with mail_logs(args.email, toaddrs=m.email, subject='calm messages for ' + name) as maint_email:
 
-                (error, mpackages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+                (error, mpackages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
                 uploads.remove(args, remove_always)
 
@@ -109,12 +110,22 @@ def main(args):
                     continue
 
                 if not error:
+                    # merge package set
                     merged_packages = package.merge(packages, mpackages)
+
+                    # remove file which are to be removed
+                    #
+                    # XXX: this doesn't properly account for removing setup.hint
+                    # files
+                    for p in to_vault:
+                        for f in to_vault[p]:
+                            package.delete(merged_packages, p, f)
 
                     # validate the package set
                     if package.validate_packages(args, merged_packages):
                         # process the move list
-                        uploads.move(m, args, move)
+                        uploads.move_to_vault(args, to_vault)
+                        uploads.move_to_relarea(m, args, to_relarea)
                         uploads.remove(args, remove_success)
                         # use merged package list
                         packages = merged_packages
