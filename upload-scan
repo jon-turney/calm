@@ -61,7 +61,7 @@ def main(args):
         for name in sorted(mlist.keys()):
             m = mlist[name]
 
-            with mail_logs(args.email, toaddrs=args.email + m.email, subject='upset messages') as maint_email:
+            with mail_logs(args.email, toaddrs=(args.email or []) + m.email, subject='upset messages') as maint_email:
 
                 # search for and validate uploaded packages
                 (error, packages, move, remove_always, remove_success) = uploads.scan(m, all_packages, args)
