@@ -28,6 +28,7 @@
 from collections import defaultdict
 import copy
 import difflib
+import hashlib
 import logging
 import os
 import pprint
@@ -83,6 +84,18 @@ def read_packages(rel_area, arch):
     return packages
 
 
+# helper function to compute sha512 for a particular file
+# (block_size should be some multiple of sha512 block size which can be efficiently read)
+def sha512_file(fn, block_size=256*128):
+    sha512 = hashlib.sha512()
+
+    with open(fn, 'rb') as f:
+        for chunk in iter(lambda: f.read(block_size), b''):
+            sha512.update(chunk)
+
+    return sha512.hexdigest()
+
+
 #
 # read a single package
 #
@@ -120,7 +133,6 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         sha512 = {}
         if 'sha512.sum' not in files:
             logging.warning("missing sha512.sum for package '%s'" % p)
-            return True
         else:
             files.remove('sha512.sum')
 
@@ -138,7 +150,6 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
         # collect the attributes for each tar file
         tars = {}
-        missing = False
 
         for f in list(filter(lambda f: re.match(r'^' + re.escape(p) + r'.*\.tar.*$', f), files)):
             files.remove(f)
@@ -161,14 +172,11 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             tars[f].size = os.path.getsize(os.path.join(dirpath, f))
             tars[f].is_empty = tarfile_is_empty(os.path.join(dirpath, f))
 
-            if f not in sha512:
-                logging.error("no sha512.sum line for file %s in package '%s'" % (f, p))
-                missing = True
-            else:
+            if f in sha512:
                 tars[f].sha512 = sha512[f]
-
-        if missing:
-            return True
+            else:
+                tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
+                logging.info("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
 
         # warn about unexpected files, including tarfiles which don't match the
         # package name

@@ -87,9 +87,15 @@ def scan(m, all_packages, args):
             continue
 
         # ensure sha512.sum exists
-        # XXX: either we make read_package able to calculate sh512 sum when
-        # sha512.sum doesn't exist, or we make sure shs512.sum exists.  Not
-        # sure which is the better approach.
+        #
+        # ideally, perhaps we would pass the sha512 all the way from the
+        # uploader into the generated setup.ini, as a check that the files aren't
+        # modified or corrupted anywhere
+        #
+        # either we make read_package able to calculate sh512 sum when
+        # sha512.sum doesn't exist, or we make sure sha512.sum exists.  Not sure
+        # which is the better approach.
+        #
         if 'sha512.sum' not in files:
             logging.info('generating sha512.sum')
             if not args.dryrun:
