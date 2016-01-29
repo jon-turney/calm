@@ -162,11 +162,16 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             if not match:
                 logging.warning("tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warning = True
-            # historically, V can contain a '-' (since we can use the fact we
-            # already know P to split unambiguously), but this is a bad idea.
-            elif '-' in match.group(1):
-                lvl = logging.WARNING if p not in past_mistakes.hyphen_in_version else logging.INFO
-                logging.log(lvl, "tar file '%s' in package '%s' contains '-' in version" % (f, p))
+            else:
+                # historically, V can contain a '-' (since we can use the fact
+                # we already know P to split unambiguously), but this is a bad
+                # idea.
+                if '-' in match.group(1):
+                    lvl = logging.WARNING if p not in past_mistakes.hyphen_in_version else logging.INFO
+                    logging.log(lvl, "tar file '%s' in package '%s' contains '-' in version" % (f, p))
+
+                if not match.group(1)[0].isdigit():
+                    logging.warning("tar file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
 
             tars[f] = Tar()
             tars[f].size = os.path.getsize(os.path.join(dirpath, f))
