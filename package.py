@@ -37,9 +37,10 @@ import tarfile
 import textwrap
 import time
 
-import hint
-import common_constants
 from version import SetupVersion
+import common_constants
+import hint
+import maintainers
 import past_mistakes
 
 
@@ -448,7 +449,31 @@ def validate_packages(args, packages):
                 logging.error("package '%s' version '%s' source has no install tarfile" % (p, v))
                 error = True
 
+    # validate that all packages are in the package maintainers list
+    validate_package_maintainers(args, packages)
+
     return not error
+
+
+#
+def validate_package_maintainers(args, packages):
+    # read maintainer list
+    mlist = {}
+    mlist = maintainers.Maintainer.add_packages(mlist, args.pkglist)
+
+    # make the list of all packages
+    all_packages = maintainers.Maintainer.all_packages(mlist)
+
+    # validate that all packages are in the package list
+    for p in sorted(packages):
+        # ignore skip packages
+        if 'skip' in packages[p].hints:
+            continue
+        # ignore obsolete packages
+        if '_obsolete' in packages[p].hints['category']:
+            continue
+        if not is_in_package_list(packages[p].path, all_packages):
+            logging.warning("package '%s' is not in the package list" % (p))
 
 
 #
@@ -619,10 +644,18 @@ def delete(packages, path, fn):
 # arbitrary package upload.
 #
 
+def package_list_re(plist):
+    if getattr(package_list_re, "_plist", []) != plist:
+        pattern = '|'.join(map(lambda p: r'/' + re.escape(p) + r'(?:/|$)', plist))
+        package_list_re._regex = re.compile(pattern, re.IGNORECASE)
+        package_list_re._plist = plist
+
+    return package_list_re._regex
+
+
 def is_in_package_list(ppath, plist):
-    for p in plist:
-        if re.search(r'/' + re.escape(p) + r'(/|$)', ppath, re.IGNORECASE):
-            return True
+    if package_list_re(plist).search(ppath):
+        return True
 
     return False
 

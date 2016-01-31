@@ -89,7 +89,7 @@ class Maintainer(object):
     # add maintainers from the package maintainers list, with the packages they
     # maintain
     @staticmethod
-    def add_packages(mlist,  pkglist, orphanMaint):
+    def add_packages(mlist,  pkglist, orphanMaint=None):
         with open(pkglist) as f:
             for (i, l) in enumerate(f):
                 l = l.rstrip()
@@ -101,12 +101,12 @@ class Maintainer(object):
                     m = match.group(2)
 
                     # orphaned packages get the default maintainer if we have
-                    # one, otherwise are ignored
+                    # one, otherwise are assigned to 'ORPHANED'
                     if m.startswith('ORPHANED'):
                         if orphanMaint is not None:
                             m = orphanMaint
                         else:
-                            continue
+                            m = 'ORPHANED'
 
                     # joint maintainers are separated by '/'
                     for name in m.split('/'):

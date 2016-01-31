@@ -78,12 +78,12 @@ def scan(m, all_packages, args):
 
         # package doesn't appear in package list at all
         if not package.is_in_package_list(relpath, all_packages):
-            logging.error("%s is not in the package list" % relpath)
+            logging.error("package '%s' is not in the package list" % relpath)
             continue
 
         # only process packages for which we are listed as a maintainer
         if not package.is_in_package_list(relpath, m.pkgs):
-            logging.warning("%s is not in the package list for maintainer %s" % (relpath, m.name))
+            logging.warning("package '%s' is not in the package list for maintainer %s" % (relpath, m.name))
             continue
 
         # ensure sha512.sum exists
