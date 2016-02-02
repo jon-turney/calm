@@ -24,12 +24,14 @@ from contextlib import ExitStack
 import logging
 import logging.handlers
 
+import common_constants
+
 
 class BufferingSMTPHandler(logging.handlers.BufferingHandler):
     def __init__(self,
                  toaddrs,
                  subject,
-                 mailhost='allegra',  # XXX: should be 'localhost' when debugged
+                 mailhost=common_constants.MAILHOST,
                  fromaddr='cygwin-no-reply@cygwin.com',
                  logging_format='%(message)s'):
         logging.handlers.BufferingHandler.__init__(self, capacity=0)

@@ -21,6 +21,8 @@
 # THE SOFTWARE.
 #
 
+import os
+
 #
 # project constants
 #
@@ -31,12 +33,10 @@
 HOMEDIR = '/sourceware/cygwin-staging/home'
 
 # the 'release area', contains all released files, which are rsync'ed to mirrors
-# FTP = '/var/ftp/pub/cygwin'
-FTP = '/var/ftp/pub/cygwin-test'
+FTP = '/var/ftp/pub/cygwin'
 
 # logs are always emailed to these addresses
-# EMAIL = 'jturney'
-EMAILS = 'jon.turney@dronecode.org.uk'
+EMAILS = 'jturney'
 
 # these maintainers can upload orphaned packages as well
 ORPHANMAINT = "Yaakov Selkowitz"
@@ -52,3 +52,13 @@ PKGMAINT = '/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'
 
 # removed files archive directory
 VAULT = '/sourceware/snapshot-tmp/cygwin'
+
+# SMTP smarthost
+MAILHOST = 'localhost'
+
+# different values to be used when we are not running on sourceware.org, but my
+# test system...
+if os.uname()[1] == 'tambora':
+    FTP = '/var/ftp/pub/cygwin-test'
+    EMAILS = 'jon.turney@dronecode.org.uk'
+    MAILHOST = 'allegra'
