@@ -35,7 +35,11 @@ import sys
 import common_constants
 import hint
 import package
-import spelling
+
+try:
+    import spelling
+except ImportError:
+    pass
 
 
 #
@@ -47,7 +51,10 @@ def main(args):
 
     # spellcheck text hints
     if args.spell:
-        spelling.spellcheck_hints(args, packages)
+        if spelling:
+            spelling.spellcheck_hints(args, packages)
+        else:
+            logging.error("spell-checking support not available")
 
     # validate the package set
     if not package.validate_packages(args, packages):

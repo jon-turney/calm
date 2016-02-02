@@ -62,7 +62,7 @@ class DescFilter(Filter):
 
         # ignore things which look like paths
         if self._path_pattern.match(word):
-            print("%s is a path name" % word)
+            # print("%s is a path name" % word)
             return True
 
         # commands containing digits won't be recognized as single words, so we
