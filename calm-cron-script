@@ -1,31 +1,33 @@
 #!/bin/sh
 #
 
-set -e
-
 FTP=/var/ftp/pub/cygwin
+SRCDIR=`/usr/bin/dirname "$0"`
 
 for arch in x86_64 x86 ; do
-    TMPFILE=${FTP}/${arch}/setup.$$
+    TMPFILE=`/usr/bin/mktemp -t setup.ini.${arch}XXX`
     INIFILE=${FTP}/${arch}/setup.ini
-    SETUP_VERSION=`./extract-setup-version setup-${arch}.exe`
 
-    ./calm --inifile ${TMPFILE} --setup-version ${SETUP_VERSION} --arch=${arch} --release=cygwin --releasedir=${FTP}/${arch}/release
+    SETUP_VERSION=`${SRCDIR}/extract-setup-version /www/sourceware/htdocs/cygwin/setup-${arch}.exe`
 
-    # if changed in more than timestamp
-    if [ diff -I^setup-timestamp -w -B -q ${INIFILE} ${TMPFILE} ] ;
+    ${SRCDIR}/calm --inifile ${TMPFILE} --setup-version ${SETUP_VERSION} --arch=${arch}
+    if [ $? ]
     then
-        # update setup.ini
-        /bin/mv ${TMPFILE} ${INIFILE}
-        # compress
-        /usr/bin/bzip2 <${INIFILE} >${INIFILE/%.ini/.bz2}
-        # re-sign
-        /bin/rm -f ${INIFILE}.sig ${INIFILE/%.ini/.bz2/}.sig
-        /usr/bin/gpg --batch --yes -b ${INIFILE}
-        /usr/bin/gpg --batch --yes -b ${INIFILE/%.ini/.bz2/}.sig
-        # arrange for checksums to be recomputed
-        /bin/rm -f ${FTP}/${arch}/md5.sum ${FTP}/${arch}/sha512.sum
-    else
-        /bin/rm -f ${TMPFILE}
+        # if changed in more than timestamp
+        /usr/bin/diff -I^setup-timestamp -w -B -q ${INIFILE} ${TMPFILE} >/dev/null
+        if [ $? == 1 ]
+        then
+            # update setup.ini
+            /bin/mv ${TMPFILE} ${INIFILE}
+            # compress
+            /usr/bin/bzip2 <${INIFILE} >${INIFILE/%.ini/.bz2}
+            # re-sign
+            /bin/rm -f ${INIFILE}.sig ${INIFILE/%.ini/.bz2}.sig
+            /usr/bin/gpg --batch --yes -b ${INIFILE}
+            /usr/bin/gpg --batch --yes -b ${INIFILE/%.ini/.bz2}
+            # arrange for checksums to be recomputed
+            /bin/rm -f ${FTP}/${arch}/md5.sum ${FTP}/${arch}/sha512.sum
+        fi
     fi
+    /bin/rm -f ${TMPFILE}
 done
