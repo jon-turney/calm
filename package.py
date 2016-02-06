@@ -211,7 +211,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # - package is source-only,
         # - install tarfiles are all empty,
         # - install tarfiles only contain symlinks [gcc4-core, gcc4-g++],
-        # - it's  on the list to avoid doing this for [base-cygwin]
+        # - it's on the list to avoid doing this for [base-cygwin]
         # (this approximates what 'autodep' did).
         if has_install and not_all_empty and (p not in ['base-cygwin', 'gcc4-core', 'gcc4-g++']):
             requires = packages[p].hints.get('requires', '')
