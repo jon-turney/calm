@@ -1,0 +1,2 @@
+#!/bin/sh
+grep -s -l '^#!/usr/bin/env python' * | xargs python3 -m pep8 --count --show-source --max-line-length=240
