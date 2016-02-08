@@ -76,12 +76,14 @@ class TestMain(unittest.TestCase):
     def test_hint_parser(self):
         self.maxDiff = None
 
-        for (dirpath, subdirs, files) in os.walk('testdata/x86/release'):
+        basedir = 'testdata/x86/release'
+        for (dirpath, subdirs, files) in os.walk(basedir):
+            relpath = os.path.relpath(dirpath, basedir)
             if 'setup.hint' in files:
                 with self.subTest(package=os.path.basename(dirpath)):
                     logging.info('Reading %s' % os.path.join(dirpath, 'setup.hint'))
                     results = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
-                    compare_with_expected_file(self, dirpath, results)
+                    compare_with_expected_file(self, os.path.join('testdata/x86.hints/release', relpath), results)
 
 #
 # something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
