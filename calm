@@ -85,7 +85,7 @@ def main(args):
             # also send a mail to each maintainer about their packages
             with mail_logs(args.email, toaddrs=m.email, subject='calm messages for ' + name) as maint_email:
 
-                (error, mpackages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+                (error, mpackages, to_relarea, to_vault, remove_always) = uploads.scan(m, all_packages, args)
 
                 uploads.remove(args, remove_always)
 
@@ -112,7 +112,6 @@ def main(args):
                         # process the move list
                         uploads.move_to_vault(args, to_vault)
                         uploads.move_to_relarea(m, args, to_relarea)
-                        uploads.remove(args, remove_success)
                         # use merged package list
                         packages = merged_packages
                         logging.info("added %d packages from maintainer %s" % (len(mpackages), name))

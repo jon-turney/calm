@@ -46,7 +46,6 @@ def scan(m, all_packages, args):
     move = defaultdict(list)
     vault = defaultdict(list)
     readys = []
-    sums = []
     error = False
     mtime = 0
 
@@ -86,22 +85,6 @@ def scan(m, all_packages, args):
             logging.warning("package '%s' is not in the package list for maintainer %s" % (relpath, m.name))
             continue
 
-        # ensure sha512.sum exists
-        #
-        # ideally, perhaps we would pass the sha512 all the way from the
-        # uploader into the generated setup.ini, as a check that the files aren't
-        # modified or corrupted anywhere
-        #
-        # either we make read_package able to calculate sh512 sum when
-        # sha512.sum doesn't exist, or we make sure sha512.sum exists.  Not sure
-        # which is the better approach.
-        #
-        if 'sha512.sum' not in files:
-            logging.info('generating sha512.sum')
-            if not args.dryrun:
-                os.system("cd '%s' ; sha512sum * >sha512.sum 2>/dev/null" % os.path.join(dirpath))
-                files.append('sha512.sum')
-
         # filter out files we don't need to consider
         for f in sorted(files):
             fn = os.path.join(dirpath, f)
@@ -112,10 +95,6 @@ def scan(m, all_packages, args):
             # ignore !mail and !email (which we have already read)
             if f in ['!packages', '!mail', '!email']:
                 files.remove(f)
-                continue
-
-            if f == 'sha512.sum':
-                sums.append(fn)
                 continue
 
             # only process files newer than !ready
@@ -143,12 +122,12 @@ def scan(m, all_packages, args):
                     move[relpath].append(f)
 
         # read and validate package
-        if files and any(f != 'sha512.sum' for f in files):
+        if files:
             # strict means we consider warnings as fatal for upload
             if package.read_package(packages, basedir, dirpath, files, strict=True):
                 error = True
 
-    return (error, packages, move, vault, readys, sums)
+    return (error, packages, move, vault, readys)
 
 
 #
@@ -175,14 +154,6 @@ def move(args, movelist, fromdir, todir):
             logging.info("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
             if not args.dryrun:
                 os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
-
-        # Update sha512.sum file in target directory
-        #
-        # (this means that upset can use that file unconditionally, rather than
-        # having to have a special case to generate the hash itself for when
-        # that file hasn't yet been created by sourceware.org scripts)
-        if not args.dryrun:
-            os.system("cd '%s' ; sha512sum * >sha512.sum 2>/dev/null" % os.path.join(todir, p))
 
 
 def move_to_relarea(m, args, movelist):
