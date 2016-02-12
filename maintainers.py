@@ -38,6 +38,7 @@ import itertools
 import logging
 import os
 import re
+import sys
 
 
 class Maintainer(object):
@@ -131,3 +132,18 @@ class Maintainer(object):
     @staticmethod
     def all_packages(mlist):
         return list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))
+
+#
+# We must be able to use pathnames which contain any character in the maintainer
+# name, read from the maintainer list file.
+#
+# So, this test is somewhat sloppy.  In theory the filesystem encoding might be
+# some encoding which can represent the subset of the io encoding that
+# maintainer names actually use.  In practice, use a utf-8 locale.
+#
+
+if sys.getfilesystemencoding() != sys.getdefaultencoding():
+    print("IO encoding is '%s', filesystem encoding is '%s'" % (sys.getdefaultencoding(), sys.getfilesystemencoding()), file=sys.stderr)
+    print('It is required that IO encoded strings are convertible to the filesystem encoding', file=sys.stderr)
+    print("Please set the locale", file=sys.stderr)
+    exit(1)
