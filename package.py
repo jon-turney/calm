@@ -206,21 +206,6 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 if not tars[t].is_empty:
                     not_all_empty = True
 
-        # for historical reasons, add cygwin to requires unless:
-        # - it's already present,
-        # - package is source-only,
-        # - install tarfiles are all empty,
-        # - install tarfiles only contain symlinks [gcc4-core, gcc4-g++],
-        # - it's on the list to avoid doing this for [base-cygwin]
-        # (this approximates what 'autodep' did).
-        if has_install and not_all_empty and (p not in ['base-cygwin', 'gcc4-core', 'gcc4-g++']):
-            requires = packages[p].hints.get('requires', '')
-
-            if not re.search(r'\bcygwin\b', requires):
-                if len(requires) > 0:
-                    requires = requires + ' '
-                packages[p].hints['requires'] = requires + 'cygwin'
-
         # if the package has no install tarfiles (i.e. is source only), make
         # sure it is marked as 'skip' (which really means 'source-only' at the
         # moment)

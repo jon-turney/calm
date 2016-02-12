@@ -1,6 +1,6 @@
-{'category': 'Base',
+{'sdesc': '"Initial base installation helper script."',
  'ldesc': '"Initial base installation helper script."',
- 'noautodep': 'cygwin',
- 'parse-warnings': ["sdesc ends with '.'"],
+ 'category': 'Base',
  'requires': '',
- 'sdesc': '"Initial base installation helper script."'}
+ 'noautodep': 'cygwin',
+ 'parse-warnings': ["sdesc ends with '.'"]}

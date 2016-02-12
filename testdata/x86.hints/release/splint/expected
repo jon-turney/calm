@@ -1,4 +1,4 @@
-{'category': 'Devel',
+{'sdesc': '"Check C programs for security vulnerabilities and programming\nmistakes."',
  'ldesc': '"Program does many of the traditional lint checks including\n'
           'unused declarations, type inconsistencies, use before definition,\n'
           'unreachable code, ignored return values, execution paths with no\n'
@@ -9,7 +9,7 @@
           'addition to the checks specifically enabled by annotations, many of\n'
           'the traditional lint checks are improved by exploiting this additional\n'
           'setinformation."',
- 'parse-errors': ['key sdesc has multi-line value'],
- 'parse-warnings': ["sdesc ends with '.'"],
+ 'category': 'Devel',
  'requires': 'cygwin',
- 'sdesc': '"Check C programs for security vulnerabilities and programming\nmistakes."'}
+ 'parse-errors': ['key sdesc has multi-line value'],
+ 'parse-warnings': ["sdesc ends with '.'"]}

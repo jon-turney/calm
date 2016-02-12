@@ -1,7 +1,7 @@
 {'category': 'Net',
- 'external-source': 'mDNSResponder',
+ 'requires': '',
+ 'sdesc': '"Bonjour Zeroconf implementation"',
  'ldesc': '"Bonjour, also known as zero-configuration networking, enables\n'
           'automatic discovery of computers, devices, and services on IP networks using\n'
           'industry standard IP protocols."',
- 'requires': '',
- 'sdesc': '"Bonjour Zeroconf implementation"'}
+ 'external-source': 'mDNSResponder'}

@@ -1,1 +1,2 @@
-{'category': '_obsolete', 'sdesc': '"Obsolete package for RPM package management system manual pages"'}
+{'sdesc': '"Obsolete package for RPM package management system manual pages"',
+ 'category': '_obsolete'}

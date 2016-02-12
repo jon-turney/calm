@@ -1,1 +1,1 @@
-{'parse-errors': ['invalid UTF-8']}
+OrderedDict([('parse-errors', ['invalid UTF-8'])])

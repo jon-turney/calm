@@ -25,6 +25,7 @@
 # parser for setup.hint files
 #
 
+from collections import OrderedDict
 import re
 import argparse
 
@@ -147,7 +148,7 @@ def item_lexer(c):
 
 
 def setup_hint_parse(fn):
-    hints = {}
+    hints = OrderedDict()
     errors = []
     warnings = []
 
