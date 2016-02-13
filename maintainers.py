@@ -124,7 +124,7 @@ class Maintainer(object):
     def read(args):
         mlist = {}
         mlist = Maintainer.add_directories(mlist, args.homedir)
-        mlist = Maintainer.add_packages(mlist, args.pkglist, args.orphanmaint)
+        mlist = Maintainer.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
 
         return mlist
 
