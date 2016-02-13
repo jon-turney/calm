@@ -2,5 +2,4 @@
  'ldesc': '"Initial base installation helper script."',
  'category': 'Base',
  'requires': '',
- 'noautodep': 'cygwin',
  'parse-warnings': ["sdesc ends with '.'"]}

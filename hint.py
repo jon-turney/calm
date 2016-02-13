@@ -37,10 +37,8 @@ valkeys = ['curr', 'prev', 'test', 'category', 'external-source', 'sdesc']
 optvalkeys = ['requires']
 # keys which must have an empty value
 novalkeys = ['skip']
-# obsolete keys used by autodep mechanism we accept as valid for the moment
-obsoletekeys = ['autodep', 'noautodep', 'incver_ifdep']
 
-hintkeys = multilinevalkeys + valkeys + optvalkeys + novalkeys + obsoletekeys
+hintkeys = multilinevalkeys + valkeys + optvalkeys + novalkeys
 
 # valid categories
 categories = ['accessibility',
