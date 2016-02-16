@@ -133,7 +133,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # read sha512.sum
         sha512 = {}
         if 'sha512.sum' not in files:
-            logging.warning("missing sha512.sum for package '%s'" % p)
+            logging.info("no sha512.sum for package '%s'" % p)
         else:
             files.remove('sha512.sum')
 

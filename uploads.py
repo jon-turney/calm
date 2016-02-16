@@ -114,10 +114,15 @@ def scan(m, all_packages, args):
                 if os.path.isfile(dest):
                     if filecmp.cmp(dest, fn, shallow=False):
                         logging.warning("identical %s already in release area, ignoring" % rel_fn)
+                        files.remove(f)
                     else:
-                        logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % f)
-                        error = True
-                    files.remove(f)
+                        if f != 'setup.hint':
+                            logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % rel_fn)
+                            error = True
+                            files.remove(f)
+                        else:
+                            logging.warning("replacing different %s already in release area" % rel_fn)
+                            move[relpath].append(f)
                 else:
                     move[relpath].append(f)
 
@@ -151,7 +156,7 @@ def move(args, movelist, fromdir, todir):
         if not args.dryrun:
             os.makedirs(os.path.join(todir, p), exist_ok=True)
         for f in movelist[p]:
-            logging.info("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
+            logging.warning("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
             if not args.dryrun:
                 os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
 
