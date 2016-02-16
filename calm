@@ -54,6 +54,7 @@ from buffering_smtp_handler import mail_logs
 import common_constants
 import maintainers
 import package
+import pkg2html
 import uploads
 
 
@@ -122,11 +123,16 @@ def main(args):
         # write setup.ini
         package.write_setup_ini(args, packages)
 
+        # update packages listings
+        # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
+        pkg2html.update_package_listings(args, packages)
+
 #
 #
 #
 
 if __name__ == "__main__":
+    htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
     homedir_default = common_constants.HOMEDIR
     orphanmaint_default = common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
@@ -135,7 +141,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
     parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
+    parser.add_argument('--force', action='store_true', help="overwrite existing files")
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
+    parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)

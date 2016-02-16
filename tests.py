@@ -35,6 +35,7 @@ import unittest
 from version import SetupVersion
 import hint
 import maintainers
+import package
 import pkg2html
 import uploads
 
@@ -102,7 +103,8 @@ class TestMain(unittest.TestCase):
         setattr(args, 'dryrun', False)
         setattr(args, 'force', True)
 
-        pkg2html.main(args)
+        packages = package.read_packages(args.rel_area, args.arch)
+        pkg2html.update_package_listings(args, packages)
 
         # compare the output files with expected
         for (dirpath, subdirs, files) in os.walk(htdocs):
