@@ -137,6 +137,7 @@ if __name__ == "__main__":
     orphanmaint_default = common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
+    vault_default = common_constants.VAULT
 
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
@@ -151,6 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
     parser.add_argument('--setup-version', action='store', metavar='VERSION', help='value for setup-version key')
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
+    parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
 

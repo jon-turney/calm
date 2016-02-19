@@ -112,17 +112,20 @@ def scan(m, all_packages, args):
             else:
                 dest = os.path.join(releasedir, relpath, f)
                 if os.path.isfile(dest):
-                    if filecmp.cmp(dest, fn, shallow=False):
-                        logging.warning("identical %s already in release area, ignoring" % rel_fn)
-                        files.remove(f)
-                    else:
-                        if f != 'setup.hint':
+                    if f != 'setup.hint':
+                        if filecmp.cmp(dest, fn, shallow=False):
+                            logging.warning("identical %s already in release area, ignoring" % rel_fn)
+                        else:
                             logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % rel_fn)
                             error = True
-                            files.remove(f)
+                        files.remove(f)
+                    else:
+                        if filecmp.cmp(dest, fn, shallow=False):
+                            logging.info("identical %s already in release area" % rel_fn)
                         else:
                             logging.warning("replacing different %s already in release area" % rel_fn)
-                            move[relpath].append(f)
+                        # we always consider setup.hint, as we can't have a valid package without it
+                        move[relpath].append(f)
                 else:
                     move[relpath].append(f)
 

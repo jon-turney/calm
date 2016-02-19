@@ -55,7 +55,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                 print('-' * 40)
                 print(msg)
                 print('-' * 40)
-            else:
+            elif len(self.toaddrs) > 0:
                 try:
                     import smtplib
                     port = self.mailport
@@ -65,7 +65,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                     smtp.sendmail(self.fromaddr, self.toaddrs, msg)
                     smtp.quit()
                 except:
-                    self.handleError(None)  # no particular record
+                    self.handleError(self.buffer[0])  # first record
 
             self.buffer = []
 

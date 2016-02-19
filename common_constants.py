@@ -36,7 +36,7 @@ HOMEDIR = '/sourceware/cygwin-staging/home'
 FTP = '/var/ftp/pub/cygwin'
 
 # logs are always emailed to these addresses
-EMAILS = 'jturney'
+EMAILS = ','.join(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkowitz', 'jturney']))
 
 # these maintainers can upload orphaned packages as well
 ORPHANMAINT = "Yaakov Selkowitz"

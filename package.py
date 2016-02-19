@@ -582,11 +582,11 @@ def merge(a, b):
         else:
             # package must exist at same relative path
             if a[p].path != b[p].path:
-                logging.error("package name %s at paths %s and %s" % (p, a[p].path, b[p].path))
+                logging.error("package '%s' at paths %s and %s" % (p, a[p].path, b[p].path))
             else:
                 for t in b[p].tars:
                     if t in c[p].tars:
-                        logging.error("package name %s duplicate tarfile %s" % (p, t))
+                        logging.error("package '%s' duplicate tarfile %s" % (p, t))
                     else:
                         c[p].tars[t] = b[p].tars[t]
 
@@ -598,7 +598,7 @@ def merge(a, b):
                         pprint.pformat(a[p].hints).splitlines(),
                         pprint.pformat(b[p].hints).splitlines()))
 
-                    logging.warning("package name %s hints changed\n%s\n" % (p, diff))
+                    logging.warning("package '%s' hints changed\n%s\n" % (p, diff))
 
     return c
 
