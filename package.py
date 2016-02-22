@@ -218,6 +218,15 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         if p in past_mistakes.self_source:
             packages[p].hints['self-source'] = ''
 
+        # don't allow a redundant 'package-initial-substring:' at start of sdesc
+        if 'sdesc' in hints:
+            sdesc = re.sub(r'^"|"$', '', hints['sdesc'])
+            colon = sdesc.find(':')
+            if colon > -1:
+                if sdesc[:colon] == p[:colon]:
+                    logging.warning("package '%s' sdesc starts with '%s:'; this is redundant as the UI will show both the package name and sdesc" % (p, sdesc[:colon]))
+                    warnings = True
+
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
 
