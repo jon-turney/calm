@@ -51,10 +51,12 @@ import maintainers
 #
 #
 
-# cygwin_uid = pwd.getpwnam('cygwin').pw_uid
-# cygstage_gid = grp.getgrnam('cygstage').gr_gid
-cygwin_uid = pwd.getpwnam('jon').pw_uid
-cygstage_gid = grp.getgrnam('None').gr_gid
+if os.uname()[1] == 'tambora':
+    cygwin_uid = pwd.getpwnam('jon').pw_uid
+    cygstage_gid = grp.getgrnam('None').gr_gid
+else:
+    cygwin_uid = pwd.getpwnam('cygwin').pw_uid
+    cygstage_gid = grp.getgrnam('cygstage').gr_gid
 
 
 #

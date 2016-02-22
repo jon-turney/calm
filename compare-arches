@@ -39,6 +39,25 @@ import uploads
 #
 #
 #
+def make_package_list_filter(packages):
+    def filter(p):
+        if p.startswith('cygwin32') or p.startswith('cygwin64') or p.endswith('-debuginfo'):
+            return False
+
+        if '_obsolete' in packages[p].hints.get('category', ''):
+            return False
+
+        if 'skip' in packages[p].hints:
+            return False
+
+        return True
+
+    return filter
+
+
+#
+#
+#
 
 def main(args):
     packages = {}
@@ -49,62 +68,42 @@ def main(args):
         # build package list
         packages[arch] = package.read_packages(args.rel_area, arch)
 
+        # filter list
+        l = filter(make_package_list_filter(packages[arch]), packages[arch].keys())
+
         # make a set of the package list
-        pset[arch] = frozenset(packages[arch].keys())
+        pset[arch] = frozenset(l)
 
         # make the union of all the package lists
         union = union.union(pset[arch])
 
-        # XXX: could filter out obsolete here
-
+    # list packages missing from an arch
     for p in sorted(union):
         exists = {}
-        obs = {}
 
         for arch in common_constants.ARCHES:
-            exists[arch] = False
-            obs[arch] = True
-            if p in packages[arch]:
-                exists[arch] = True
-                if '_obsolete' in packages[arch][p].hints.get('category', ''):
-                    obs[arch] = True
-                else:
-                    obs[arch] = False
-
-        if p.startswith('cygwin32') or p.startswith('cygwin64') or p.endswith('-debuginfo'):
-            continue
+            exists[arch] = p in packages[arch]
 
         # packages which exist in all arches
         if all(exists.values()):
-
-            # report packages which are obsolete only in some arch
-            if any(obs.values()) and not all(obs.values()):
-                print("%s is in all arches, but obsolete only in %s" % (p, [a for a in obs if obs[a]]))
-
             continue
 
-        # ignore packages which are obsolete in all the arches they exist in
-        if all(obs.values()):
-            continue
-
-
-#        print(p, exists, obs)
         print("%s is only in arch %s" % (p, [a for a in exists if exists[a]]))
 
+    # XXX: another way to do that...
+    # find the set of packages which aren't in an arch
+    for arch in common_constants.ARCHES:
+        diff = union.difference(pset[arch])
+        print("not in %s : %s" % (arch, ', '.join(sorted(diff))))
+
+    # XXX: this requires unfiltered package lists
     # are there any packages which have a maintainer, but don't exist?
     mlist = maintainers.Maintainer.read(args)
     all_packages = maintainers.Maintainer.all_packages(mlist)
 
-    for p in sorted(all_packages):
-        if p not in union:
-            logging.warning("package '%s' has a maintainer, but doesn't exist in any architecture" % (p))
-
-    # find the set of packages which aren't in an arch
-#    for arch in common_constants.ARCHES:
-#        diff = union.difference(pset[arch])
-#        print("only in %s" % arch)
-#        print(sorted(diff))
-
+#    for p in sorted(all_packages):
+#        if p not in union:
+#            print("package '%s' has a maintainer, but doesn't exist in any architecture" % (p))
 
 #
 #

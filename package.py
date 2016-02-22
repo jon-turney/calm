@@ -209,9 +209,13 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # if the package has no install tarfiles (i.e. is source only), make
         # sure it is marked as 'skip' (which really means 'source-only' at the
         # moment)
-        if not has_install and 'skip' not in packages[p].hints:
-            packages[p].hints['skip'] = ''
-            logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
+        if 'skip' not in packages[p].hints:
+            if not has_install:
+                packages[p].hints['skip'] = ''
+                logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
+            elif not not_all_empty and '_obsolete' not in packages[p].hints['category']:
+                logging.info("package '%s' appears to be source-only as all install tarfiles are empty, changing to '_obsolete' category" % (p))
+                packages[p].hints['category'] = '_obsolete'
 
         # note if the package is self-source
         # XXX: this should really be defined as a setup.hint key
@@ -410,6 +414,7 @@ def validate_packages(args, packages):
             # external-source package
             #
             # mark the source tarfile as being used by an install tarfile
+            # (except for debuginfo packages)
             if 'source' in packages[p].vermap[v]:
                 packages[p].tars[packages[p].vermap[v]['source']].is_used = True
                 continue
@@ -418,7 +423,8 @@ def validate_packages(args, packages):
                 es_p = packages[p].hints['external-source']
                 if es_p in packages:
                     if 'source' in packages[es_p].vermap[v]:
-                        packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
+                        if not p.endswith('-debuginfo'):
+                            packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
                         continue
 
             # unless the install tarfile is empty
