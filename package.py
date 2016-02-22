@@ -203,6 +203,15 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         if p in past_mistakes.self_source:
             packages[p].hints['self-source'] = ''
 
+        # don't allow a redundant 'package-initial-substring:' at start of sdesc
+        if 'sdesc' in hints:
+            sdesc = re.sub(r'^"|"$', '', hints['sdesc'])
+            colon = sdesc.find(':')
+            if colon > -1:
+                if sdesc[:colon] == p[:colon]:
+                    logging.warning("package '%s' sdesc starts with '%s:'; this is redundant as the UI will show both the package name and sdesc" % (p, sdesc[:colon]))
+                    warnings = True
+
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 0):
         logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
 
@@ -496,17 +505,13 @@ def write_setup_ini(args, packages):
 
             # for historical reasons, we adjust sdesc slightly:
             #
-            # - strip anything up to and including first ':'
             # - capitalize first letter
             # whilst preserving any leading quote
             #
-            # these are both bad ideas, due to sdesc's which start with a
-            # lower-case command name, or contain perl or ruby module names like
-            # 'Net::HTTP'
+            # this is a bad idea, due to sdesc's which start with a
+            # lower-case command name
             sdesc = packages[p].hints['sdesc']
             sdesc = re.sub('^("?)(.*?)("?)$', r'\2', sdesc)
-            if ':' in sdesc:
-                sdesc = re.sub(r'^[^:]+:\s*', '', sdesc)
             sdesc = '"' + upper_first_character(sdesc) + '"'
             print("sdesc: %s" % sdesc, file=f)
 

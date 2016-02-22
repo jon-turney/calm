@@ -202,11 +202,6 @@ def setup_hint_parse(fn):
                         if not (value.startswith('"') and value.endswith('"')):
                             errors.append("%s value '%s' should be quoted" % (key, value))
 
-                    # validate that sdesc doesn't contain ':', as that prefix is removed
-                    if key == 'sdesc':
-                        if ':' in value:
-                            warnings.append("sdesc contains ':'")
-
                     # warn if sdesc ends with a '.'
                     if key == 'sdesc':
                         if re.search(r'\."$', value):
