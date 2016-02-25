@@ -77,12 +77,12 @@ def scan(m, all_packages, args):
 
         # package doesn't appear in package list at all
         if not package.is_in_package_list(relpath, all_packages):
-            logging.error("package '%s' is not in the package list" % relpath)
+            logging.error("package '%s' is not in the package list" % dirpath)
             continue
 
         # only process packages for which we are listed as a maintainer
         if not package.is_in_package_list(relpath, m.pkgs):
-            logging.warning("package '%s' is not in the package list for maintainer %s" % (relpath, m.name))
+            logging.warning("package '%s' is not in the package list for maintainer %s" % (dirpath, m.name))
             continue
 
         # filter out files we don't need to consider
@@ -100,9 +100,9 @@ def scan(m, all_packages, args):
             # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
-                    logging.warning("ignoring %s as there is no !ready" % rel_fn)
+                    logging.warning("ignoring %s as there is no !ready" % fn)
                 else:
-                    logging.warning("ignoring %s as it is newer than !ready" % rel_fn)
+                    logging.warning("ignoring %s as it is newer than !ready" % fn)
                 files.remove(f)
                 continue
 
@@ -114,16 +114,16 @@ def scan(m, all_packages, args):
                 if os.path.isfile(dest):
                     if f != 'setup.hint':
                         if filecmp.cmp(dest, fn, shallow=False):
-                            logging.warning("identical %s already in release area, ignoring" % rel_fn)
+                            logging.warning("identical %s already in release area, ignoring" % fn)
                         else:
-                            logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % rel_fn)
+                            logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % fn)
                             error = True
                         files.remove(f)
                     else:
                         if filecmp.cmp(dest, fn, shallow=False):
-                            logging.info("identical %s already in release area" % rel_fn)
+                            logging.info("identical %s already in release area" % fn)
                         else:
-                            logging.warning("replacing different %s already in release area" % rel_fn)
+                            logging.warning("replacing different %s already in release area" % fn)
                         # we always consider setup.hint, as we can't have a valid package without it
                         move[relpath].append(f)
                 else:
@@ -166,6 +166,9 @@ def move(args, movelist, fromdir, todir):
 
 def move_to_relarea(m, args, movelist):
     move(args, movelist, os.path.join(m.homedir(), args.arch), os.path.join(args.rel_area, args.arch))
+    # XXX: Note that there seems to be a separate process, not run from
+    # cygwin-admin's crontab, which changes the ownership of files in the
+    # release area to cyguser:cygwin
 
 
 def move_to_vault(args, movelist):

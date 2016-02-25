@@ -64,7 +64,10 @@ import uploads
 
 def main(args):
     # send one email per run to leads
-    with mail_logs(args.email, toaddrs=args.email, subject='calm messages') as leads_email:
+    with mail_logs(args.email, toaddrs=args.email, subject='calm messages [%s]' % (args.arch)) as leads_email:
+        if args.dryrun:
+            logging.warning("--dry-run in effect, nothing will really be done")
+
         # build package list
         packages = package.read_packages(args.rel_area, args.arch)
 
@@ -84,7 +87,7 @@ def main(args):
             m = mlist[name]
 
             # also send a mail to each maintainer about their packages
-            with mail_logs(args.email, toaddrs=m.email, subject='calm messages for ' + name) as maint_email:
+            with mail_logs(args.email, toaddrs=m.email, subject='calm messages [%s] for %s' % (args.arch, name)) as maint_email:
 
                 (error, mpackages, to_relarea, to_vault, remove_always) = uploads.scan(m, all_packages, args)
 
