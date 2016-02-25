@@ -25,7 +25,7 @@
 # utilities for working with a package database
 #
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 import copy
 import difflib
 import hashlib
@@ -230,6 +230,13 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 if sdesc[:colon] == p[:colon]:
                     logging.warning("package '%s' sdesc starts with '%s:'; this is redundant as the UI will show both the package name and sdesc" % (p, sdesc[:colon]))
                     warnings = True
+
+        # warn about duplicate packages in requires:
+        if 'requires' in packages[p].hints:
+            counter = Counter(packages[p].hints['requires'].split())
+            for (d, c) in counter.items():
+                if c > 1:
+                    logging.warning("package '%s' requires: contains %d duplicates of '%s'" % (p, c, d))
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
