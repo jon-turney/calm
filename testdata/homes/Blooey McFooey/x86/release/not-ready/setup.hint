@@ -1,0 +1,4 @@
+sdesc: "A test package which is ignored because it's not ready"
+ldesc: "A test package which is ignored because it's not ready"
+category: Devel
+

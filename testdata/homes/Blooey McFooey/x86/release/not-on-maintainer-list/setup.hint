@@ -1,0 +1,4 @@
+sdesc: "A test package which is ignored because it's not on the maintainer list"
+ldesc: "A test package which is ignored because it's not on the maintainer list"
+category: Devel
+

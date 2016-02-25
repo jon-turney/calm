@@ -1,1 +1,3 @@
-defaultdict(<class 'list'>, {'release/testpackage': ['setup.hint', 'testpackage-1.0-1.tar.bz2']})
+{'release/testpackage': ['setup.hint', 'testpackage-1.0-1.tar.bz2'],
+ 'release/testpackage/testpackage-subpackage': ['setup.hint', 'testpackage-subpackage-1.0-1.tar.bz2'],
+ 'release/testpackage2/testpackage2-subpackage': ['setup.hint', 'testpackage2-subpackage-1.0-1.tar.bz2']}

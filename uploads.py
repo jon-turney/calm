@@ -47,14 +47,15 @@ def scan(m, all_packages, args):
     vault = defaultdict(list)
     readys = []
     error = False
-    mtime = 0
+    mtimes = [('', 0)]
 
     logging.info('reading packages from %s' % (basedir))
 
-    # note mtime of !ready file
+    # note mtime of any !ready file at top-level
     for ready in [os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready')]:
         if os.path.exists(ready):
             mtime = os.path.getmtime(ready)
+            mtimes.append(('', mtime))
             logging.info('processing files with mtime older than %d' % (mtime))
             readys.append(ready)
 
@@ -68,12 +69,26 @@ def scan(m, all_packages, args):
 
         logging.info('reading uploads from %s' % dirpath)
 
-        # It really only makes sense for !ready to be in the basedir, or
-        # basedir/release, but historically we have accepted it anywhere, which
-        # affected all files thereafter in some unspecified directory traversal.
+        # note the mtime of the !ready file
         if '!ready' in files:
-            logging.error("!ready at %s not supported, ignored" % relpath)
+            ready = os.path.join(dirpath, '!ready')
+            mtime = os.path.getmtime(ready)
+            mtimes.append((relpath + '/', mtime))
+            readys.append(ready)
             files.remove('!ready')
+            logging.info("processing files below '%s' with mtime older than %d" % (relpath, mtime))
+        else:
+            # otherwise work back up a list of (path,mtimes) (which should be in
+            # shortest-to-longest order, since os.walk() walks the tree
+            # top-down), and use the mtime of the first (longest) matching path.
+            while True:
+                (path, time) = mtimes[-1]
+                if relpath.startswith(path):
+                    logging.info("using mtime %d from subpath '%s' of '%s'" % (time, path, relpath))
+                    mtime = time
+                    break
+                else:
+                    mtimes.pop()
 
         # package doesn't appear in package list at all
         if not package.is_in_package_list(relpath, all_packages):

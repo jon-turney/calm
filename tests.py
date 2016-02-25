@@ -168,21 +168,24 @@ class TestMain(unittest.TestCase):
         setattr(args, 'rel_area', 'testdata')
         setattr(args, 'dryrun', False)
 
-        pkglist = ['testpackage']
+        pkglist = ['after-ready', 'not-ready', 'testpackage', 'testpackage2']
 
         mlist = {}
         mlist = maintainers.Maintainer.add_directories(mlist, 'testdata/homes')
         m = mlist['Blooey McFooey']
-        m.pkgs.append('testpackage')
+        m.pkgs.extend(pkglist + ['not-on-package-list'])
 
-        ready_fn = os.path.join(m.homedir(), 'x86', '!ready')
-        os.system('touch "%s"' % (ready_fn))
+        ready_fns = [(os.path.join(m.homedir(), 'x86', 'release', 'testpackage', '!ready'), ''),
+                     (os.path.join(m.homedir(), 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
+                     (os.path.join(m.homedir(), 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700')]
+        for (f, t) in ready_fns:
+            os.system('touch %s "%s"' % (t, f))
 
-        (error, packages, to_relarea, to_vault, remove_always) = uploads.scan(m, pkglist, args)
+        (error, packages, to_relarea, to_vault, remove_always) = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args)
 
         self.assertEqual(error, False)
         compare_with_expected_file(self, 'testdata/uploads', to_relarea, 'move')
-        self.assertEqual(remove_always, [ready_fn])
+        self.assertCountEqual(remove_always, [f for (f, t) in ready_fns])
         compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')
 
 if __name__ == '__main__':
@@ -190,6 +193,8 @@ if __name__ == '__main__':
     os.system("find testdata/x86 -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
     # should remove a sha512.sum file so that we test functioning when it's absent
     os.unlink('testdata/x86/release/naim/sha512.sum')
+    # remove !ready files
+    os.system("find testdata/homes -name !ready -exec rm {} \;")
 
     logging.getLogger().setLevel(logging.INFO)
     logging.basicConfig(format='%(message)s')
