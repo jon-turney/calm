@@ -102,8 +102,10 @@ class TestMain(unittest.TestCase):
         setattr(args, 'rel_area', 'testdata')
         setattr(args, 'dryrun', False)
         setattr(args, 'force', True)
+        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
 
         packages = package.read_packages(args.rel_area, args.arch)
+        package.validate_packages(args, packages)
         pkg2html.update_package_listings(args, packages)
 
         # compare the output files with expected

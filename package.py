@@ -198,21 +198,6 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # now we have read the package, fix some common defects in the hints
         #
 
-        has_install = False
-        not_all_empty = False
-        for t in tars:
-            if not re.search(r'-src\.tar', t):
-                has_install = True
-                if not tars[t].is_empty:
-                    not_all_empty = True
-
-        # if the package has no install tarfiles (i.e. is source only), make
-        # sure it is marked as 'skip' (which really means 'source-only' at the
-        # moment)
-        if not has_install and 'skip' not in packages[p].hints:
-            packages[p].hints['skip'] = ''
-            logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
-
         # note if the package is self-source
         # XXX: this should really be defined as a setup.hint key
         if p in past_mistakes.self_source:
@@ -289,6 +274,7 @@ def validate_packages(args, packages):
 
         packages[p].vermap = defaultdict(defaultdict)
         is_empty = {}
+        has_install = False
 
         for t in packages[p].tars:
             # categorize each tarfile as either 'source' or 'install'
@@ -296,7 +282,7 @@ def validate_packages(args, packages):
                 category = 'source'
             else:
                 category = 'install'
-
+                has_install = True
                 is_empty[t] = packages[p].tars[t].is_empty
 
             # extract just the version part from tar filename
@@ -312,6 +298,20 @@ def validate_packages(args, packages):
 
             # store tarfile corresponding to this version and category
             packages[p].vermap[v][category] = t
+
+        # if the package has no install tarfiles (i.e. is source only), make
+        # sure it is marked as 'skip' (which really means 'source-only' at the
+        # moment)
+        #
+        # (this needs to take place after uploads have been merged into the
+        # package set, so that an upload containing just a replacement
+        # setup.hint is not considered a source-only package)
+        #
+        # XXX: the check should probably be for any non-empty install files, but
+        # that differs from what upset does
+        if not has_install and 'skip' not in packages[p].hints:
+            packages[p].hints['skip'] = ''
+            logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
 
         # verify the versions specified for stability level exist
         levels = ['test', 'curr', 'prev']
