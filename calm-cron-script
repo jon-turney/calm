@@ -1,21 +1,24 @@
 #!/bin/sh
 #
 
+# a unicode locale is required
+export LANG=en_US.UTF-8
+
 FTP=/var/ftp/pub/cygwin
 SRCDIR=`/usr/bin/dirname "$0"`
 
 for arch in x86_64 x86 ; do
-    TMPFILE=`/usr/bin/mktemp -t setup.ini.${arch}XXX`
+    TMPFILE=`/bin/mktemp -t setup.ini.${arch}XXX`
     INIFILE=${FTP}/${arch}/setup.ini
 
     SETUP_VERSION=`${SRCDIR}/extract-setup-version /www/sourceware/htdocs/cygwin/setup-${arch}.exe`
 
-    ${SRCDIR}/calm --inifile ${TMPFILE} --setup-version ${SETUP_VERSION} --arch=${arch}
-    if [ $? ]
+    ${SRCDIR}/calm --inifile ${TMPFILE} --setup-version ${SETUP_VERSION} --arch=${arch} --email
+    if [ $? -eq 0 ]
     then
         # if changed in more than timestamp
         /usr/bin/diff -I^setup-timestamp -w -B -q ${INIFILE} ${TMPFILE} >/dev/null
-        if [ $? == 1 ]
+        if [ $? -eq 1 ]
         then
             # update setup.ini
             /bin/mv ${TMPFILE} ${INIFILE}
