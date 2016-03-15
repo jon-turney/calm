@@ -56,7 +56,11 @@ import package
 
 def update_package_listings(args, packages):
     base = os.path.join(args.htdocs, args.arch)
-    os.makedirs(base, exist_ok=True)
+    if not args.dryrun:
+        try:
+            os.makedirs(base, exist_ok=True)
+        except FileExistsError:
+            pass
 
     #
     # write base directory .htaccess, if needed
@@ -88,8 +92,12 @@ def update_package_listings(args, packages):
             continue
 
         dir = os.path.join(base, p)
-        os.makedirs(dir, exist_ok=True)
-        os.chmod(dir, 0o777)
+        if not args.dryrun:
+            try:
+                os.makedirs(dir, exist_ok=True)
+            except FileExistsError:
+                pass
+            os.chmod(dir, 0o777)
 
         #
         # write .htaccess if needed

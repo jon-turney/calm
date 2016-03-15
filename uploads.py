@@ -172,7 +172,10 @@ def move(args, movelist, fromdir, todir):
     for p in movelist:
         logging.info("mkdir %s" % os.path.join(todir, p))
         if not args.dryrun:
-            os.makedirs(os.path.join(todir, p), exist_ok=True)
+            try:
+                os.makedirs(os.path.join(todir, p), exist_ok=True)
+            except FileExistsError:
+                pass
         for f in movelist[p]:
             logging.warning("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
             if not args.dryrun:
