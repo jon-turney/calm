@@ -112,7 +112,7 @@ def spellcheck_hints(args, packages):
                     spelldict.add(w.capitalize())
 
     # for each package
-    for p in sorted(packages.keys()):
+    for p in packages.keys():
         # debuginfo packages have uninteresting, auto-generated text which
         # contains the package name
         if p.endswith('-debuginfo'):

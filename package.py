@@ -37,6 +37,8 @@ import tarfile
 import textwrap
 import time
 
+from sortedcontainers import SortedDict
+
 from version import SetupVersion
 import common_constants
 import hint
@@ -69,10 +71,10 @@ class Tar(object):
 
 
 #
-# read a packages from a directory hierarchy
+# read packages from a directory hierarchy
 #
 def read_packages(rel_area, arch):
-    packages = defaultdict(Package)
+    packages = SortedDict(sort_key)
 
     releasedir = os.path.join(rel_area, arch)
     logging.debug('reading packages from %s' % releasedir)
@@ -196,9 +198,11 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             logging.log(strict_lvl, "unexpected files in %s: %s" % (p, ', '.join(files)))
             warnings = True
 
-        packages[p].hints = hints
-        packages[p].tars = tars
-        packages[p].path = relpath
+        # create the package
+        package = Package()
+        package.hints = hints
+        package.tars = tars
+        package.path = relpath
 
         #
         # now we have read the package, fix some common defects in the hints
@@ -207,7 +211,10 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # note if the package is self-source
         # XXX: this should really be defined as a setup.hint key
         if p in past_mistakes.self_source:
-            packages[p].hints['self-source'] = ''
+            package.hints['self-source'] = ''
+
+        # add the package into the packageset
+        packages[p] = package
 
         # don't allow a redundant 'package:' or 'package - ' at start of sdesc
         #
@@ -273,7 +280,7 @@ def sort_key(k):
 def validate_packages(args, packages):
     error = False
 
-    for p in sorted(packages.keys()):
+    for p in packages.keys():
         logging.debug("validating package '%s'" % (p))
 
         if 'required-package' not in getattr(args, 'okmissing', []):
@@ -416,7 +423,7 @@ def validate_packages(args, packages):
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
-    for p in sorted(packages.keys()):
+    for p in packages.keys():
         for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
             if 'install' not in packages[p].vermap[v]:
                 continue
@@ -449,7 +456,7 @@ def validate_packages(args, packages):
 
     # make another pass to verify that each source tarfile version has at least
     # one corresponding install tarfile, in some package.
-    for p in sorted(packages.keys()):
+    for p in packages.keys():
         for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
             if 'source' not in packages[p].vermap[v]:
                 continue
@@ -477,7 +484,7 @@ def validate_package_maintainers(args, packages):
     all_packages = maintainers.Maintainer.all_packages(mlist)
 
     # validate that all packages are in the package list
-    for p in sorted(packages):
+    for p in packages.keys():
         # ignore skip packages
         if 'skip' in packages[p].hints:
             continue
@@ -513,7 +520,7 @@ def write_setup_ini(args, packages):
             print("setup-version: %s" % args.setup_version, file=f)
 
         # for each package
-        for p in sorted(packages.keys(), key=sort_key):
+        for p in packages.keys():
             # do nothing if 'skip'
             if 'skip' in packages[p].hints:
                 continue

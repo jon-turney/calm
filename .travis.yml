@@ -2,7 +2,7 @@ language: python
 sudo: false
 python:
  - "3.4"
-install: "pip install pep8 dirq"
+install: "pip install pep8 dirq sortedcontainers"
 script:
  - ./pep8
  - ./tests.py
