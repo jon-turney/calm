@@ -592,15 +592,20 @@ def merge(a, b):
                     else:
                         c[p].tars[t] = b[p].tars[t]
 
-                # use hints from b, but warn that they have changed
+                # use hints from b, but warn if they have changed
                 if a[p].hints != b[p].hints:
                     c[p].hints = b[p].hints
+
+                    # sort requires: as differences in ordering are uninteresting
+                    for hints in [a[p].hints, b[p].hints]:
+                        if 'requires' in hints:
+                            hints['requires'] = ' '.join(sorted(hints['requires'].split()))
 
                     diff = '\n'.join(difflib.ndiff(
                         pprint.pformat(a[p].hints).splitlines(),
                         pprint.pformat(b[p].hints).splitlines()))
 
-                    logging.warning("package '%s' hints changed\n%s\n" % (p, diff))
+                    logging.warning("package '%s' hints changed\n%s" % (p, diff))
 
     return c
 
