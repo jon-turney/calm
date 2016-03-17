@@ -45,7 +45,8 @@ def scan(m, all_packages, args):
     packages = defaultdict(package.Package)
     move = defaultdict(list)
     vault = defaultdict(list)
-    readys = []
+    remove = []
+    remove_success = []
     error = False
     mtimes = [('', 0)]
 
@@ -57,7 +58,7 @@ def scan(m, all_packages, args):
             mtime = os.path.getmtime(ready)
             mtimes.append(('', mtime))
             logging.info('processing files with mtime older than %d' % (mtime))
-            readys.append(ready)
+            remove.append(ready)
 
     # scan package directories
     for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
@@ -74,7 +75,7 @@ def scan(m, all_packages, args):
             ready = os.path.join(dirpath, '!ready')
             mtime = os.path.getmtime(ready)
             mtimes.append((relpath + '/', mtime))
-            readys.append(ready)
+            remove.append(ready)
             files.remove('!ready')
             logging.info("processing files below '%s' with mtime older than %d" % (relpath, mtime))
         else:
@@ -124,6 +125,7 @@ def scan(m, all_packages, args):
             if f.startswith('-'):
                 vault[relpath].append(f[1:])
                 files.remove(f)
+                remove_success.append(fn)
             else:
                 dest = os.path.join(releasedir, relpath, f)
                 if os.path.isfile(dest):
@@ -150,15 +152,15 @@ def scan(m, all_packages, args):
             if package.read_package(packages, basedir, dirpath, files, strict=True):
                 error = True
 
-    return (error, packages, move, vault, readys)
+    return (error, packages, move, vault, remove, remove_success)
 
 
 #
 #
 #
 
-def remove(args, readys):
-    for f in readys:
+def remove(args, remove):
+    for f in remove:
         logging.info("rm %s", f)
         if not args.dryrun:
             os.unlink(f)

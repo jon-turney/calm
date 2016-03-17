@@ -184,11 +184,12 @@ class TestMain(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        (error, packages, to_relarea, to_vault, remove_always) = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args)
+        (error, packages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args)
 
         self.assertEqual(error, False)
         compare_with_expected_file(self, 'testdata/uploads', to_relarea, 'move')
         self.assertCountEqual(remove_always, [f for (f, t) in ready_fns])
+        self.assertEqual(remove_success, [])
         compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')
 
     def test_package_set(self):
