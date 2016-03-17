@@ -1,5 +1,6 @@
 htdocs
 results
 *.results
+setup.ini
 sha512.sum
 \!ready

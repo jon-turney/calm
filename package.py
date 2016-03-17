@@ -611,10 +611,11 @@ def merge(a, b):
 
 def delete(packages, path, fn):
     for p in packages:
-        if p.relpath == path:
+        if packages[p].path == path:
             for t in packages[p].tars:
                 if t == fn:
                     del packages[p].tars[t]
+                    break
 
 
 #

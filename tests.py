@@ -29,6 +29,7 @@ import filecmp
 import logging
 import os
 import pprint
+import re
 import types
 import unittest
 
@@ -189,6 +190,32 @@ class TestMain(unittest.TestCase):
         compare_with_expected_file(self, 'testdata/uploads', to_relarea, 'move')
         self.assertCountEqual(remove_always, [f for (f, t) in ready_fns])
         compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')
+
+    def test_package_set(self):
+        self.maxDiff = None
+
+        args = types.SimpleNamespace()
+        setattr(args, 'arch', 'x86')
+        setattr(args, 'dryrun', False)
+        setattr(args, 'force', True)
+        setattr(args, 'inifile', 'testdata/inifile/setup.ini')
+        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
+        setattr(args, 'rel_area', 'testdata')
+        setattr(args, 'release', 'testing')
+        setattr(args, 'setup_version', '4.321')
+
+        packages = package.read_packages(args.rel_area, args.arch)
+        package.delete(packages, 'release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
+        package.delete(packages, 'release/libtextcat/libtextcat-devel', 'libtextcat-devel-2.2-2.tar.bz2')
+        package.delete(packages, 'release/libtextcat/libtextcat0', 'libtextcat0-2.2-2.tar.bz2')
+        package.delete(packages, 'release/proj/proj-debuginfo', 'proj-debuginfo-4.8.0-1.tar.xz')
+        package.validate_packages(args, packages)
+        package.write_setup_ini(args, packages)
+        with open(args.inifile) as inifile:
+            results = inifile.read()
+            # fix the timestamp to match expected
+            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1458221800', results, 1)
+            compare_with_expected_file(self, 'testdata/inifile', (results,), 'setup.ini')
 
 if __name__ == '__main__':
     # ensure sha512.sum files exist
