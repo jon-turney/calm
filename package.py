@@ -155,7 +155,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # collect the attributes for each tar file
         tars = {}
 
-        for f in list(filter(lambda f: re.match(r'^' + re.escape(p) + r'.*\.tar.*$', f), files)):
+        for f in [f for f in files if re.match(r'^' + re.escape(p) + r'.*\.tar.*$', f)]:
             files.remove(f)
 
             # warn if tar filename doesn't follow P-V-R naming convention
