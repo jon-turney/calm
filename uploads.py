@@ -177,9 +177,12 @@ def move(args, movelist, fromdir, todir):
             except FileExistsError:
                 pass
         for f in movelist[p]:
-            logging.warning("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
-            if not args.dryrun:
-                os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
+            if os.path.exists(os.path.join(fromdir, p, f)):
+                logging.warning("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
+                if not args.dryrun:
+                    os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
+            else:
+                logging.error("%s can't be moved as it doesn't exist" % (f))
 
 
 def move_to_relarea(m, args, movelist):
