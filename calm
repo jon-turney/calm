@@ -76,7 +76,7 @@ def main(args):
         # validate the package set
         if not package.validate_packages(args, packages):
             logging.error("existing package set has errors, not processing uploads or writing setup.ini")
-            return
+            return 1
 
         # read maintainer list
         mlist = maintainers.Maintainer.read(args)
@@ -132,6 +132,8 @@ def main(args):
         # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
         pkg2html.update_package_listings(args, packages)
 
+        return 0
+
 #
 #
 #
@@ -169,4 +171,4 @@ if __name__ == "__main__":
     if args.email:
         args.email = args.email.split(',')
 
-    main(args)
+    sys.exit(main(args))
