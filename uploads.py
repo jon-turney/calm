@@ -171,16 +171,17 @@ def remove(args, remove):
 #
 
 def move(args, movelist, fromdir, todir):
-    for p in movelist:
+    for p in sorted(movelist):
         logging.info("mkdir %s" % os.path.join(todir, p))
         if not args.dryrun:
             try:
                 os.makedirs(os.path.join(todir, p), exist_ok=True)
             except FileExistsError:
                 pass
-        for f in movelist[p]:
+        logging.warning("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
+        for f in sorted(movelist[p]):
             if os.path.exists(os.path.join(fromdir, p, f)):
-                logging.warning("move %s to %s" % (os.path.join(fromdir, p, f), os.path.join(todir, p, f)))
+                logging.warning("%s" % (f))
                 if not args.dryrun:
                     os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
             else:
