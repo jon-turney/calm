@@ -164,10 +164,24 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
 
-    if args.verbose:
-        logging.getLogger().setLevel(logging.INFO)
+    # set up logging to a file
+    rfh = logging.handlers.RotatingFileHandler('/var/log/cygwin/calm.log', backupCount=24)
+    rfh.doRollover()
+    rfh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)-8s - %(message)s'))
+    rfh.setLevel(logging.INFO)
+    logging.getLogger().addHandler(rfh)
 
-    logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
+    # setup logging to stdout, of WARNING messages or higher (INFO if verbose)
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(logging.Formatter(os.path.basename(sys.argv[0])+': %(message)s'))
+    if args.verbose:
+        ch.setLevel(logging.INFO)
+    else:
+        ch.setLevel(logging.WARNING)
+    logging.getLogger().addHandler(ch)
+
+    # change root logger level from the default of WARNING
+    logging.getLogger().setLevel(logging.INFO)
 
     if args.email:
         args.email = args.email.split(',')

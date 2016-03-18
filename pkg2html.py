@@ -170,7 +170,7 @@ def update_package_listings(args, packages):
                                                  </pre></tt>
                                                  </html>'''), file=f)
             else:
-                logging.info('Not writing %s, already exists' % html)
+                logging.debug('Not writing %s, already exists' % html)
 
             # this file should exist, so remove from the toremove list
             if html in toremove:
