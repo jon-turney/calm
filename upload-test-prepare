@@ -1,0 +1,18 @@
+#!
+
+mkdir -p '/sourceware/cygwin-staging/home/Jon Turney/x86/release/buildbot-slave'
+
+cp /var/ftp/pub/cygwin-test/x86/release/buildbot-slave/buildbot-slave-0.8.12-1.tar.xz '/sourceware/cygwin-staging/home/Jon Turney/x86/release/buildbot-slave/'
+cp /var/ftp/pub/cygwin-test/x86/release/buildbot-slave/buildbot-slave-0.8.12-1-src.tar.xz '/sourceware/cygwin-staging/home/Jon Turney/x86/release/buildbot-slave/'
+cp /var/ftp/pub/cygwin-test/x86/release/buildbot-slave/setup.hint '/sourceware/cygwin-staging/home/Jon Turney/x86/release/buildbot-slave/'
+
+mkdir -p '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd'
+mkdir -p '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd/ddd-debuginfo'
+
+cp /var/ftp/pub/cygwin-test/x86/release/ddd/ddd-3.3.12-3.tar.xz     '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd'
+cp /var/ftp/pub/cygwin-test/x86/release/ddd/ddd-3.3.12-3-src.tar.xz '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd'
+cp /var/ftp/pub/cygwin-test/x86/release/ddd/setup.hint              '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd'
+cp /var/ftp/pub/cygwin-test/x86/release/ddd/ddd-debuginfo/ddd-debuginfo-3.3.12-3.tar.xz '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd/ddd-debuginfo'
+cp /var/ftp/pub/cygwin-test/x86/release/ddd/ddd-debuginfo/setup.hint                    '/sourceware/cygwin-staging/home/Jon Turney/x86/release/ddd/ddd-debuginfo'
+
+#touch '/sourceware/cygwin-staging/home/Jon Turney/x86/\!ready'

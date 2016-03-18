@@ -1,0 +1,11 @@
+FTPDIR=/var/ftp/pub/cygwin-test
+
+(cd ${FTPDIR} ; find x86/release/ x86_64/release/ -type f -name '*.tar.*') \
+  | sort > ftp.files
+
+grep -E '^(install|source):' ${FTPDIR}/x86*/setup.ini \
+  | cut -d' ' -f2 | sort -u > setup.files
+
+diff -u ftp.files setup.files | sed -ne 's/^-x/x/gp' > stalepkgs.out
+
+wc -l stalepkgs.out

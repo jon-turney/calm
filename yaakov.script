@@ -1,0 +1,16 @@
+for r in `grep -Erl '[0-9] usr/(bin|lib*|sbin)[^ ]*\.(exe|dll|so|cmxs)$' \
+          /sourceware/www/sourceware/htdocs/cygwin/packages/x86{,_64}/ \
+          | sed -e 's|/[^/]*$||' | sort -u `
+do
+    case $r in
+        */x86/*) arch=x86 ;;
+        */x86_64/*) arch=x86_64 ;;
+    esac
+    p=${r##*/}
+    d=`find /sourceware/ftp/anonftp/pub/cygwin/$arch/release/ -type d -name $p`
+    if ! grep -Eq 'requires:.*cygwin( |$)' $d/setup.hint \
+       && ! grep -q 'category:.*_obsolete' $d/setup.hint
+    then
+        echo $d/setup.hint
+    fi
+done

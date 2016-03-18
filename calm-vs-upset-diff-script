@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+
+export PATH=/home/jturney/usr/bin:$PATH
+export LD_LIBRARY_PATH=/home/jturney/usr/lib/:$LD_LIBRARY_PATH
+
+# workaround for encoding of cygwin-pkg-maint
+export LANG=en_US.UTF-8
+
+SRCDIR=`/usr/bin/dirname "$0"`
+FTP=/var/ftp/pub/cygwin
+
+for arch in x86_64 x86 ; do
+    TMPFILE=setup.${arch}.$$
+    INIFILE=${FTP}/${arch}/setup.ini
+    SETUP_VERSION=`${SRCDIR}/extract-setup-version /www/sourceware/htdocs/cygwin/setup-${arch}.exe`
+
+    ${SRCDIR}/mksetupini --inifile ${TMPFILE} --setup-version ${SETUP_VERSION} --arch=${arch}
+
+    # if different in more than timestamp
+    /usr/bin/diff -I^setup-timestamp -w -B -q ${INIFILE} ${TMPFILE}
+    if [ $? == 1 ]
+    then
+        /usr/bin/diff -I^setup-timestamp -u ${INIFILE} ${TMPFILE}
+    fi
+    /bin/rm -f ${TMPFILE}
+
+done
