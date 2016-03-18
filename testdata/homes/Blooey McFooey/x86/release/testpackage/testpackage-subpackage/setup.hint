@@ -1,4 +1,4 @@
 sdesc: "A test subpackage"
 ldesc: "A test subpackage"
 category: Devel
-
+external-source: testpackage

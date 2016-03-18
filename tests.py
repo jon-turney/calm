@@ -30,10 +30,13 @@ import logging
 import os
 import pprint
 import re
+import shutil
+import tempfile
 import types
 import unittest
 
 from version import SetupVersion
+import calm
 import hint
 import maintainers
 import package
@@ -42,7 +45,7 @@ import uploads
 
 
 #
-# helper function
+# helper functions
 #
 # write results to the file 'results'
 # read expected from the file 'expected'
@@ -68,6 +71,19 @@ def compare_with_expected_file(test, dirpath, results, basename=None):
         expected = f.read().rstrip()
 
     test.assertMultiLineEqual(expected, results_str)
+
+
+#
+# capture a directory tree as a dict 'tree', where each key is a directory path
+# and the value is a sorted list of filenames
+#
+
+def capture_dirtree(basedir):
+    tree = {}
+    for dirpath, dirnames, filenames in os.walk(basedir):
+        tree[os.path.relpath(dirpath, basedir)] = sorted(filenames)
+
+    return tree
 
 
 #
@@ -216,6 +232,43 @@ class TestMain(unittest.TestCase):
             compare_with_expected_file(self, 'testdata/inifile', (results,), 'setup.ini')
 
         # XXX: delete a needed package, and check validate fails
+
+    def test_process_arch(self):
+        self.maxDiff = None
+
+        args = types.SimpleNamespace()
+
+        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+            setattr(args, d, tempfile.mktemp())
+            logging.info('%s = %s', d, getattr(args, d))
+
+        setattr(args, 'arch', 'x86')
+        setattr(args, 'dryrun', False)
+        setattr(args, 'email', None)
+        setattr(args, 'force', False)
+        setattr(args, 'inifile', os.path.join(getattr(args, 'rel_area'), 'setup.ini'))
+        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
+        setattr(args, 'release', 'trial')
+        setattr(args, 'setup_version', '3.1415')
+
+        shutil.copytree('testdata/x86', os.path.join(getattr(args, 'rel_area'), 'x86'))
+        shutil.copytree('testdata/homes', getattr(args, 'homedir'))
+
+        # set appropriate !readys
+        m_homedir = os.path.join(getattr(args, 'homedir'), 'Blooey McFooey')
+        ready_fns = [(os.path.join(m_homedir, 'x86', 'release', 'testpackage', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700')]
+        for (f, t) in ready_fns:
+            os.system('touch %s "%s"' % (t, f))
+
+        self.assertEqual(calm.main(args), 0)
+
+        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+            with self.subTest(directory=d):
+                dirlist = capture_dirtree(getattr(args, d))
+                compare_with_expected_file(self, 'testdata/process_arch', dirlist, d)
+                shutil.rmtree(getattr(args, d))
 
 if __name__ == '__main__':
     # ensure sha512.sum files exist
