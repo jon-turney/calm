@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import logging
+import os
+import time
+
+from calm.calm import mail_logs
+
+toaddrs = [os.environ.get('EMAIL', 'debug')]
+
+with mail_logs(True, toaddrs=toaddrs, subject='buffering_smtp_handler test (unicode)', thresholdLevel=logging.WARNING) as email:
+    logging.warning("this is a test")
+    logging.warning("unicode content: à á â ã ä å æ ç è é ê ë ì í î ï ð ñ ò ó ô õ ö ù ú û ü")
+    logging.info("this should not appear in the sent mail")
+    logging.error("too many €")
+
+time.sleep(10)
+
+with mail_logs(True, toaddrs=toaddrs, subject='buffering_smtp_handler test (ascii)', thresholdLevel=logging.WARNING) as email:
+    logging.warning("this is a test")
+    logging.info("this should not appear in the sent mail")
+    logging.warning("no unicode content, should be ascii encoded")
