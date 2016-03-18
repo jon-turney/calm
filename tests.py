@@ -189,7 +189,7 @@ class TestMain(unittest.TestCase):
         self.assertEqual(error, False)
         compare_with_expected_file(self, 'testdata/uploads', to_relarea, 'move')
         self.assertCountEqual(remove_always, [f for (f, t) in ready_fns])
-        self.assertEqual(remove_success, [])
+        self.assertEqual(remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
         compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')
 
     def test_package_set(self):
