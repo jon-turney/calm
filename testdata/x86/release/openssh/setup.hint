@@ -1,0 +1,5 @@
+category: Net
+sdesc: "The OpenSSH server and client programs"
+ldesc: "OpenSSH is a program for logging into a remote machine and for
+	executing commands on a remote machine.  It can replace rlogin and rsh,
+	providing encrypted communication between two machines."

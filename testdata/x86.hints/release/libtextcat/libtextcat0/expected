@@ -1,4 +1,12 @@
 {'sdesc': '"Text Classification Library dll"',
+ 'ldesc': '"Libtextcat is a library with functions that implement the\n'
+          'classification technique described in Cavnar & Trenkle, "N-Gram-Based\n'
+          'Text Categorization". It was primarily developed for language\n'
+          'guessing, a task on which it is known to perform with near-perfect\n'
+          'accuracy.\n'
+          'BSD License.\n'
+          'http://software.wise-guys.nl/libtextcat/"',
  'category': 'Text',
  'requires': 'cygwin',
- 'external-source': 'libtextcat'}
+ 'external-source': 'libtextcat',
+ 'parse-errors': ['embedded quote at line 7']}

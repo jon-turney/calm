@@ -207,16 +207,15 @@ class TestMain(unittest.TestCase):
 
         packages = package.read_packages(args.rel_area, args.arch)
         package.delete(packages, 'release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
-        package.delete(packages, 'release/libtextcat/libtextcat-devel', 'libtextcat-devel-2.2-2.tar.bz2')
-        package.delete(packages, 'release/libtextcat/libtextcat0', 'libtextcat0-2.2-2.tar.bz2')
-        package.delete(packages, 'release/proj/proj-debuginfo', 'proj-debuginfo-4.8.0-1.tar.xz')
-        package.validate_packages(args, packages)
+        self.assertEqual(package.validate_packages(args, packages), True)
         package.write_setup_ini(args, packages)
         with open(args.inifile) as inifile:
             results = inifile.read()
             # fix the timestamp to match expected
             results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1458221800', results, 1)
             compare_with_expected_file(self, 'testdata/inifile', (results,), 'setup.ini')
+
+        # XXX: delete a needed package, and check validate fails
 
 if __name__ == '__main__':
     # ensure sha512.sum files exist
