@@ -41,6 +41,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
         self.toaddrs = toaddrs
         self.subject = subject
         self.formatter = logging_format
+        self.setLevel(logging.WARNING)
         self.setFormatter(logging.Formatter(logging_format))
 
     def flush(self):
