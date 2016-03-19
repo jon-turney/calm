@@ -203,7 +203,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         if p in past_mistakes.self_source:
             packages[p].hints['self-source'] = ''
 
-    elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
+    elif (len(files) > 0) and (relpath.count(os.path.sep) > 0):
         logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
 
     if strict:
