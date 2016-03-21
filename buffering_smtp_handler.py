@@ -23,6 +23,7 @@
 from contextlib import ExitStack
 import logging
 import logging.handlers
+import email.message
 
 import common_constants
 
@@ -46,10 +47,23 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
 
     def flush(self):
         if len(self.buffer) > 0:
-            msg = "From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (self.fromaddr, ','.join(self.toaddrs), self.subject)
+            msg = ""
             for record in self.buffer:
                 s = self.format(record)
                 msg = msg + s + "\r\n"
+
+            m = email.message.Message()
+            m['From'] = self.fromaddr
+            m['To'] = ','.join(self.toaddrs)
+            m['Subject'] = self.subject
+
+            # use utf-8 only if the message can't be ascii encoded
+            charset = 'ascii'
+            try:
+                msg.encode('ascii')
+            except UnicodeError:
+                charset = 'utf-8'
+            m.set_payload(msg, charset=charset)
 
             # if toaddrs consists of the single address 'debug', just dump the mail we would have sent
             if self.toaddrs == ['debug']:
@@ -63,7 +77,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                     if not port:
                         port = smtplib.SMTP_PORT
                     smtp = smtplib.SMTP(self.mailhost, port)
-                    smtp.sendmail(self.fromaddr, self.toaddrs, msg)
+                    smtp.send_message(m)
                     smtp.quit()
                 except:
                     self.handleError(self.buffer[0])  # first record
