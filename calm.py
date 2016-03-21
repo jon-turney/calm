@@ -188,7 +188,7 @@ def main(args):
                     shutil.move(tmpfile.name, inifile)
 
                     # compress and re-sign
-                    for ext in ['.ini', '.bz2']:
+                    for ext in ['.ini', '.bz2', '.xz']:
                         try:
                             os.remove(os.path.join(basedir, 'setup' + ext + '.sig'))
                         except FileNotFoundError:
@@ -196,6 +196,8 @@ def main(args):
 
                         if ext == '.bz2':
                             os.system('/usr/bin/bzip2 <%s >%s' % (inifile, os.path.splitext(inifile)[0] + ext))
+                        elif ext == '.xz':
+                            os.system('/usr/bin/xz -6e <%s >%s' % (inifile, os.path.splitext(inifile)[0] + ext))
 
                         os.system('/usr/bin/gpg --batch --yes -b ' + os.path.join(basedir, 'setup' + ext))
 
