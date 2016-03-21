@@ -171,7 +171,7 @@ if __name__ == "__main__":
         os.makedirs(args.logdir, exist_ok=True)
     except FileExistsError:
         pass
-    rfh = logging.handlers.RotatingFileHandler(os.path.join(args.logdir, 'calm.log'), backupCount=24)
+    rfh = logging.handlers.RotatingFileHandler(os.path.join(args.logdir, 'calm.log'), backupCount=48)
     rfh.doRollover()  # force a rotate on every run
     rfh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)-8s - %(message)s'))
     rfh.setLevel(logging.INFO)
