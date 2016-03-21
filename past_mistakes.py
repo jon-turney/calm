@@ -68,8 +68,6 @@ hyphen_in_version = [
     'socat-debuginfo',
     'tack',
     'tack-debuginfo',
-    'terminfo',
-    'terminfo-extra',
     'xemacs-mule-sumo',
     'xemacs-sumo',
     'xfs',
