@@ -42,16 +42,19 @@ import re
 # uncompressed
 #
 
-def main(fn):
+def extract_version(fn):
+    # check the file exists
+    if not os.path.exists(fn):
+        raise FileNotFoundError
+
     # canonicalize the pathname
     fn = os.path.realpath(fn)
 
     match = re.search(r'setup-([\d\.]+).x86', fn)
     if match:
-        print(match.group(1))
-        return 0
+        return match.group(1)
     else:
-        return 1
+        return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract version from setup executable')
@@ -59,7 +62,11 @@ if __name__ == "__main__":
     (args) = parser.parse_args()
 
     if args.exe:
-        exit(main(args.exe))
+        v = extract_version(args.exe)
+        if v:
+            print(v)
+            exit(0)
+        exit(1)
 
     parser.print_help()
 

@@ -262,7 +262,7 @@ class TestMain(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        self.assertEqual(calm.main(args), 0)
+        self.assertEqual(calm.process_arch(args), True)
 
         for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
             with self.subTest(directory=d):

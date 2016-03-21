@@ -1,4 +1,3 @@
-* cronscript should be in python
 * per-package-version hint files (e.g. named <pvr>.hint, or /.setup.hint inside tar file)
 * more than 2 versions possible (and automatically vault 'old' versions, where we have some mechanism to explicity say what is old)
 * enable .xz compressed setup.ini (setup.exe checks for it and presumably can handle it)

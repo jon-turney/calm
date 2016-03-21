@@ -48,13 +48,16 @@
 import argparse
 import logging
 import os
+import shutil
 import sys
+import tempfile
 
 from buffering_smtp_handler import mail_logs
 import common_constants
 import maintainers
 import package
 import pkg2html
+import setup_exe
 import uploads
 
 
@@ -62,7 +65,7 @@ import uploads
 #
 #
 
-def main(args):
+def process_arch(args):
     details = '%s%s' % (args.arch, ',dry-run' if args.dryrun else '')
 
     # send one email per run to leads
@@ -76,7 +79,7 @@ def main(args):
         # validate the package set
         if not package.validate_packages(args, packages):
             logging.error("existing package set has errors, not processing uploads or writing setup.ini")
-            return 1
+            return False
 
         # read maintainer list
         mlist = maintainers.Maintainer.read(args)
@@ -133,7 +136,79 @@ def main(args):
         # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
         pkg2html.update_package_listings(args, packages)
 
-        return 0
+        return True
+
+
+#
+#
+#
+
+def main(args):
+    # for each arch
+    for arch in common_constants.ARCHES:
+        logging.info("processing arch %s" % (arch))
+
+        args.arch = arch
+        args.setup_version = setup_exe.extract_version(os.path.join(args.setupdir, 'setup-' + args.arch + '.exe'))
+        logging.info("setup version is '%s'" % (args.setup_version))
+
+        basedir = os.path.join(args.rel_area, args.arch)
+        inifile = os.path.join(basedir, 'setup.ini')
+
+        # write setup.ini to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            args.inifile = tmpfile.name
+
+            changed = False
+            if not process_arch(args):
+                # generating setup.ini failed
+                pass
+            elif not os.path.exists(inifile):
+                # if the setup.ini file doesn't exist yet
+                logging.warning('no existing %s' % (inifile))
+                changed = True
+            else:
+                # or, if it's changed in more than timestamp
+                status = os.system('/usr/bin/diff -I^setup-timestamp -w -B -q %s %s >/dev/null' % (inifile, tmpfile.name))
+                logging.info('diff exit status %d' % (status))
+                if (status >> 8) == 1:
+                    changed = True
+
+            # then update setup.ini
+            if changed:
+                if args.dryrun:
+                    logging.warning("not moving %s to %s, due to --dry-run" % (tmpfile.name, inifile))
+                    os.remove(tmpfile.name)
+                else:
+                    # make a backup of the current setup.ini
+                    shutil.copy2(inifile, inifile + '.bak')
+
+                    # replace setup.ini
+                    logging.warning("moving %s to %s" % (tmpfile.name, inifile))
+                    shutil.move(tmpfile.name, inifile)
+
+                    # compress and re-sign
+                    for ext in ['.ini', '.bz2']:
+                        try:
+                            os.remove(os.path.join(basedir, 'setup' + ext + '.sig'))
+                        except FileNotFoundError:
+                            pass
+
+                        if ext == '.bz2':
+                            os.system('/usr/bin/bzip2 <%s >%s' % (inifile, os.path.splitext(inifile)[0] + ext))
+
+                        os.system('/usr/bin/gpg --batch --yes -b ' + os.path.join(basedir, 'setup' + ext))
+
+                    # arrange for checksums to be recomputed
+                    for sumfile in ['md5.sum', 'sha512.sum']:
+                        try:
+                            os.remove(os.path.join(basedir, sumfile))
+                        except FileNotFoundError:
+                            pass
+            else:
+                logging.info("removing %s, unchanged %s" % (tmpfile.name, inifile))
+                os.remove(tmpfile.name)
+
 
 #
 #
@@ -145,22 +220,21 @@ if __name__ == "__main__":
     orphanmaint_default = common_constants.ORPHANMAINT
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
+    setupdir_default = common_constants.HTDOCS
     vault_default = common_constants.VAULT
     logdir_default = '/sourceware/cygwin-staging/logs'
 
     parser = argparse.ArgumentParser(description='Upset replacement')
-    parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
     parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
     parser.add_argument('--force', action='store_true', help="overwrite existing files")
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
-    parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
-    parser.add_argument('--setup-version', action='store', metavar='VERSION', help='value for setup-version key')
+    parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
