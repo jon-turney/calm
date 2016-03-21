@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jon-turney/calm.svg?branch=master)](https://travis-ci.org/jon-turney/calm)
+[![Build Status](https://travis-ci.org/cygwin/calm.svg?branch=master)](https://travis-ci.org/cygwin/calm)
 
 # calm 
 
