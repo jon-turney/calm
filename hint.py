@@ -180,9 +180,6 @@ def setup_hint_parse(fn):
                     if key in hints:
                         errors.append('duplicate key %s' % (key))
 
-                    # store the key:value
-                    hints[key] = value
-
                     # check the value meets any key-specific constraints
                     if (key in valkeys) and (len(value) == 0):
                         errors.append('%s has empty value' % (key))
@@ -202,10 +199,11 @@ def setup_hint_parse(fn):
                         if not (value.startswith('"') and value.endswith('"')):
                             errors.append("%s value '%s' should be quoted" % (key, value))
 
-                    # warn if sdesc ends with a '.'
+                    # if sdesc ends with a '.', warn and fix it
                     if key == 'sdesc':
                         if re.search(r'\."$', value):
                             warnings.append("sdesc ends with '.'")
+                            value = re.sub(r'\."$', '"', value)
 
                     # warn if sdesc contains '  '
                     if key == 'sdesc':
@@ -224,6 +222,9 @@ def setup_hint_parse(fn):
                     # warn if value starts with a quote followed by whitespace
                     if re.match(r'^"[ \t]+', value):
                         warnings.append('value for key %s starts with quoted whitespace' % (key))
+
+                    # store the key:value
+                    hints[key] = value
                 else:
                     errors.append("unknown setup construct '%s' at line %d" % (item, i))
 

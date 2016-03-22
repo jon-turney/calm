@@ -1,4 +1,4 @@
-{'sdesc': '"Check C programs for security vulnerabilities and programming\nmistakes."',
+{'sdesc': '"Check C programs for security vulnerabilities and programming\nmistakes"',
  'ldesc': '"Program does many of the traditional lint checks including\n'
           'unused declarations, type inconsistencies, use before definition,\n'
           'unreachable code, ignored return values, execution paths with no\n'

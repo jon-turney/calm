@@ -1,6 +1,6 @@
 {'category': 'Devel',
  'requires': 'cygwin libintl8 zlib0',
- 'sdesc': '"The GNU Binutils are a collection of binary tools. This package\n is capable of targeting win32."',
+ 'sdesc': '"The GNU Binutils are a collection of binary tools. This package\n is capable of targeting win32"',
  'ldesc': '"Binutils for MinGW-w64 Win32 toolchain"',
  'parse-errors': ['key sdesc has multi-line value'],
  'parse-warnings': ["sdesc ends with '.'", 'sdesc is much longer than ldesc']}
