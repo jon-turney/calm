@@ -3,7 +3,6 @@
 * more than 2 versions possible (and automatically vault 'old' versions, where we have some mechanism to explicity say what is old)
 * enable .xz compressed setup.ini (setup.exe checks for it and presumably can handle it)
 * automatically suppress 'empty source' packages from setup.ini ?
-* deal with htdocs/package/index.html by redirecting to package_list.html, rather than letting the server index the directory
 * run more often, option to not do anything if no uploads (to avoid reading the release area if we don't need to), lockfile to avoid colliding runs
 * work out some way to package it as a replacement for genini
 * write 'move' lines in report more compactly, don't need the full path on every line

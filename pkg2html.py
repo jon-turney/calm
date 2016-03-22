@@ -65,22 +65,19 @@ def update_package_listings(args, packages):
     #
     # write base directory .htaccess, if needed
     #
-    # XXX: we should probably force trying to access the base directory to
-    # redirect to the package list page, as having the server index this
-    # directory makes this URL very expensive to serve if someone stumbles onto
-    # it by accident)
+    # force trying to access the base directory to redirect to the package list
+    # page, as having the server index this directory containing lots of
+    # subdirectories makes this URL very expensive to serve if someone stumbles
+    # onto it by accident)
     #
 
     htaccess = os.path.join(base, '.htaccess')
-    if not os.path.exists(htaccess):
-        logging.info('Writing %s' % htaccess)
+    if not os.path.exists(htaccess) or args.force:
+        logging.info('writing %s' % htaccess)
         if not args.dryrun:
             with open(htaccess, 'w') as f:
 
-                print(textwrap.dedent('''\
-                                         Options Indexes FollowSymLinks Includes
-                                         IndexOptions FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified IconHeight=10 IconWidth=10
-                                         AddIcon /icons/ball.gray.gif ^^DIRECTORY^^'''),
+                print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (args.arch),
                       file=f)
 
     toremove = glob.glob(os.path.join(base, '*', '*'))
@@ -105,8 +102,8 @@ def update_package_listings(args, packages):
 
         htaccess = os.path.join(dir, '.htaccess')
         if not os.path.exists(htaccess):
-            logging.info('Writing %s' % htaccess)
-            if not args.dryrun:
+            logging.info('writing %s' % htaccess)
+            if not args.dryrun or args.force:
                 with open(htaccess, 'w') as f:
 
                     print(textwrap.dedent('''\
@@ -130,7 +127,7 @@ def update_package_listings(args, packages):
             # ... if it doesn't already exist, or force
             if not os.path.exists(html) or args.force:
 
-                logging.info('Writing %s' % html)
+                logging.info('writing %s' % html)
 
                 if not args.dryrun:
                     with open(html, 'w') as f:
@@ -170,7 +167,7 @@ def update_package_listings(args, packages):
                                                  </pre></tt>
                                                  </html>'''), file=f)
             else:
-                logging.debug('Not writing %s, already exists' % html)
+                logging.debug('not writing %s, already exists' % html)
 
             # this file should exist, so remove from the toremove list
             if html in toremove:
@@ -181,7 +178,7 @@ def update_package_listings(args, packages):
     #
 
     packages_inc = os.path.join(base, 'packages.inc')
-    logging.info('Writing %s' % packages_inc)
+    logging.info('writing %s' % packages_inc)
     if not args.dryrun:
         with open(packages_inc, 'w') as index:
             os.fchmod(index.fileno(), 0o755)
