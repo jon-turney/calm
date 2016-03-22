@@ -503,17 +503,7 @@ def write_setup_ini(args, packages):
             # write package data
             print("\n@ %s" % p, file=f)
 
-            # for historical reasons, we adjust sdesc slightly:
-            #
-            # - capitalize first letter
-            # whilst preserving any leading quote
-            #
-            # this is a bad idea, due to sdesc's which start with a
-            # lower-case command name
-            sdesc = packages[p].hints['sdesc']
-            sdesc = re.sub('^("?)(.*?)("?)$', r'\2', sdesc)
-            sdesc = '"' + upper_first_character(sdesc) + '"'
-            print("sdesc: %s" % sdesc, file=f)
+            print("sdesc: %s" % packages[p].hints['sdesc'], file=f)
 
             if 'ldesc' in packages[p].hints:
                 print("ldesc: %s" % packages[p].hints['ldesc'], file=f)
