@@ -207,6 +207,11 @@ def setup_hint_parse(fn):
                         if re.search(r'\."$', value):
                             warnings.append("sdesc ends with '.'")
 
+                    # warn if sdesc contains '  '
+                    if key == 'sdesc':
+                        if '  ' in value:
+                            warnings.append("sdesc contains '  '")
+
                     # only 'ldesc' and 'message' are allowed a multi-line value
                     if (key not in multilinevalkeys) and (len(value.splitlines()) > 1):
                         errors.append("key %s has multi-line value" % (key))
