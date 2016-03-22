@@ -203,13 +203,18 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         if p in past_mistakes.self_source:
             packages[p].hints['self-source'] = ''
 
-        # don't allow a redundant 'package-initial-substring:' at start of sdesc
+        # don't allow a redundant 'package:' or 'package - ' at start of sdesc
+        #
+        # match case-insensitively, and use a base package name (trim off any
+        # leading 'lib' from package name, remove any soversion or 'devel'
+        # suffix)
+        #
         if 'sdesc' in hints:
-            sdesc = re.sub(r'^"|"$', '', hints['sdesc'])
-            colon = sdesc.find(':')
-            if colon > -1:
-                if sdesc[:colon] == p[:colon]:
-                    logging.warning("package '%s' sdesc starts with '%s:'; this is redundant as the UI will show both the package name and sdesc" % (p, sdesc[:colon]))
+            colon = re.match(r'^"(.*?)(\s*:|\s+-)', hints['sdesc'])
+            if colon:
+                package_basename = re.sub(r'^lib(.*?)(|-devel|\d*)$', r'\1', p)
+                if package_basename.upper().startswith(colon.group(1).upper()):
+                    logging.warning("package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
                     warnings = True
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 0):
