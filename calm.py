@@ -66,10 +66,11 @@ import uploads
 #
 
 def process_arch(args):
+    subject = 'calm: cygwin package upload report from %s' % (os.uname()[1])
     details = '%s%s' % (args.arch, ',dry-run' if args.dryrun else '')
 
     # send one email per run to leads
-    with mail_logs(args.email, toaddrs=args.email, subject='calm messages [%s]' % (details)) as leads_email:
+    with mail_logs(args.email, toaddrs=args.email, subject='%s [%s]' % (subject, details)) as leads_email:
         if args.dryrun:
             logging.warning("--dry-run in effect, nothing will really be done")
 
@@ -92,7 +93,7 @@ def process_arch(args):
             m = mlist[name]
 
             # also send a mail to each maintainer about their packages
-            with mail_logs(args.email, toaddrs=m.email, subject='calm messages for %s [%s]' % (name, details)) as maint_email:
+            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s [%s]' % (subject, name, details)) as maint_email:
 
                 (error, mpackages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
