@@ -38,6 +38,9 @@ FTP = '/var/ftp/pub/cygwin'
 # logs are always emailed to these addresses
 EMAILS = ','.join(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkowitz', 'jturney']))
 
+# for testing purposes, every email we send is bcc'd to these addresses
+ALWAYS_BCC = ''
+
 # these maintainers can upload orphaned packages as well
 ORPHANMAINT = "Yaakov Selkowitz"
 

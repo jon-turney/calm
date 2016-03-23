@@ -55,6 +55,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
             m = email.message.Message()
             m['From'] = self.fromaddr
             m['To'] = ','.join(self.toaddrs)
+            m['Bcc'] = common_constants.ALWAYS_BCC
             m['Subject'] = self.subject
 
             # use utf-8 only if the message can't be ascii encoded
