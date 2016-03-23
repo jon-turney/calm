@@ -9,7 +9,7 @@
  'Chris LeBlanc': maintainers.Maintainer('Chris LeBlanc', [], ['python-h5py', 'python3-h5py']),
  'Christian Franke': maintainers.Maintainer('Christian Franke', [], ['busybox', 'cdrkit', 'ddrescue', 'hostname', 'isomaster', 'ncdu', 'postfix', 'smartmontools']),
  'Christian Kellermann': maintainers.Maintainer('Christian Kellermann', [], ['chicken']),
- 'Corinna Vinschen': maintainers.Maintainer('Corinna Vinschen', [], ['attr', 'base-cygwin', 'catgets', 'cpio', 'crypt', 'csih', 'cygrunsrv', 'cygwin', 'cygwin-devel', 'editrights', 'email', 'eventlog', 'fetchmail', 'file', 'gawk', 'gdb', 'getent', 'ipc-utils', 'libedit', 'login', 'lynx', 'mt', 'nc', 'nc6', 'openssh', 'openssl', 'patch', 'pl', 'procps', 'psmisc', 'rebase', 'recode', 'rlwrap', 'rng-tools', 'robots', 'sed', 'ssmtp', 'syslog-ng', 'tcsh', 'tin', 'tzcode', 'windows-default-manifest', 'xinetd']),
+ 'Corinna Vinschen': maintainers.Maintainer('Corinna Vinschen', [], ['attr', 'base-cygwin', 'catgets', 'cpio', 'crypt', 'csih', 'cygrunsrv', 'cygwin', 'cygwin-devel', 'editrights', 'email', 'eventlog', 'fetchmail', 'file', 'gawk', 'gdb', 'getent', 'ipc-utils', 'libedit', 'login', 'lynx', 'mt', 'nc', 'nc6', 'openssh', 'openssl', 'patch', 'pl', 'psmisc', 'rebase', 'recode', 'rlwrap', 'rng-tools', 'robots', 'sed', 'ssmtp', 'syslog-ng', 'tcsh', 'tin', 'tzcode', 'windows-default-manifest', 'xinetd']),
  'Damien Doligez': maintainers.Maintainer('Damien Doligez', [], ['ocaml']),
  'Daniel Boland': maintainers.Maintainer('Daniel Boland', [], ['libfakesu', 'procmail', 'sendmail']),
  'Dave Kilroy': maintainers.Maintainer('Dave Kilroy', [], ['chere']),
