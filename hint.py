@@ -239,6 +239,10 @@ def setup_hint_parse(fn):
                 if len(hints['sdesc']) > 2*len(hints['ldesc']):
                     warnings.append('sdesc is much longer than ldesc')
 
+            # sort requires: as differences in ordering are uninteresting
+            if 'requires' in hints:
+                hints['requires'] = ' '.join(sorted(hints['requires'].split()))
+
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')
 

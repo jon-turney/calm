@@ -591,11 +591,6 @@ def merge(a, b):
                 if a[p].hints != b[p].hints:
                     c[p].hints = b[p].hints
 
-                    # sort requires: as differences in ordering are uninteresting
-                    for hints in [a[p].hints, b[p].hints]:
-                        if 'requires' in hints:
-                            hints['requires'] = ' '.join(sorted(hints['requires'].split()))
-
                     diff = '\n'.join(difflib.ndiff(
                         pprint.pformat(a[p].hints).splitlines(),
                         pprint.pformat(b[p].hints).splitlines()))
