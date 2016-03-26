@@ -35,13 +35,13 @@ import tempfile
 import types
 import unittest
 
-from version import SetupVersion
+from calm.version import SetupVersion
 import calm
-import hint
-import maintainers
-import package
-import pkg2html
-import uploads
+import calm.hint as hint
+import calm.maintainers as maintainers
+import calm.package as package
+import calm.pkg2html as pkg2html
+import calm.uploads as uploads
 
 
 #

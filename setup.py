@@ -13,4 +13,6 @@ setup(
             'calm = calm.calm:main',
         ],
     },
+    url='https://cygwin.com/git/?p=cygwin-apps/calm.git',
+    test_suite='tests',
 )
