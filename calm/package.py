@@ -37,11 +37,11 @@ import tarfile
 import textwrap
 import time
 
-from version import SetupVersion
-import common_constants
-import hint
-import maintainers
-import past_mistakes
+from .version import SetupVersion
+from . import common_constants
+from . import hint
+from . import maintainers
+from . import past_mistakes
 
 
 # information we keep about a package
