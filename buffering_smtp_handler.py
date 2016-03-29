@@ -57,6 +57,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
             m['To'] = ','.join(self.toaddrs)
             m['Bcc'] = common_constants.ALWAYS_BCC
             m['Subject'] = self.subject
+            m['X-Calm'] = '1'
 
             # use utf-8 only if the message can't be ascii encoded
             charset = 'ascii'
