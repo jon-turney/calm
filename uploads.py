@@ -30,8 +30,12 @@ import filecmp
 import os
 import logging
 import re
+import time
 
 import package
+
+# reminders will be issued daily
+REMINDER_INTERVAL = 60*60*24
 
 
 #
@@ -60,6 +64,15 @@ def scan(m, all_packages, args):
             logging.info('processing files with mtime older than %d' % (mtime))
             remove.append(ready)
 
+    # the mtime of this file indicates when 'ignoring as there is no !ready'
+    # warnings were last emitted
+    reminder_file = os.path.join(basedir, '!reminder-timestamp')
+    if os.path.exists(reminder_file):
+        reminder_time = os.path.getmtime(reminder_file)
+    else:
+        reminder_time = 0
+    logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (reminder_time, REMINDER_INTERVAL, reminder_time + REMINDER_INTERVAL, time.time()))
+
     # scan package directories
     for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
         relpath = os.path.relpath(dirpath, basedir)
@@ -83,10 +96,9 @@ def scan(m, all_packages, args):
             # shortest-to-longest order, since os.walk() walks the tree
             # top-down), and use the mtime of the first (longest) matching path.
             while True:
-                (path, time) = mtimes[-1]
+                (path, mtime) = mtimes[-1]
                 if relpath.startswith(path):
-                    logging.info("using mtime %d from subpath '%s' of '%s'" % (time, path, relpath))
-                    mtime = time
+                    logging.info("using mtime %d from subpath '%s' of '%s'" % (mtime, path, relpath))
                     break
                 else:
                     mtimes.pop()
@@ -116,7 +128,16 @@ def scan(m, all_packages, args):
             # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
-                    logging.warning("ignoring %s as there is no !ready" % fn)
+                    lvl = logging.INFO
+
+                    # if more than REMINDER_INTERVAL has elapsed since we warned
+                    # about files being ignored, warn again
+                    if time.time() > (reminder_time + REMINDER_INTERVAL):
+                        lvl = logging.WARNING
+                        if not args.dryrun:
+                            touch(reminder_file)
+
+                    logging.log(lvl, "ignoring %s as there is no !ready" % fn)
                 else:
                     logging.warning("ignoring %s as it is newer than !ready" % fn)
                 files.remove(f)
@@ -153,6 +174,15 @@ def scan(m, all_packages, args):
                 error = True
 
     return (error, packages, move, vault, remove, remove_success)
+
+
+#
+#
+#
+
+def touch(fn, times=None):
+    with open(fn, 'a'):
+        os.utime(fn, times)
 
 
 #
