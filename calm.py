@@ -98,36 +98,39 @@ def process_arch(args):
 
                 uploads.remove(args, remove_always)
 
+                if error:
+                    logging.error("error while reading uploaded packages for %s" % (name))
+                    continue
+
                 # if there are no uploaded packages for this maintainer, we
                 # don't have anything to do
                 if not mpackages:
                     logging.info("nothing to do for maintainer %s" % (name))
                     continue
 
-                if not error:
-                    # merge package set
-                    merged_packages = package.merge(packages, mpackages)
+                # merge package set
+                merged_packages = package.merge(packages, mpackages)
 
-                    # remove file which are to be removed
-                    #
-                    # XXX: this doesn't properly account for removing setup.hint
-                    # files
-                    for p in to_vault:
-                        for f in to_vault[p]:
-                            package.delete(merged_packages, p, f)
+                # remove file which are to be removed
+                #
+                # XXX: this doesn't properly account for removing setup.hint
+                # files
+                for p in to_vault:
+                    for f in to_vault[p]:
+                        package.delete(merged_packages, p, f)
 
-                    # validate the package set
-                    if package.validate_packages(args, merged_packages):
-                        # process the move list
-                        uploads.move_to_vault(args, to_vault)
-                        uploads.remove(args, remove_success)
-                        uploads.move_to_relarea(m, args, to_relarea)
-                        # use merged package list
-                        packages = merged_packages
-                        logging.info("added %d packages from maintainer %s" % (len(mpackages), name))
-                    else:
-                        # otherwise we discard move list and merged_packages
-                        logging.error("error while merging uploaded packages for %s" % (name))
+                # validate the package set
+                if package.validate_packages(args, merged_packages):
+                    # process the move list
+                    uploads.move_to_vault(args, to_vault)
+                    uploads.remove(args, remove_success)
+                    uploads.move_to_relarea(m, args, to_relarea)
+                    # use merged package list
+                    packages = merged_packages
+                    logging.info("added %d packages from maintainer %s" % (len(mpackages), name))
+                else:
+                    # otherwise we discard move list and merged_packages
+                    logging.error("error while merging uploaded packages for %s" % (name))
 
         # write setup.ini
         package.write_setup_ini(args, packages)
