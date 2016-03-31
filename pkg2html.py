@@ -73,7 +73,7 @@ def update_package_listings(args, packages):
 
     htaccess = os.path.join(base, '.htaccess')
     if not os.path.exists(htaccess) or args.force:
-        logging.info('writing %s' % htaccess)
+        logging.debug('writing %s' % htaccess)
         if not args.dryrun:
             with open(htaccess, 'w') as f:
 
@@ -102,7 +102,7 @@ def update_package_listings(args, packages):
 
         htaccess = os.path.join(dir, '.htaccess')
         if not os.path.exists(htaccess):
-            logging.info('writing %s' % htaccess)
+            logging.debug('writing %s' % htaccess)
             if not args.dryrun or args.force:
                 with open(htaccess, 'w') as f:
 
@@ -127,7 +127,7 @@ def update_package_listings(args, packages):
             # ... if it doesn't already exist, or force
             if not os.path.exists(html) or args.force:
 
-                logging.info('writing %s' % html)
+                logging.debug('writing %s' % html)
 
                 if not args.dryrun:
                     with open(html, 'w') as f:
@@ -167,7 +167,7 @@ def update_package_listings(args, packages):
                                                  </pre></tt>
                                                  </html>'''), file=f)
             else:
-                logging.debug('not writing %s, already exists' % html)
+                logging.log(5, 'not writing %s, already exists' % html)
 
             # this file should exist, so remove from the toremove list
             if html in toremove:
@@ -178,7 +178,7 @@ def update_package_listings(args, packages):
     #
 
     packages_inc = os.path.join(base, 'packages.inc')
-    logging.info('writing %s' % packages_inc)
+    logging.debug('writing %s' % packages_inc)
     if not args.dryrun:
         with open(packages_inc, 'w') as index:
             os.fchmod(index.fileno(), 0o755)
@@ -210,7 +210,7 @@ def update_package_listings(args, packages):
     #
 
     for r in toremove:
-        logging.info('rm %s' % r)
+        logging.debug('rm %s' % r)
         if not args.dryrun:
             os.unlink(r)
 

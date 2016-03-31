@@ -54,14 +54,14 @@ def scan(m, all_packages, args):
     error = False
     mtimes = [('', 0)]
 
-    logging.info('reading packages from %s' % (basedir))
+    logging.debug('reading packages from %s' % (basedir))
 
     # note mtime of any !ready file at top-level
     for ready in [os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready')]:
         if os.path.exists(ready):
             mtime = os.path.getmtime(ready)
             mtimes.append(('', mtime))
-            logging.info('processing files with mtime older than %d' % (mtime))
+            logging.debug('processing files with mtime older than %d' % (mtime))
             remove.append(ready)
 
     # the mtime of this file indicates when 'ignoring as there is no !ready'
@@ -82,7 +82,7 @@ def scan(m, all_packages, args):
         if (not files) or (relpath == 'release'):
             continue
 
-        logging.info('reading uploads from %s' % dirpath)
+        logging.debug('reading uploads from %s' % dirpath)
 
         # note the mtime of the !ready file
         if '!ready' in files:
@@ -91,7 +91,7 @@ def scan(m, all_packages, args):
             mtimes.append((relpath + '/', mtime))
             remove.append(ready)
             files.remove('!ready')
-            logging.info("processing files below '%s' with mtime older than %d" % (relpath, mtime))
+            logging.debug("processing files below '%s' with mtime older than %d" % (relpath, mtime))
         else:
             # otherwise work back up a list of (path,mtimes) (which should be in
             # shortest-to-longest order, since os.walk() walks the tree
@@ -99,7 +99,7 @@ def scan(m, all_packages, args):
             while True:
                 (path, mtime) = mtimes[-1]
                 if relpath.startswith(path):
-                    logging.info("using mtime %d from subpath '%s' of '%s'" % (mtime, path, relpath))
+                    logging.debug("using mtime %d from subpath '%s' of '%s'" % (mtime, path, relpath))
                     break
                 else:
                     mtimes.pop()
@@ -118,7 +118,7 @@ def scan(m, all_packages, args):
         for f in sorted(files):
             fn = os.path.join(dirpath, f)
             rel_fn = os.path.join(relpath, f)
-            logging.info("processing %s" % rel_fn)
+            logging.debug("processing %s" % rel_fn)
 
             # ignore !packages (which we no longer use)
             # ignore !mail and !email (which we have already read)
@@ -154,16 +154,16 @@ def scan(m, all_packages, args):
                 if os.path.isfile(dest):
                     if f != 'setup.hint':
                         if filecmp.cmp(dest, fn, shallow=False):
-                            logging.warning("identical %s already in release area, ignoring" % fn)
+                            logging.info("ignoring, identical %s is already in release area" % fn)
                         else:
-                            logging.error("different %s already in release area, ignoring (perhaps you should rebuild with a different version-release identifier?)" % fn)
+                            logging.error("ignoring, different %s is already in release area (perhaps you should rebuild with a different version-release identifier?)" % fn)
                             error = True
                         files.remove(f)
                     else:
                         if filecmp.cmp(dest, fn, shallow=False):
-                            logging.info("identical %s already in release area" % fn)
+                            logging.debug("identical %s is already in release area" % fn)
                         else:
-                            logging.warning("replacing different %s already in release area" % fn)
+                            logging.warning("replacing, different %s is already in release area" % fn)
                         # we always consider setup.hint, as we can't have a valid package without it
                         move[relpath].append(f)
                 else:
@@ -200,7 +200,7 @@ def touch(fn, times=None):
 
 def remove(args, remove):
     for f in remove:
-        logging.info("rm %s", f)
+        logging.debug("rm %s", f)
         if not args.dryrun:
             os.unlink(f)
 
@@ -211,16 +211,16 @@ def remove(args, remove):
 
 def move(args, movelist, fromdir, todir):
     for p in sorted(movelist):
-        logging.info("mkdir %s" % os.path.join(todir, p))
+        logging.debug("mkdir %s" % os.path.join(todir, p))
         if not args.dryrun:
             try:
                 os.makedirs(os.path.join(todir, p), exist_ok=True)
             except FileExistsError:
                 pass
-        logging.warning("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
+        logging.info("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
         for f in sorted(movelist[p]):
             if os.path.exists(os.path.join(fromdir, p, f)):
-                logging.warning("%s" % (f))
+                logging.info("%s" % (f))
                 if not args.dryrun:
                     os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
             else:

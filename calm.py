@@ -72,7 +72,7 @@ def process_arch(args):
     # send one email per run to leads
     with mail_logs(args.email, toaddrs=args.email, subject='%s [%s]' % (subject, details)) as leads_email:
         if args.dryrun:
-            logging.warning("--dry-run in effect, nothing will really be done")
+            logging.warning("--dry-run is in effect, nothing will really be done")
 
         # build package list
         packages = package.read_packages(args.rel_area, args.arch)
@@ -106,7 +106,7 @@ def process_arch(args):
                 # if there are no uploaded packages for this maintainer, we
                 # don't have anything to do
                 if not mpackages:
-                    logging.info("nothing to do for maintainer %s" % (name))
+                    logging.debug("nothing to do for maintainer %s" % (name))
                     continue
 
                 # merge package set
@@ -128,7 +128,7 @@ def process_arch(args):
                     uploads.move_to_relarea(m, args, to_relarea)
                     # use merged package list
                     packages = merged_packages
-                    logging.info("added %d packages from maintainer %s" % (len(mpackages), name))
+                    logging.debug("added %d packages from maintainer %s" % (len(mpackages), name))
                 else:
                     # otherwise we discard move list and merged_packages
                     logging.error("error while merging uploaded packages for %s" % (name))
@@ -150,11 +150,11 @@ def process_arch(args):
 def main(args):
     # for each arch
     for arch in common_constants.ARCHES:
-        logging.info("processing arch %s" % (arch))
+        logging.debug("processing arch %s" % (arch))
 
         args.arch = arch
         args.setup_version = setup_exe.extract_version(os.path.join(args.setupdir, 'setup-' + args.arch + '.exe'))
-        logging.info("setup version is '%s'" % (args.setup_version))
+        logging.debug("setup version is '%s'" % (args.setup_version))
 
         basedir = os.path.join(args.rel_area, args.arch)
         inifile = os.path.join(basedir, 'setup.ini')
@@ -174,7 +174,7 @@ def main(args):
             else:
                 # or, if it's changed in more than timestamp
                 status = os.system('/usr/bin/diff -I^setup-timestamp -w -B -q %s %s >/dev/null' % (inifile, tmpfile.name))
-                logging.info('diff exit status %d' % (status))
+                logging.debug('diff exit status %d' % (status))
                 if (status >> 8) == 1:
                     changed = True
 
@@ -188,7 +188,7 @@ def main(args):
                     shutil.copy2(inifile, inifile + '.bak')
 
                     # replace setup.ini
-                    logging.warning("moving %s to %s" % (tmpfile.name, inifile))
+                    logging.info("moving %s to %s" % (tmpfile.name, inifile))
                     shutil.move(tmpfile.name, inifile)
 
                     # compress and re-sign
@@ -212,7 +212,7 @@ def main(args):
                         except FileNotFoundError:
                             pass
             else:
-                logging.info("removing %s, unchanged %s" % (tmpfile.name, inifile))
+                logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
                 os.remove(tmpfile.name)
 
 
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     rfh = logging.handlers.RotatingFileHandler(os.path.join(args.logdir, 'calm.log'), backupCount=48)
     rfh.doRollover()  # force a rotate on every run
     rfh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)-8s - %(message)s'))
-    rfh.setLevel(logging.INFO)
+    rfh.setLevel(logging.DEBUG)
     logging.getLogger().addHandler(rfh)
 
     # setup logging to stdout, of WARNING messages or higher (INFO if verbose)
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(ch)
 
     # change root logger level from the default of WARNING
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     if args.email:
         args.email = args.email.split(',')

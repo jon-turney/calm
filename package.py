@@ -75,12 +75,12 @@ def read_packages(rel_area, arch):
     packages = defaultdict(Package)
 
     releasedir = os.path.join(rel_area, arch)
-    logging.info('reading packages from %s' % releasedir)
+    logging.debug('reading packages from %s' % releasedir)
 
     for (dirpath, subdirs, files) in os.walk(releasedir):
         read_package(packages, releasedir, dirpath, files)
 
-    logging.info("%d packages read" % len(packages))
+    logging.debug("%d packages read" % len(packages))
 
     return packages
 
@@ -110,7 +110,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         p = os.path.basename(dirpath)
 
         if not re.match(r'^[\w\-._+]*$', p):
-            logging.error("package name contains illegal characters" % p)
+            logging.error("package '%s' name contains illegal characters" % p)
             return True
 
         # check for duplicate package names at different paths
@@ -133,7 +133,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # read sha512.sum
         sha512 = {}
         if 'sha512.sum' not in files:
-            logging.info("no sha512.sum for package '%s'" % p)
+            logging.debug("no sha512.sum for package '%s'" % p)
         else:
             files.remove('sha512.sum')
 
@@ -182,7 +182,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 tars[f].sha512 = sha512[f]
             else:
                 tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
-                logging.info("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
+                logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
 
         # warn about unexpected files, including tarfiles which don't match the
         # package name
@@ -218,7 +218,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                     warnings = True
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 0):
-        logging.warning("no setup.hint in %s but files: %s" % (dirpath, ', '.join(files)))
+        logging.warning("no setup.hint in %s but has files: %s" % (dirpath, ', '.join(files)))
 
     if strict:
         return warnings
@@ -349,7 +349,7 @@ def validate_packages(args, packages):
                 if len(levels) == 0:
                     # XXX: versions which don't correspond to any stability level
                     # should be reported, we might want to remove them at some point
-                    logging.debug("package '%s' has no stability levels left for version '%s'" % (p, v))
+                    logging.log(5, "package '%s' has no stability levels left for version '%s'" % (p, v))
                     break
 
                 l = levels[0]
@@ -360,7 +360,7 @@ def validate_packages(args, packages):
                     if v != packages[p].hints[l]:
                         break
                     else:
-                        logging.debug("package '%s' stability '%s' override to version '%s'" % (p, l, v))
+                        logging.debug("package '%s' stability '%s' overridden to version '%s'" % (p, l, v))
                 else:
                     # level 'test' must be assigned by override
                     if l == 'test':
@@ -369,7 +369,7 @@ def validate_packages(args, packages):
                         continue
 
                 level_found = True
-                logging.debug("package '%s' stability '%s' assigned version '%s'" % (p, l, v))
+                logging.log(5, "package '%s' stability '%s' assigned version '%s'" % (p, l, v))
                 break
 
             if not level_found:
@@ -472,7 +472,7 @@ def validate_package_maintainers(args, packages):
         if '_obsolete' in packages[p].hints['category']:
             continue
         if not is_in_package_list(packages[p].path, all_packages):
-            logging.warning("package '%s' is not in the package list" % (p))
+            logging.error("package '%s' is not in the package list" % (p))
 
 
 #
@@ -480,7 +480,7 @@ def validate_package_maintainers(args, packages):
 #
 def write_setup_ini(args, packages):
 
-    logging.info('writing %s' % (args.inifile))
+    logging.debug('writing %s' % (args.inifile))
 
     with open(args.inifile, 'w') as f:
         os.fchmod(f.fileno(), 0o644)
@@ -584,11 +584,11 @@ def merge(a, b):
         else:
             # package must exist at same relative path
             if a[p].path != b[p].path:
-                logging.error("package '%s' at paths %s and %s" % (p, a[p].path, b[p].path))
+                logging.error("package '%s' is at paths %s and %s" % (p, a[p].path, b[p].path))
             else:
                 for t in b[p].tars:
                     if t in c[p].tars:
-                        logging.error("package '%s' duplicate tarfile %s" % (p, t))
+                        logging.error("package '%s' has duplicate tarfile %s" % (p, t))
                     else:
                         c[p].tars[t] = b[p].tars[t]
 
