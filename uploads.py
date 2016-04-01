@@ -71,6 +71,7 @@ def scan(m, all_packages, args):
         reminder_time = os.path.getmtime(reminder_file)
     else:
         reminder_time = 0
+    reminders = False
     logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (reminder_time, REMINDER_INTERVAL, reminder_time + REMINDER_INTERVAL, time.time()))
 
     # scan package directories
@@ -128,6 +129,7 @@ def scan(m, all_packages, args):
             # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
+                    reminders = True
                     lvl = logging.INFO
 
                     # if more than REMINDER_INTERVAL has elapsed since we warned
@@ -172,6 +174,13 @@ def scan(m, all_packages, args):
             # strict means we consider warnings as fatal for upload
             if package.read_package(packages, basedir, dirpath, files, strict=True):
                 error = True
+
+    # if we didn't need to check the reminder timestamp, it can be reset
+    if not reminders and not args.dryrun:
+        try:
+            os.remove(reminder_file)
+        except FileNotFoundError:
+            pass
 
     return (error, packages, move, vault, remove, remove_success)
 
