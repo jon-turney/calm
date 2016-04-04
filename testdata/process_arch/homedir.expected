@@ -1,4 +1,4 @@
-{'.': [],
+{'.': ['an_unexpected_file'],
  'Blooey McFooey': [],
  'Blooey McFooey/x86': [],
  'Blooey McFooey/x86/release': [],

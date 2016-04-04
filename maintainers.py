@@ -71,6 +71,9 @@ class Maintainer(object):
         self._homedirs = homedirs
 
         for n in os.listdir(homedirs):
+            if not os.path.isdir(os.path.join(homedirs, n)):
+                continue
+
             m = Maintainer._find(mlist, n)
 
             for e in ['!email', '!mail']:
