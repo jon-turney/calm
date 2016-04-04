@@ -45,6 +45,7 @@
 # write setup.ini file
 #
 
+from contextlib import ExitStack
 import argparse
 import logging
 import os
@@ -52,7 +53,8 @@ import shutil
 import sys
 import tempfile
 
-from buffering_smtp_handler import mail_logs
+from abeyance_handler import AbeyanceHandler
+from buffering_smtp_handler import BufferingSMTPHandler
 import common_constants
 import maintainers
 import package
@@ -69,8 +71,8 @@ def process_arch(args):
     subject = 'calm: cygwin package upload report from %s' % (os.uname()[1])
     details = '%s%s' % (args.arch, ',dry-run' if args.dryrun else '')
 
-    # send one email per run to leads
-    with mail_logs(args.email, toaddrs=args.email, subject='%s [%s]' % (subject, details)) as leads_email:
+    # send one email per run to leads, if any errors occurred
+    with mail_logs(args.email, toaddrs=args.email, subject='%s [%s]' % (subject, details), thresholdLevel=logging.ERROR) as leads_email:
         if args.dryrun:
             logging.warning("--dry-run is in effect, nothing will really be done")
 
@@ -93,7 +95,7 @@ def process_arch(args):
             m = mlist[name]
 
             # also send a mail to each maintainer about their packages
-            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s [%s]' % (subject, name, details)) as maint_email:
+            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s [%s]' % (subject, name, details), thresholdLevel=logging.INFO) as maint_email:
 
                 (error, mpackages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, all_packages, args)
 
@@ -217,6 +219,18 @@ def main(args):
 
 
 #
+# we only want to mail the logs if the email option was used
+# (otherwise use ExitStack() as a 'do nothing' context)
+#
+
+def mail_logs(enabled, toaddrs, subject, thresholdLevel, retainLevel=None):
+    if enabled:
+        return AbeyanceHandler(BufferingSMTPHandler(toaddrs, subject), thresholdLevel, retainLevel)
+
+    return ExitStack()
+
+
+#
 #
 #
 
@@ -266,8 +280,9 @@ if __name__ == "__main__":
         ch.setLevel(logging.WARNING)
     logging.getLogger().addHandler(ch)
 
-    # change root logger level from the default of WARNING
-    logging.getLogger().setLevel(logging.DEBUG)
+    # change root logger level from the default of WARNING to NOTSET so it
+    # doesn't filter out any log messages due to level
+    logging.getLogger().setLevel(logging.NOTSET)
 
     if args.email:
         args.email = args.email.split(',')

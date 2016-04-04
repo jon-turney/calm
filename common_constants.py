@@ -35,7 +35,7 @@ HOMEDIR = '/sourceware/cygwin-staging/home'
 # the 'release area', contains all released files, which are rsync'ed to mirrors
 FTP = '/var/ftp/pub/cygwin'
 
-# logs are always emailed to these addresses
+# logs are emailed to these addresses if any errors occurred
 EMAILS = ','.join(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkowitz', 'jturney']))
 
 # for testing purposes, every email we send is bcc'd to these addresses

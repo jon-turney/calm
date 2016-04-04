@@ -20,7 +20,7 @@
 # http://www.red-dove.com/python_logging.html
 #
 
-from contextlib import ExitStack
+
 import logging
 import logging.handlers
 import email.message
@@ -42,7 +42,6 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
         self.toaddrs = toaddrs
         self.subject = subject
         self.formatter = logging_format
-        self.setLevel(logging.WARNING)
         self.setFormatter(logging.Formatter(logging_format))
 
     def flush(self):
@@ -90,26 +89,3 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
         # the capacity we pass to BufferingHandler is irrelevant since we
         # override shouldFlush so it never indicates we have reached capacity
         return False
-
-    def __enter__(self):
-        logging.getLogger().addHandler(self)
-        return self
-
-    def __exit__(self, exception_type, exception_value, traceback):
-        self.close()
-        logging.getLogger().removeHandler(self)
-
-        # process any exception in the with-block normally
-        return False
-
-
-#
-# we only want to mail the logs if the email option was used
-# (otherwise use ExitStack() as a 'do nothing' context)
-#
-
-def mail_logs(enabled, toaddrs, subject):
-    if enabled:
-        return BufferingSMTPHandler(toaddrs, subject)
-
-    return ExitStack()
