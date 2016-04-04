@@ -1,4 +1,6 @@
 sdesc: "A test package"
-ldesc: "A test package"
+ldesc: "A test package
+It's description might contains some unicode gibberish
+Like it’s you’re Markup Language™ Nokogiri’s tool―that Bézier."
 category: Devel
-
+requires: cygwin
