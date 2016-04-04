@@ -34,7 +34,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                  subject,
                  mailhost=common_constants.MAILHOST,
                  fromaddr='cygwin-no-reply@cygwin.com',
-                 logging_format='%(message)s'):
+                 logging_format='%(levelname)s: %(message)s'):
         logging.handlers.BufferingHandler.__init__(self, capacity=0)
         self.mailhost = mailhost
         self.mailport = None
