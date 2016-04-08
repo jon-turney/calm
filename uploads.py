@@ -130,7 +130,7 @@ def scan(m, all_packages, args):
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
                     reminders = True
-                    lvl = logging.INFO
+                    lvl = logging.DEBUG
 
                     # if more than REMINDER_INTERVAL has elapsed since we warned
                     # about files being ignored, warn again
