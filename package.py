@@ -101,6 +101,7 @@ def sha512_file(fn, block_size=256*128):
 # read a single package
 #
 def read_package(packages, basedir, dirpath, files, strict=False):
+    strict_lvl = logging.ERROR if strict else logging.WARNING
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
 
@@ -161,8 +162,8 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             # start with a number
             match = re.match(r'^' + re.escape(p) + '-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
             if not match:
-                logging.warning("tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
-                warning = True
+                logging.log(strict_lvl, "tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
+                warnings = True
             else:
                 # historically, V can contain a '-' (since we can use the fact
                 # we already know P to split unambiguously), but this is a bad
@@ -187,8 +188,8 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # warn about unexpected files, including tarfiles which don't match the
         # package name
         if files:
-            logging.warning("unexpected files in %s: %s" % (p, ', '.join(files)))
-            warning = True
+            logging.log(strict_lvl, "unexpected files in %s: %s" % (p, ', '.join(files)))
+            warnings = True
 
         packages[p].hints = hints
         packages[p].tars = tars
@@ -214,7 +215,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             if colon:
                 package_basename = re.sub(r'^lib(.*?)(|-devel|\d*)$', r'\1', p)
                 if package_basename.upper().startswith(colon.group(1).upper()):
-                    logging.warning("package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
+                    logging.log(strict_lvl, "package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
                     warnings = True
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 0):
@@ -222,6 +223,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
     if strict:
         return warnings
+
     return False
 
 
