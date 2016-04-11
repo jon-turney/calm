@@ -301,7 +301,7 @@ def validate_packages(args, packages):
 
             # extract just the version part from tar filename
             v = re.sub(r'^' + re.escape(p) + '-', '', t)
-            v = re.sub(r'(-src|)\.tar\.(xz|bz2|gz)$', '', v)
+            v = re.sub(r'(-src|)\.tar\.(bz2|gz|lzma|xz)$', '', v)
 
             # for each version, a package can contain at most one source tar
             # file and at most one install tar file.  warn if we have too many
