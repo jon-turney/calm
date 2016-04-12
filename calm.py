@@ -59,6 +59,7 @@ import common_constants
 import maintainers
 import package
 import pkg2html
+import queue
 import setup_exe
 import uploads
 
@@ -110,6 +111,9 @@ def process_arch(args):
                 if not mpackages:
                     logging.debug("nothing to do for maintainer %s" % (name))
                     continue
+
+                # queue for source package validator
+                queue.add(args, to_relarea, os.path.join(m.homedir(), args.arch))
 
                 # merge package set
                 merged_packages = package.merge(packages, mpackages)
@@ -243,6 +247,7 @@ if __name__ == "__main__":
     setupdir_default = common_constants.HTDOCS
     vault_default = common_constants.VAULT
     logdir_default = '/sourceware/cygwin-staging/logs'
+    queuedir_default = '/sourceware/cygwin-staging/queue'
 
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
@@ -252,6 +257,7 @@ if __name__ == "__main__":
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
+    parser.add_argument('--queuedir', action='store', metavar='DIR', help="queue directory (default: '" + queuedir_default + "')", default=queuedir_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
     parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)

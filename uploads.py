@@ -30,6 +30,7 @@ import filecmp
 import os
 import logging
 import re
+import shutil
 import time
 
 import package
@@ -236,3 +237,25 @@ def move_to_relarea(m, args, movelist):
 
 def move_to_vault(args, movelist):
     move(args, movelist, os.path.join(args.rel_area, args.arch), os.path.join(args.vault, args.arch))
+
+
+#
+#
+#
+
+def copy(args, movelist, fromdir, todir):
+    for p in sorted(movelist):
+        logging.debug("mkdir %s" % os.path.join(todir, p))
+        if not args.dryrun:
+            try:
+                os.makedirs(os.path.join(todir, p), exist_ok=True)
+            except FileExistsError:
+                pass
+        logging.debug("copy from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
+        for f in sorted(movelist[p]):
+            if os.path.exists(os.path.join(fromdir, p, f)):
+                logging.debug("%s" % (f))
+                if not args.dryrun:
+                    shutil.copy2(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
+            else:
+                logging.error("%s can't be copied as it doesn't exist" % (f))
