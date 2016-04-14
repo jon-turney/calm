@@ -164,7 +164,7 @@ def scan(m, all_packages, args):
                         if filecmp.cmp(dest, fn, shallow=False):
                             logging.debug("identical %s is already in release area" % fn)
                         else:
-                            logging.warning("replacing, different %s is already in release area" % fn)
+                            logging.debug("different %s is already in release area" % fn)
                         # we always consider setup.hint, as we can't have a valid package without it
                         move[relpath].append(f)
                 else:
