@@ -1,8 +1,15 @@
 * per-package-version hint files (e.g. named <pvr>.hint, or /.setup.hint inside tar file)
 * more than 2 versions possible (and automatically vault 'old' versions, where we have some mechanism to explicity say what is old)
-* automatically suppress 'empty source' packages from setup.ini ?
+* automatically mark 'empty, source only' install packages as skip to suppress from setup.ini ?
 * run more often, option to not do anything if no uploads (to avoid reading the release area if we don't need to), lockfile to avoid colliding runs
 * work out some way to package it as a replacement for genini
-* write 'move' lines in report more compactly, don't need the full path on every line
 * handle .noarch packages better
 * use irkerd to report when calm failed due to an error?
+* leads_email should be empty unless something when wrong; warnings should always go to uploader
+* mails should be sent Reply-To: cygwin-apps ?
+* leads mail should indicate what reports have been sent to whom, and what reports couldn't be sent because no email address was known
+* disallow -setup.hint, since it won't work correctly
+* refactor maintainers, I've made a terrible hash of it
+* simplify setup.hint lexer
+* pkg2html needs to clean up empty directories
+* uploading needs to be permissioned on base package name, not path?
