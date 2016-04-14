@@ -185,6 +185,11 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
                 logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
 
+        # ignore dotfiles
+        for f in files:
+            if f.startswith('.'):
+                files.remove(f)
+
         # warn about unexpected files, including tarfiles which don't match the
         # package name
         if files:
