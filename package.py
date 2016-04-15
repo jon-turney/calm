@@ -463,6 +463,9 @@ def validate_packages(args, packages):
 
 #
 def validate_package_maintainers(args, packages):
+    if not args.pkglist:
+        return
+
     # read maintainer list
     mlist = {}
     mlist = maintainers.Maintainer.add_packages(mlist, args.pkglist)
