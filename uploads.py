@@ -127,6 +127,13 @@ def scan(m, all_packages, args):
                 files.remove(f)
                 continue
 
+            # ignore in-progress sftp uploads. Net::SFTP::SftpServer uses
+            # temporary upload filenames ending with '.SftpXFR.<pid>'
+            if re.search(r'\.SftpXFR\.\d*$', f):
+                logging.debug("ignoring temporary upload file %s" % fn)
+                files.remove(f)
+                continue
+
             # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
