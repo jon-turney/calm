@@ -94,14 +94,14 @@ class TestMain(unittest.TestCase):
     def test_hint_parser(self):
         self.maxDiff = None
 
-        basedir = 'testdata/x86/release'
+        basedir = 'testdata/relarea'
         for (dirpath, subdirs, files) in os.walk(basedir):
             relpath = os.path.relpath(dirpath, basedir)
             if 'setup.hint' in files:
                 with self.subTest(package=os.path.basename(dirpath)):
                     logging.info('Reading %s' % os.path.join(dirpath, 'setup.hint'))
                     results = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
-                    compare_with_expected_file(self, os.path.join('testdata/x86.hints/release', relpath), results)
+                    compare_with_expected_file(self, os.path.join('testdata/hints', relpath), results)
 
 #
 # something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
@@ -116,7 +116,7 @@ class TestMain(unittest.TestCase):
         args = types.SimpleNamespace()
         setattr(args, 'arch', 'x86')
         setattr(args, 'htdocs', htdocs)
-        setattr(args, 'rel_area', 'testdata')
+        setattr(args, 'rel_area', 'testdata/relarea')
         setattr(args, 'dryrun', False)
         setattr(args, 'force', True)
         setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
@@ -184,7 +184,7 @@ class TestMain(unittest.TestCase):
 
         args = types.SimpleNamespace()
         setattr(args, 'arch', 'x86')
-        setattr(args, 'rel_area', 'testdata')
+        setattr(args, 'rel_area', 'testdata/relarea')
         setattr(args, 'dryrun', False)
 
         pkglist = ['after-ready', 'not-ready', 'testpackage', 'testpackage2']
@@ -217,7 +217,7 @@ class TestMain(unittest.TestCase):
         setattr(args, 'force', True)
         setattr(args, 'inifile', 'testdata/inifile/setup.ini')
         setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
-        setattr(args, 'rel_area', 'testdata')
+        setattr(args, 'rel_area', 'testdata/relarea')
         setattr(args, 'release', 'testing')
         setattr(args, 'setup_version', '4.321')
 
@@ -251,7 +251,7 @@ class TestMain(unittest.TestCase):
         setattr(args, 'release', 'trial')
         setattr(args, 'setup_version', '3.1415')
 
-        shutil.copytree('testdata/x86', os.path.join(getattr(args, 'rel_area'), 'x86'))
+        shutil.copytree('testdata/relarea', getattr(args, 'rel_area'))
         shutil.copytree('testdata/homes', getattr(args, 'homedir'))
 
         # set appropriate !readys
@@ -272,9 +272,9 @@ class TestMain(unittest.TestCase):
 
 if __name__ == '__main__':
     # ensure sha512.sum files exist
-    os.system("find testdata/x86 -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
+    os.system("find testdata/relarea/x86 -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
     # should remove a sha512.sum file so that we test functioning when it's absent
-    os.unlink('testdata/x86/release/naim/sha512.sum')
+    os.unlink('testdata/relarea/x86/release/naim/sha512.sum')
     # remove !ready files
     os.system("find testdata/homes -name !ready -exec rm {} \;")
 
