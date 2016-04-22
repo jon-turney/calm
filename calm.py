@@ -98,43 +98,43 @@ def process_arch(args):
             # also send a mail to each maintainer about their packages
             with mail_logs(args.email, toaddrs=m.email, subject='%s for %s [%s]' % (subject, name, details), thresholdLevel=logging.INFO) as maint_email:
 
-                (error, mpackages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, all_packages, args)
+                scan_result = uploads.scan(m, all_packages, args)
 
-                uploads.remove(args, remove_always)
+                uploads.remove(args, scan_result.remove_always)
 
-                if error:
+                if scan_result.error:
                     logging.error("error while reading uploaded packages for %s" % (name))
                     continue
 
                 # if there are no uploaded packages for this maintainer, we
                 # don't have anything to do
-                if not mpackages:
+                if not scan_result.packages:
                     logging.debug("nothing to do for maintainer %s" % (name))
                     continue
 
                 # queue for source package validator
-                queue.add(args, to_relarea, os.path.join(m.homedir(), args.arch))
+                queue.add(args, scan_result.to_relarea, os.path.join(m.homedir(), args.arch))
 
                 # merge package set
-                merged_packages = package.merge(packages, mpackages)
+                merged_packages = package.merge(packages, scan_result.packages)
 
                 # remove file which are to be removed
                 #
                 # XXX: this doesn't properly account for removing setup.hint
                 # files
-                for p in to_vault:
-                    for f in to_vault[p]:
+                for p in scan_result.to_vault:
+                    for f in scan_result.to_vault[p]:
                         package.delete(merged_packages, p, f)
 
                 # validate the package set
                 if package.validate_packages(args, merged_packages):
                     # process the move list
-                    uploads.move_to_vault(args, to_vault)
-                    uploads.remove(args, remove_success)
-                    uploads.move_to_relarea(m, args, to_relarea)
+                    uploads.move_to_vault(args, scan_result.to_vault)
+                    uploads.remove(args, scan_result.remove_success)
+                    uploads.move_to_relarea(m, args, scan_result.to_relarea)
                     # use merged package list
                     packages = merged_packages
-                    logging.debug("added %d packages from maintainer %s" % (len(mpackages), name))
+                    logging.debug("added %d packages from maintainer %s" % (len(scan_result.packages), name))
                 else:
                     # otherwise we discard move list and merged_packages
                     logging.error("error while merging uploaded packages for %s" % (name))

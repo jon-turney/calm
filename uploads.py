@@ -25,7 +25,7 @@
 # upload directory processing
 #
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import filecmp
 import os
 import logging
@@ -37,6 +37,9 @@ import package
 
 # reminders will be issued daily
 REMINDER_INTERVAL = 60*60*24
+
+# a named tuple type to hold the result of scan
+ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove_always,remove_success')
 
 
 #
@@ -190,7 +193,7 @@ def scan(m, all_packages, args):
         except FileNotFoundError:
             pass
 
-    return (error, packages, move, vault, remove, remove_success)
+    return ScanResult(error, packages, move, vault, remove, remove_success)
 
 
 #

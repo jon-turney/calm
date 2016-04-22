@@ -200,13 +200,13 @@ class TestMain(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        (error, packages, to_relarea, to_vault, remove_always, remove_success) = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args)
+        scan_result = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args)
 
-        self.assertEqual(error, False)
-        compare_with_expected_file(self, 'testdata/uploads', to_relarea, 'move')
-        self.assertCountEqual(remove_always, [f for (f, t) in ready_fns])
-        self.assertEqual(remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
-        compare_with_expected_file(self, 'testdata/uploads', packages, 'pkglist')
+        self.assertEqual(scan_result.error, False)
+        compare_with_expected_file(self, 'testdata/uploads', scan_result.to_relarea, 'move')
+        self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
+        self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
+        compare_with_expected_file(self, 'testdata/uploads', scan_result.packages, 'pkglist')
 
     def test_package_set(self):
         self.maxDiff = None
