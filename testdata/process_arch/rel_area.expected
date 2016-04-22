@@ -1,6 +1,6 @@
 {'.': ['setup.ini'],
  'x86': ['sha512.sum'],
- 'x86/release': ['.gitignore', 'sha512.sum'],
+ 'x86/release': ['sha512.sum'],
  'x86/release/arc': ['arc-4.32.7-10-src.tar.bz2', 'arc-4.32.7-10.tar.bz2', 'setup.hint', 'sha512.sum'],
  'x86/release/base-cygwin': ['base-cygwin-3.6-1.tar.xz', 'base-cygwin-3.8-1.tar.xz', 'setup.hint', 'sha512.sum'],
  'x86/release/cygwin': ['.this-should-be-ignored',
