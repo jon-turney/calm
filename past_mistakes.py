@@ -68,8 +68,6 @@ hyphen_in_version = [
     'socat-debuginfo',
     'tack',
     'tack-debuginfo',
-    'terminfo',
-    'terminfo-extra',
     'xemacs-mule-sumo',
     'xemacs-sumo',
     'xfs',
@@ -87,7 +85,6 @@ self_requires = [
 # function as their own source
 self_source = [
     'R_autorebase',
-    '_autorebase',  # older versions were self-source, but current one isn't
     '_update-info-dir',
     'base-cygwin',
     'base-files',  # older versions were self-source, but current one isn't
