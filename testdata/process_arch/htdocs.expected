@@ -14,7 +14,7 @@
                           'cygwin-debuginfo-2.2.1-1',
                           'cygwin-debuginfo-2.3.0-0.3'],
  'x86/cygwin-devel': ['.htaccess', 'cygwin-devel-2.2.0-1', 'cygwin-devel-2.2.1-1', 'cygwin-devel-2.3.0-0.3'],
- 'x86/keychain': ['.htaccess', 'keychain-3.1.5-1', 'keychain-3.1.5-1-src', 'keychain-3.2.0-1', 'keychain-3.2.0-1-src'],
+ 'x86/keychain': ['.htaccess', 'keychain-2.6.8-1', 'keychain-2.6.8-1-src', 'keychain-2.7.1-1', 'keychain-2.7.1-1-src'],
  'x86/libdns_sd-devel': ['.htaccess', 'libdns_sd-devel-379.32.1-1'],
  'x86/libdns_sd1': ['.htaccess', 'libdns_sd1-379.32.1-1'],
  'x86/mDNSResponder': ['.htaccess', 'mDNSResponder-379.32.1-1', 'mDNSResponder-379.32.1-1-src'],

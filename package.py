@@ -421,6 +421,10 @@ def validate_packages(args, packages):
             if 'install' not in packages[p].vermap[v]:
                 continue
 
+            # unless the install tarfile is empty
+            if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
+                continue
+
             # source tarfile may be either in this package or in the
             # external-source package
             #
@@ -436,10 +440,6 @@ def validate_packages(args, packages):
                         packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
                         continue
 
-            # unless the install tarfile is empty
-            if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
-                continue
-
             # unless this package is marked as 'self-source'
             if 'self-source' in packages[p].hints:
                 continue
@@ -447,15 +447,18 @@ def validate_packages(args, packages):
             logging.error("package '%s' version '%s' is missing source" % (p, v))
             error = True
 
-    # make another pass to verify that each source tarfile version has at least
-    # one corresponding install tarfile, in some package.
+    # make another pass to verify that each non-empty source tarfile version has
+    # at least one corresponding non-empty install tarfile, in some package.
     for p in sorted(packages.keys()):
         for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
             if 'source' not in packages[p].vermap[v]:
                 continue
 
+            if packages[p].tars[packages[p].vermap[v]['source']].is_empty:
+                continue
+
             if not packages[p].tars[packages[p].vermap[v]['source']].is_used:
-                logging.error("package '%s' version '%s' source has no install tarfile" % (p, v))
+                logging.error("package '%s' version '%s' source has no non-empty install tarfiles" % (p, v))
                 error = True
 
     # validate that all packages are in the package maintainers list
@@ -556,8 +559,11 @@ def write_setup_ini(args, packages):
                     # if that doesn't exist, follow external-source
                     elif 'external-source' in packages[p].hints:
                         s = packages[p].hints['external-source']
-                        t = packages[s].vermap[version]['source']
-                        tar_line('source', args.arch, packages[s], t, f)
+                        if 'source' in packages[s].vermap[version]:
+                            t = packages[s].vermap[version]['source']
+                            tar_line('source', args.arch, packages[s], t, f)
+                        else:
+                            logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
             if 'message' in packages[p].hints:
                 print("message: %s" % packages[p].hints['message'], file=f)
