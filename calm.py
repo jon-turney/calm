@@ -106,9 +106,9 @@ def process_arch(args):
                     logging.error("error while reading uploaded packages for %s" % (name))
                     continue
 
-                # if there are no uploaded packages for this maintainer, we
-                # don't have anything to do
-                if not scan_result.packages:
+                # if there are no uploaded or removed packages for this
+                # maintainer, we don't have anything to do
+                if not scan_result.packages and not scan_result.to_vault:
                     logging.debug("nothing to do for maintainer %s" % (name))
                     continue
 
