@@ -157,9 +157,16 @@ def scan(m, all_packages, args):
                 continue
 
             if f.startswith('-'):
-                vault[relpath].append(f[1:])
+                if ('*' in f) or ('?' in f):
+                    logging.error("remove file %s name contains metacharacters, which are no longer supported" % fn)
+                    error = True
+                elif os.path.getsize(fn) != 0:
+                    logging.error("remove file %s is not empty" % fn)
+                    error = True
+                else:
+                    vault[relpath].append(f[1:])
+                    remove_success.append(fn)
                 files.remove(f)
-                remove_success.append(fn)
             else:
                 dest = os.path.join(releasedir, relpath, f)
                 if os.path.isfile(dest):
