@@ -105,17 +105,21 @@ class Maintainer(object):
                     m = match.group(2)
 
                     # if maintainer starts with a word in all caps, just use that
-                    m = re.sub(r'^([A-Z]+)\b.*$', r'\1', m)
+                    (m, n) = re.subn(r'^([A-Z]+)\b.*$', r'\1', m)
+                    if n > 0:
+                        # ignore packages marked as 'OBSOLETE'
+                        if m == 'OBSOLETE':
+                            continue
 
-                    # ignore packages marked as 'OBSOLETE'
-                    if m == 'OBSOLETE':
-                        continue
+                        # orphaned packages get the default maintainer if we have
+                        # one, otherwise are assigned to 'ORPHANED'
+                        elif m == 'ORPHANED':
+                            if orphanMaint is not None:
+                                m = orphanMaint
 
-                    # orphaned packages get the default maintainer if we have
-                    # one, otherwise are assigned to 'ORPHANED'
-                    if m == 'ORPHANED':
-                        if orphanMaint is not None:
-                            m = orphanMaint
+                        else:
+                            logging.error("unknown package status '%s' in line %s:%d: '%s'" % (m, pkglist, i, l))
+                            continue
 
                     # joint maintainers are separated by '/'
                     for name in m.split('/'):
