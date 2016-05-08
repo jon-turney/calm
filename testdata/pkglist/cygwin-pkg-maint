@@ -1606,7 +1606,7 @@ perl-Net-DNS                                 Achim Gratz
 perl-Net-DNS-SEC                             Achim Gratz
 perl-Net-HTTP                                Achim Gratz/Yaakov Selkowitz
 perl-Net-IP                                  Achim Gratz
-perl-Net-SMTP-SSL                            Yaakov Selkowitz
+perl-Net-SMTP-SSL                            Yaakov Selkowitz/Blooey McFooey
 perl-Net-SSLeay                              Achim Gratz/Yaakov Selkowitz
 perl-Number-Compare                          Achim Gratz/Ken Brown
 perl-OpenGL                                  Yaakov Selkowitz

@@ -74,13 +74,15 @@ class Tar(object):
 def read_packages(rel_area, arch):
     packages = defaultdict(Package)
 
-    releasedir = os.path.join(rel_area, arch)
-    logging.debug('reading packages from %s' % releasedir)
+    # both noarch/ and <arch>/ directories are considered
+    for root in ['noarch', arch]:
+        releasedir = os.path.join(rel_area, root)
+        logging.debug('reading packages from %s' % releasedir)
 
-    for (dirpath, subdirs, files) in os.walk(releasedir):
-        read_package(packages, releasedir, dirpath, files)
+        for (dirpath, subdirs, files) in os.walk(releasedir):
+            read_package(packages, rel_area, dirpath, files)
 
-    logging.debug("%d packages read" % len(packages))
+        logging.debug("%d packages read" % len(packages))
 
     return packages
 
@@ -223,7 +225,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                     logging.log(strict_lvl, "package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
                     warnings = True
 
-    elif (len(files) > 0) and (relpath.count(os.path.sep) > 0):
+    elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.warning("no setup.hint in %s but has files: %s" % (dirpath, ', '.join(files)))
 
     if strict:
@@ -494,7 +496,7 @@ def validate_package_maintainers(args, packages):
 #
 # write setup.ini
 #
-def write_setup_ini(args, packages):
+def write_setup_ini(args, packages, arch):
 
     logging.debug('writing %s' % (args.inifile))
 
@@ -510,7 +512,7 @@ def write_setup_ini(args, packages):
 
         if args.release:
             print("release: %s" % args.release, file=f)
-        print("arch: %s" % args.arch, file=f)
+        print("arch: %s" % arch, file=f)
         print("setup-timestamp: %d" % time.time(), file=f)
         if args.setup_version:
             print("setup-version: %s" % args.setup_version, file=f)
@@ -550,18 +552,18 @@ def write_setup_ini(args, packages):
 
                     if 'install' in packages[p].vermap[version]:
                         t = packages[p].vermap[version]['install']
-                        tar_line('install', args.arch, packages[p], t, f)
+                        tar_line('install', packages[p], t, f)
 
                     # look for corresponding source in this package first
                     if 'source' in packages[p].vermap[version]:
                         t = packages[p].vermap[version]['source']
-                        tar_line('source', args.arch, packages[p], t, f)
+                        tar_line('source', packages[p], t, f)
                     # if that doesn't exist, follow external-source
                     elif 'external-source' in packages[p].hints:
                         s = packages[p].hints['external-source']
                         if 'source' in packages[s].vermap[version]:
                             t = packages[s].vermap[version]['source']
-                            tar_line('source', args.arch, packages[s], t, f)
+                            tar_line('source', packages[s], t, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
@@ -570,8 +572,8 @@ def write_setup_ini(args, packages):
 
 
 # helper function to output details for a particular tar file
-def tar_line(category, arch, p, t, f):
-    fn = os.path.join(arch, p.path, t)
+def tar_line(category, p, t, f):
+    fn = os.path.join(p.path, t)
     sha512 = p.tars[t].sha512
     size = p.tars[t].size
     print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
@@ -584,42 +586,45 @@ def upper_first_character(s):
 
 
 #
-# merge two sets of packages
+# merge sets of packages
 #
 # for each package which exist in both a and b:
-# - they must exist at the same relative path, or the package from a is used
-# - we combine the list of tarfiles, duplicates are not expected
+# - they must exist at the same relative path
+# - we combine the list of tarfiles, duplicates are not permitted
 # - we use the hints from b, and warn if they are different to the hints for a
 #
-def merge(a, b):
+def merge(a, *l):
     # start with a copy of a
     c = copy.deepcopy(a)
 
-    for p in b:
-        # if the package is in b but not in a, add it to the copy
-        if p not in a:
-            c[p] = b[p]
-        # else, if the package is both in a and b, we have to do a merge
-        else:
-            # package must exist at same relative path
-            if a[p].path != b[p].path:
-                logging.error("package '%s' is at paths %s and %s" % (p, a[p].path, b[p].path))
+    for b in l:
+        for p in b:
+            # if the package is in b but not in a, add it to the copy
+            if p not in a:
+                c[p] = b[p]
+            # else, if the package is both in a and b, we have to do a merge
             else:
-                for t in b[p].tars:
-                    if t in c[p].tars:
-                        logging.error("package '%s' has duplicate tarfile %s" % (p, t))
-                    else:
-                        c[p].tars[t] = b[p].tars[t]
+                # package must exist at same relative path
+                if a[p].path != b[p].path:
+                    logging.error("package '%s' is at paths %s and %s" % (p, a[p].path, b[p].path))
+                    return None
+                else:
+                    for t in b[p].tars:
+                        if t in c[p].tars:
+                            logging.error("package '%s' has duplicate tarfile %s" % (p, t))
+                            return None
+                        else:
+                            c[p].tars[t] = b[p].tars[t]
 
-                # use hints from b, but warn if they have changed
-                if a[p].hints != b[p].hints:
-                    c[p].hints = b[p].hints
+                    # use hints from b, but warn if they have changed
+                    if a[p].hints != b[p].hints:
+                        c[p].hints = b[p].hints
 
-                    diff = '\n'.join(difflib.ndiff(
-                        pprint.pformat(a[p].hints).splitlines(),
-                        pprint.pformat(b[p].hints).splitlines()))
+                        diff = '\n'.join(difflib.ndiff(
+                            pprint.pformat(a[p].hints).splitlines(),
+                            pprint.pformat(b[p].hints).splitlines()))
 
-                    logging.warning("package '%s' hints changed\n%s" % (p, diff))
+                        logging.warning("package '%s' hints changed\n%s" % (p, diff))
 
     return c
 

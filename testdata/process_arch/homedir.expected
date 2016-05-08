@@ -1,5 +1,8 @@
 {'.': ['an_unexpected_file'],
  'Blooey McFooey': [],
+ 'Blooey McFooey/noarch': [],
+ 'Blooey McFooey/noarch/release': [],
+ 'Blooey McFooey/noarch/release/perl-Net-SMTP-SSL': [],
  'Blooey McFooey/x86': [],
  'Blooey McFooey/x86/release': [],
  'Blooey McFooey/x86/release/after-ready': ['after-ready-1.0-1.tar.bz2', 'setup.hint'],

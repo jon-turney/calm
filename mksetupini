@@ -63,7 +63,7 @@ def main(args):
         return
 
     # write setup.ini
-    package.write_setup_ini(args, packages)
+    package.write_setup_ini(args, packages, args.arch)
 
     if args.stats:
         stats(packages)

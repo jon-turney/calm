@@ -1,14 +1,14 @@
-{'testpackage': Package('release/testpackage', {'testpackage-1.0-1-src.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False),
+{'testpackage': Package('x86/release/testpackage', {'testpackage-1.0-1-src.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False),
  'testpackage-1.0-1.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'sdesc': '"A test package"',
  'ldesc': '"A test package\n'
           "It's description might contains some unicode gibberish\n"
           'Like it’s you’re Markup Language™ Nokogiri’s tool―that Bézier."',
  'category': 'Devel',
  'requires': 'cygwin'}),
- 'testpackage-subpackage': Package('release/testpackage/testpackage-subpackage', {'testpackage-subpackage-1.0-1.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'sdesc': '"A test subpackage"',
+ 'testpackage-subpackage': Package('x86/release/testpackage/testpackage-subpackage', {'testpackage-subpackage-1.0-1.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'sdesc': '"A test subpackage"',
  'ldesc': '"A test subpackage"',
  'category': 'Devel',
  'external-source': 'testpackage'}),
- 'testpackage2-subpackage': Package('release/testpackage2/testpackage2-subpackage', {'testpackage2-subpackage-1.0-1.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'sdesc': '"A test subpackage 2"',
+ 'testpackage2-subpackage': Package('x86/release/testpackage2/testpackage2-subpackage', {'testpackage2-subpackage-1.0-1.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'sdesc': '"A test subpackage 2"',
  'ldesc': '"A test subpackage 2"',
  'category': 'Devel'})}

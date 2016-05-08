@@ -26,22 +26,27 @@
 #
 
 #
-# read packages from release area
+# for each arch
+# - read and validate packages from release area
+# - stop if there are errors
+# otherwise,
 # for each maintainer
 # - read and validate any package uploads
 # - build a list of files to move and remove
-# - merge package sets
-# - remove from the package set files which are to be removed
-# - validate merged package set
-# - process remove list
+# - for each arch
+# -- merge package sets
+# -- remove from the package set files which are to be removed
+# -- validate merged package set
+# -- process remove list
 # - on failure
 # -- mail maintainer with errors
 # -- empty move list
-# -- discard merged package set
+# -- discard merged package sets
 # - on success
 # -- process move list
 # -- mail maintainer with movelist
-# -- continue with merged package set
+# -- continue with merged package sets
+# write package listings
 # write setup.ini file
 #
 
@@ -68,22 +73,26 @@ import uploads
 #
 #
 
-def process_arch(args):
-    subject = 'calm: cygwin package upload report from %s' % (os.uname()[1])
-    details = '%s%s' % (args.arch, ',dry-run' if args.dryrun else '')
+def process(args):
+    subject = 'calm%s: cygwin package upload report from %s' % (' [dry-run]' if args.dryrun else '', os.uname()[1])
 
     # send one email per run to leads, if any errors occurred
-    with mail_logs(args.email, toaddrs=args.email, subject='%s [%s]' % (subject, details), thresholdLevel=logging.ERROR) as leads_email:
+    with mail_logs(args.email, toaddrs=args.email, subject='%s' % (subject), thresholdLevel=logging.ERROR) as leads_email:
         if args.dryrun:
             logging.warning("--dry-run is in effect, nothing will really be done")
 
-        # build package list
-        packages = package.read_packages(args.rel_area, args.arch)
+        # for each arch
+        packages = {}
+        for arch in common_constants.ARCHES:
+            logging.debug("reading existing packages for arch %s" % (arch))
 
-        # validate the package set
-        if not package.validate_packages(args, packages):
-            logging.error("existing package set has errors, not processing uploads or writing setup.ini")
-            return False
+            # build package list
+            packages[arch] = package.read_packages(args.rel_area, arch)
+
+            # validate the package set
+            if not package.validate_packages(args, packages[arch]):
+                logging.error("existing %s package set has errors", arch)
+                return None
 
         # read maintainer list
         mlist = maintainers.Maintainer.read(args)
@@ -96,57 +105,83 @@ def process_arch(args):
             m = mlist[name]
 
             # also send a mail to each maintainer about their packages
-            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s [%s]' % (subject, name, details), thresholdLevel=logging.INFO) as maint_email:
+            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (subject, name), thresholdLevel=logging.INFO) as maint_email:
 
-                scan_result = uploads.scan(m, all_packages, args)
+                # for each arch and noarch
+                scan_result = {}
+                skip_maintainer = False
+                for arch in common_constants.ARCHES + ['noarch']:
+                    logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
 
-                uploads.remove(args, scan_result.remove_always)
+                    # read uploads
+                    scan_result[arch] = uploads.scan(m, all_packages, arch, args)
 
-                if scan_result.error:
-                    logging.error("error while reading uploaded packages for %s" % (name))
-                    continue
+                    # remove triggers
+                    uploads.remove(args, scan_result[arch].remove_always)
+
+                    if scan_result[arch].error:
+                        logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, name))
+                        skip_maintainer = True
+                        continue
+
+                    # queue for source package validator
+                    queue.add(args, scan_result[arch].to_relarea, os.path.join(m.homedir()))
 
                 # if there are no uploaded or removed packages for this
                 # maintainer, we don't have anything to do
-                if not scan_result.packages and not scan_result.to_vault:
+                if not any([scan_result[a].packages or scan_result[a].to_vault for a in scan_result]):
                     logging.debug("nothing to do for maintainer %s" % (name))
+                    skip_maintainer = True
+
+                if skip_maintainer:
                     continue
 
-                # queue for source package validator
-                queue.add(args, scan_result.to_relarea, os.path.join(m.homedir(), args.arch))
+                # for each arch
+                merged_packages = {}
+                valid = True
+                for arch in common_constants.ARCHES:
+                    logging.debug("merging %s package set with uploads from maintainer %s" % (arch, name))
 
-                # merge package set
-                merged_packages = package.merge(packages, scan_result.packages)
+                    # merge package sets
+                    merged_packages[arch] = package.merge(packages[arch], scan_result[arch].packages, scan_result['noarch'].packages)
+                    if not merged_packages[arch]:
+                        valid = False
+                        break
 
-                # remove file which are to be removed
-                #
-                # XXX: this doesn't properly account for removing setup.hint
-                # files
-                for p in scan_result.to_vault:
-                    for f in scan_result.to_vault[p]:
-                        package.delete(merged_packages, p, f)
+                    # remove files which are to be removed
+                    #
+                    # XXX: this doesn't properly account for removing setup.hint
+                    # files
+                    for p in scan_result[arch].to_vault:
+                        for f in scan_result[arch].to_vault[p]:
+                            package.delete(merged_packages[arch], p, f)
 
-                # validate the package set
-                if package.validate_packages(args, merged_packages):
-                    # process the move list
-                    uploads.move_to_vault(args, scan_result.to_vault)
-                    uploads.remove(args, scan_result.remove_success)
-                    uploads.move_to_relarea(m, args, scan_result.to_relarea)
+                    # validate the package set
+                    logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
+                    if not package.validate_packages(args, merged_packages[arch]):
+                        valid = False
+
+                if not valid:
+                    # discard move list and merged_packages
+                    logging.error("error while merging uploaded %s packages for %s" % (arch, name))
+                    continue
+
+                # for each arch and noarch
+                for arch in common_constants.ARCHES + ['noarch']:
+                    logging.debug("moving %s packages for maintainer %s" % (arch, name))
+
+                    # process the move lists
+                    uploads.move_to_vault(args, scan_result[arch].to_vault)
+                    uploads.remove(args, scan_result[arch].remove_success)
+                    uploads.move_to_relarea(m, args, scan_result[arch].to_relarea)
+
+                # for each arch
+                for arch in common_constants.ARCHES:
                     # use merged package list
-                    packages = merged_packages
-                    logging.debug("added %d packages from maintainer %s" % (len(scan_result.packages), name))
-                else:
-                    # otherwise we discard move list and merged_packages
-                    logging.error("error while merging uploaded packages for %s" % (name))
+                    packages[arch] = merged_packages[arch]
+                    logging.debug("added %d + %d packages from maintainer %s" % (len(scan_result[arch].packages), len(scan_result['noarch'].packages), name))
 
-        # write setup.ini
-        package.write_setup_ini(args, packages)
-
-        # update packages listings
-        # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
-        pkg2html.update_package_listings(args, packages)
-
-        return True
+    return packages
 
 
 #
@@ -154,9 +189,22 @@ def process_arch(args):
 #
 
 def main(args):
+    # read package set and process uploads
+    packages = process(args)
+
+    if not packages:
+        logging.error("not processing uploads or writing setup.ini")
+        return
+
     # for each arch
     for arch in common_constants.ARCHES:
-        logging.debug("processing arch %s" % (arch))
+        # update packages listings
+        # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
+        pkg2html.update_package_listings(args, packages[arch], arch)
+
+    # for each arch
+    for arch in common_constants.ARCHES:
+        logging.debug("writing setup.ini for arch %s" % (arch))
 
         args.arch = arch
         args.setup_version = setup_exe.extract_version(os.path.join(args.setupdir, 'setup-' + args.arch + '.exe'))
@@ -170,10 +218,11 @@ def main(args):
             args.inifile = tmpfile.name
 
             changed = False
-            if not process_arch(args):
-                # generating setup.ini failed
-                pass
-            elif not os.path.exists(inifile):
+
+            # write setup.ini
+            package.write_setup_ini(args, packages[arch], arch)
+
+            if not os.path.exists(inifile):
                 # if the setup.ini file doesn't exist yet
                 logging.warning('no existing %s' % (inifile))
                 changed = True

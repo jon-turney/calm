@@ -3,7 +3,7 @@
  'Adam Dinwoodie': maintainers.Maintainer('Adam Dinwoodie', [], ['git']),
  'Alexey Sokolov': maintainers.Maintainer('Alexey Sokolov', [], ['znc']),
  'Andrew Schulman': maintainers.Maintainer('Andrew Schulman', [], ['atool', 'autossh', 'bc', 'discus', 'fish', 'lftp', 'libargp', 'nosleep', 'orpie', 'pinfo', 'ploticus', 'ploticus-doc', 'screen', 'sitecopy', 'sng', 'socat', 'stow', 'stunnel', 'time', 'unison2.27', 'unison2.32', 'unison2.40', 'unison2.45', 'unison2.48']),
- 'Blooey McFooey': maintainers.Maintainer('Blooey McFooey', [], ['testpackage']),
+ 'Blooey McFooey': maintainers.Maintainer('Blooey McFooey', [], ['perl-Net-SMTP-SSL', 'testpackage']),
  'Bob Heckel': maintainers.Maintainer('Bob Heckel', [], ['libgc', 'w3m']),
  'Chris J. Breisch': maintainers.Maintainer('Chris J. Breisch', [], ['man-db']),
  'Chris LeBlanc': maintainers.Maintainer('Chris LeBlanc', [], ['python-h5py', 'python3-h5py']),

@@ -16,6 +16,7 @@
 <tr><td><a href="x86/libdns_sd1">libdns_sd1</a></td><td>Bonjour Zeroconf implementation</td></tr>
 <tr><td><a href="x86/mDNSResponder">mDNSResponder</a></td><td>Bonjour Zeroconf implementation</td></tr>
 <tr><td><a href="x86/openssh">openssh</a></td><td>The OpenSSH server and client programs</td></tr>
+<tr><td><a href="x86/perl-Net-SMTP-SSL">perl-Net-SMTP-SSL</a></td><td>Perl distribution Net-SMTP-SSL</td></tr>
 <tr><td><a href="x86/rpm-doc">rpm-doc</a></td><td>Obsolete package for RPM package management system manual pages</td></tr>
 <tr><td><a href="x86/testpackage">testpackage</a></td><td>A test package</td></tr>
 </table>

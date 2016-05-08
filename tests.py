@@ -123,7 +123,7 @@ class TestMain(unittest.TestCase):
 
         packages = package.read_packages(args.rel_area, args.arch)
         package.validate_packages(args, packages)
-        pkg2html.update_package_listings(args, packages)
+        pkg2html.update_package_listings(args, packages, args.arch)
 
         # compare the output files with expected
         for (dirpath, subdirs, files) in os.walk(htdocs):
@@ -200,10 +200,11 @@ class TestMain(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        scan_result = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args)
+        scan_result = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args.arch, args)
 
         self.assertEqual(scan_result.error, False)
         compare_with_expected_file(self, 'testdata/uploads', scan_result.to_relarea, 'move')
+        self.assertCountEqual(scan_result.to_vault, {'x86/release/testpackage': ['x86/release/testpackage/testpackage-0.1-1.tar.bz2']})
         self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
         self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
         compare_with_expected_file(self, 'testdata/uploads', scan_result.packages, 'pkglist')
@@ -222,9 +223,9 @@ class TestMain(unittest.TestCase):
         setattr(args, 'setup_version', '4.321')
 
         packages = package.read_packages(args.rel_area, args.arch)
-        package.delete(packages, 'release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
+        package.delete(packages, 'x86/release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
         self.assertEqual(package.validate_packages(args, packages), True)
-        package.write_setup_ini(args, packages)
+        package.write_setup_ini(args, packages, args.arch)
         with open(args.inifile) as inifile:
             results = inifile.read()
             # fix the timestamp to match expected
@@ -233,7 +234,7 @@ class TestMain(unittest.TestCase):
 
         # XXX: delete a needed package, and check validate fails
 
-    def test_process_arch(self):
+    def test_process(self):
         self.maxDiff = None
 
         args = types.SimpleNamespace()
@@ -242,7 +243,6 @@ class TestMain(unittest.TestCase):
             setattr(args, d, tempfile.mktemp())
             logging.info('%s = %s', d, getattr(args, d))
 
-        setattr(args, 'arch', 'x86')
         setattr(args, 'dryrun', False)
         setattr(args, 'email', None)
         setattr(args, 'force', False)
@@ -258,11 +258,16 @@ class TestMain(unittest.TestCase):
         m_homedir = os.path.join(getattr(args, 'homedir'), 'Blooey McFooey')
         ready_fns = [(os.path.join(m_homedir, 'x86', 'release', 'testpackage', '!ready'), ''),
                      (os.path.join(m_homedir, 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700')]
+                     (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
+                     (os.path.join(m_homedir, 'noarch', 'release', 'perl-Net-SMTP-SSL', '!ready'), '')]
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        self.assertEqual(calm.process_arch(args), True)
+        packages = calm.process(args)
+        self.assertTrue(packages)
+
+        pkg2html.update_package_listings(args, packages['x86'], 'x86')
+        package.write_setup_ini(args, packages['x86'], 'x86')
 
         for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
             with self.subTest(directory=d):
@@ -272,7 +277,7 @@ class TestMain(unittest.TestCase):
 
 if __name__ == '__main__':
     # ensure sha512.sum files exist
-    os.system("find testdata/relarea/x86 -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
+    os.system("find testdata/relarea/x86 testdata/relarea/noarch -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
     # should remove a sha512.sum file so that we test functioning when it's absent
     os.unlink('testdata/relarea/x86/release/naim/sha512.sum')
     # remove !ready files

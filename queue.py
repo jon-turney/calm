@@ -53,7 +53,7 @@ def add(args, movelist, fromdir):
     for p in movelist:
         for f in movelist[p]:
             if re.search(r'-src.tar.(bz2|gz|lzma|xz)$', f):
-                srcpkgs.append(os.path.join(args.arch, p, f))
+                srcpkgs.append(os.path.join(p, f))
 
     # if so...
     #
@@ -61,7 +61,7 @@ def add(args, movelist, fromdir):
     # source file
     if len(srcpkgs) >= 1:
         # keep all the files for comparison
-        uploads.copy(args, movelist, fromdir, os.path.join(upload_root, args.arch))
+        uploads.copy(args, movelist, fromdir, upload_root)
 
         # queue any srcpkgs
         for p in srcpkgs:

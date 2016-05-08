@@ -34,6 +34,9 @@
 # - remove any listing files for which there was no package
 # - remove any empty directories (TBD)
 #
+# note that the directory hierarchy of (noarch|arch)/package/subpackages is
+# flattened in the package listing to just the package name
+#
 
 from collections import defaultdict
 import argparse
@@ -54,8 +57,8 @@ import package
 #
 #
 
-def update_package_listings(args, packages):
-    base = os.path.join(args.htdocs, args.arch)
+def update_package_listings(args, packages, arch):
+    base = os.path.join(args.htdocs, arch)
     if not args.dryrun:
         try:
             os.makedirs(base, exist_ok=True)
@@ -77,7 +80,7 @@ def update_package_listings(args, packages):
         if not args.dryrun:
             with open(htaccess, 'w') as f:
 
-                print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (args.arch),
+                print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (arch),
                       file=f)
 
     toremove = glob.glob(os.path.join(base, '*', '*'))
@@ -145,7 +148,7 @@ def update_package_listings(args, packages):
                                                  <h1>%s</h1>
                                                  <tt><pre>''' % (header)), file=f)
 
-                        tf = os.path.join(args.rel_area, args.arch, packages[p].path, t)
+                        tf = os.path.join(args.rel_area, packages[p].path, t)
                         if not os.path.exists(tf):
                             # XXX: this shouldn't happen with a full mirror...
                             print('tarfile %s not found' % tf, file=f)
@@ -190,7 +193,7 @@ def update_package_listings(args, packages):
                                      <b class="rbottom"><b class="r4"></b><b class="r3"></b><b class="r2"></b><b class="r1"></b></b>
                                      </div>
                                      <br>
-                                     <table class="pkglist">''') % (args.arch, args.arch), file=index)
+                                     <table class="pkglist">''') % (arch, arch), file=index)
 
             for p in sorted(packages.keys(), key=package.sort_key):
                 # don't write anything if 'skip'
@@ -199,7 +202,7 @@ def update_package_listings(args, packages):
 
                 header = packages[p].hints['sdesc'].replace('"', '')
 
-                print('<tr><td><a href="' + args.arch + '/' + p + '">' + p + '</a></td><td>' + header + '</td></tr>', file=index)
+                print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + header + '</td></tr>', file=index)
 
             print(textwrap.dedent('''\
                                      </table>
@@ -233,4 +236,4 @@ if __name__ == "__main__":
     logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
 
     packages = package.read_packages(args.rel_area, args.arch)
-    update_package_listings(args, packages)
+    update_package_listings(args, packages, args.arch)

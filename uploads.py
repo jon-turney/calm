@@ -46,9 +46,9 @@ ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove
 #
 #
 
-def scan(m, all_packages, args):
-    basedir = os.path.join(m.homedir(), args.arch)
-    releasedir = os.path.join(args.rel_area, args.arch)
+def scan(m, all_packages, arch, args):
+    basedir = os.path.join(m.homedir(), arch)
+    releasedir = os.path.join(args.rel_area, arch)
 
     packages = defaultdict(package.Package)
     move = defaultdict(list)
@@ -70,7 +70,7 @@ def scan(m, all_packages, args):
 
     # the mtime of this file indicates when 'ignoring as there is no !ready'
     # warnings were last emitted
-    reminder_file = os.path.join(basedir, '!reminder-timestamp')
+    reminder_file = os.path.join(m.homedir(), '!reminder-timestamp')
     if os.path.exists(reminder_file):
         reminder_time = os.path.getmtime(reminder_file)
     else:
@@ -80,10 +80,10 @@ def scan(m, all_packages, args):
 
     # scan package directories
     for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
-        relpath = os.path.relpath(dirpath, basedir)
+        relpath = os.path.relpath(dirpath, m.homedir())
 
         # skip uninteresting directories
-        if (not files) or (relpath == 'release'):
+        if (not files) or (relpath == os.path.join(arch, 'release')):
             continue
 
         logging.debug('reading uploads from %s' % dirpath)
@@ -190,7 +190,7 @@ def scan(m, all_packages, args):
         # read and validate package
         if files:
             # strict means we consider warnings as fatal for upload
-            if package.read_package(packages, basedir, dirpath, files, strict=True):
+            if package.read_package(packages, m.homedir(), dirpath, files, strict=True):
                 error = True
 
     # if we didn't need to check the reminder timestamp, it can be reset
@@ -246,14 +246,14 @@ def move(args, movelist, fromdir, todir):
 
 
 def move_to_relarea(m, args, movelist):
-    move(args, movelist, os.path.join(m.homedir(), args.arch), os.path.join(args.rel_area, args.arch))
+    move(args, movelist, m.homedir(), args.rel_area)
     # XXX: Note that there seems to be a separate process, not run from
     # cygwin-admin's crontab, which changes the ownership of files in the
     # release area to cyguser:cygwin
 
 
 def move_to_vault(args, movelist):
-    move(args, movelist, os.path.join(args.rel_area, args.arch), os.path.join(args.vault, args.arch))
+    move(args, movelist, args.rel_area, args.vault)
 
 
 #
