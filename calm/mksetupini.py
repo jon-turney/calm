@@ -89,6 +89,7 @@ def stats(packages):
     for c in sorted(histogram, key=histogram.get, reverse=True):
         print('%16s: %4d' % (c, histogram[c]))
 
+
 #
 #
 #
@@ -115,6 +116,11 @@ def main():
     logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
 
     do_main(args)
+
+
+#
+#
+#
 
 if __name__ == "__main__":
     sys.exit(main())

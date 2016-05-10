@@ -36,7 +36,7 @@ import types
 import unittest
 
 from calm.version import SetupVersion
-import calm
+import calm.calm
 import calm.hint as hint
 import calm.maintainers as maintainers
 import calm.package as package
@@ -90,7 +90,7 @@ def capture_dirtree(basedir):
 #
 #
 
-class TestMain(unittest.TestCase):
+class CalmTest(unittest.TestCase):
     def test_hint_parser(self):
         self.maxDiff = None
 
@@ -263,7 +263,7 @@ class TestMain(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        packages = calm.process(args)
+        packages = calm.calm.process(args)
         self.assertTrue(packages)
 
         pkg2html.update_package_listings(args, packages['x86'], 'x86')
@@ -275,14 +275,20 @@ class TestMain(unittest.TestCase):
                 compare_with_expected_file(self, 'testdata/process_arch', dirlist, d)
                 shutil.rmtree(getattr(args, d))
 
-if __name__ == '__main__':
-    # ensure sha512.sum files exist
-    os.system("find testdata/relarea/x86 testdata/relarea/noarch -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
-    # should remove a sha512.sum file so that we test functioning when it's absent
-    os.unlink('testdata/relarea/x86/release/naim/sha512.sum')
-    # remove !ready files
-    os.system("find testdata/homes -name !ready -exec rm {} \;")
+    @classmethod
+    def setUpClass(cls):
+        # testdata is located in the same directory as this file
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+        # ensure sha512.sum files exist
+        os.system("find testdata/relarea/x86 testdata/relarea/noarch -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
+        # should remove a sha512.sum file so that we test functioning when it's absent
+        os.unlink('testdata/relarea/x86/release/naim/sha512.sum')
+        # remove !ready files
+        os.system("find testdata/homes -name !ready -exec rm {} \;")
+
+
+if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
     logging.basicConfig(format='%(message)s')
     unittest.main()
