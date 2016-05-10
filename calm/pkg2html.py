@@ -49,8 +49,8 @@ import tarfile
 import textwrap
 import time
 
-import common_constants
-import package
+from . import common_constants
+from . import package
 
 
 #

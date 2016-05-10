@@ -26,7 +26,7 @@ import logging
 import os
 import re
 
-import uploads
+from . import uploads
 
 QUEUE = 'package_queue'
 

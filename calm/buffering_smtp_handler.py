@@ -25,7 +25,7 @@ import logging
 import logging.handlers
 import email.message
 
-import common_constants
+from . import common_constants
 
 
 class BufferingSMTPHandler(logging.handlers.BufferingHandler):

@@ -33,9 +33,9 @@ import logging
 import os
 import sys
 
-import common_constants
-import hint
-import package
+from . import common_constants
+from . import hint
+from . import package
 
 try:
     import spelling
@@ -46,7 +46,7 @@ except ImportError:
 #
 #
 #
-def main(args):
+def do_main(args):
     # build package list
     packages = package.read_packages(args.rel_area, args.arch)
 
@@ -89,10 +89,11 @@ def stats(packages):
     for c in sorted(histogram, key=histogram.get, reverse=True):
         print('%16s: %4d' % (c, histogram[c]))
 
+
 #
 #
 #
-if __name__ == "__main__":
+def main():
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
 
@@ -114,4 +115,12 @@ if __name__ == "__main__":
 
     logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
 
-    main(args)
+    do_main(args)
+
+
+#
+#
+#
+
+if __name__ == "__main__":
+    sys.exit(main())

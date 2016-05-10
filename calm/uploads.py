@@ -33,7 +33,7 @@ import re
 import shutil
 import time
 
-import package
+from . import package
 
 # reminders will be issued daily
 REMINDER_INTERVAL = 60*60*24
