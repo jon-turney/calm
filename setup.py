@@ -11,6 +11,7 @@ setup(
     entry_points= {
         'console_scripts': [
             'calm = calm.calm:main',
+            'mksetupini = calm.mksetupini:main',
         ],
     },
     url='https://cygwin.com/git/?p=cygwin-apps/calm.git',
