@@ -2,8 +2,7 @@ from setuptools import setup
 
 setup(
     name='calm',
-    use_scm_version=True,
-    setup_requires=['setuptools_scm'],
+    version='20160510',
     description='Cygwin packaging maintenance tool',
     long_description=open('README.md').read(),
     author='Jon Turney',
