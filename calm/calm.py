@@ -58,15 +58,15 @@ import shutil
 import sys
 import tempfile
 
-from abeyance_handler import AbeyanceHandler
-from buffering_smtp_handler import BufferingSMTPHandler
-import common_constants
-import maintainers
-import package
-import pkg2html
-import queue
-import setup_exe
-import uploads
+from .abeyance_handler import AbeyanceHandler
+from .buffering_smtp_handler import BufferingSMTPHandler
+from . import common_constants
+from . import maintainers
+from . import package
+from . import pkg2html
+from . import queue
+from . import setup_exe
+from . import uploads
 
 
 #
@@ -188,7 +188,7 @@ def process(args):
 #
 #
 
-def main(args):
+def do_main(args):
     # read package set and process uploads
     packages = process(args)
 
@@ -287,7 +287,7 @@ def mail_logs(enabled, toaddrs, subject, thresholdLevel, retainLevel=None):
 #
 #
 
-if __name__ == "__main__":
+def main():
     htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
     homedir_default = common_constants.HOMEDIR
     orphanmaint_default = common_constants.ORPHANMAINT
@@ -342,4 +342,12 @@ if __name__ == "__main__":
     if args.email:
         args.email = args.email.split(',')
 
-    sys.exit(main(args))
+    do_main(args)
+
+
+#
+#
+#
+
+if __name__ == "__main__":
+    sys.exit(main())
