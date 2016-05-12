@@ -36,10 +36,10 @@ HOMEDIR = '/sourceware/cygwin-staging/home'
 FTP = '/var/ftp/pub/cygwin'
 
 # logs are emailed to these addresses if any errors occurred
-EMAILS = ','.join(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkowitz', 'jturney']))
+EMAILS = ','.join(list(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkowitz'])) + ['Stromeko@NexGo.DE'])
 
-# for testing purposes, every email we send is bcc'd to these addresses
-ALWAYS_BCC = ''
+# every email we send is bcc'd to these addresses
+ALWAYS_BCC = 'jturney@sourceware.org, yselkowitz@sourceware.org'
 
 # these maintainers can upload orphaned packages as well
 ORPHANMAINT = "Yaakov Selkowitz"
@@ -68,4 +68,5 @@ DEFAULT_KEEP_DAYS = 0
 if os.uname()[1] == 'tambora':
     FTP = '/var/ftp/pub/cygwin-test'
     EMAILS = 'jon.turney@dronecode.org.uk'
+    ALWAYS_BCC = ''
     MAILHOST = 'allegra'
