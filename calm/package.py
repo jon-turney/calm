@@ -206,11 +206,6 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         # now we have read the package, fix some common defects in the hints
         #
 
-        # note if the package is self-source
-        # XXX: this should really be defined as a setup.hint key
-        if p in past_mistakes.self_source:
-            packages[p].hints['self-source'] = ''
-
         # don't allow a redundant 'package:' or 'package - ' at start of sdesc
         #
         # match case-insensitively, and use a base package name (trim off any
@@ -443,7 +438,7 @@ def validate_packages(args, packages):
                         continue
 
             # unless this package is marked as 'self-source'
-            if 'self-source' in packages[p].hints:
+            if p in past_mistakes.self_source:
                 continue
 
             logging.error("package '%s' version '%s' is missing source" % (p, v))
