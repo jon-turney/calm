@@ -158,6 +158,9 @@ def scan(m, all_packages, arch, args):
                 elif os.path.getsize(fn) != 0:
                     logging.error("remove file %s is not empty" % fn)
                     error = True
+                elif f == 'setup.hint':
+                    logging.error("remove file %s is not permitted" % fn)
+                    error = True
                 else:
                     vault[relpath].append(f[1:])
                     remove_success.append(fn)

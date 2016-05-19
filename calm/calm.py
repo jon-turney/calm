@@ -149,9 +149,6 @@ def process(args):
                         break
 
                     # remove files which are to be removed
-                    #
-                    # XXX: this doesn't properly account for removing setup.hint
-                    # files
                     for p in scan_result[arch].to_vault:
                         for f in scan_result[arch].to_vault[p]:
                             package.delete(merged_packages[arch], p, f)
