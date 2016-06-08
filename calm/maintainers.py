@@ -32,6 +32,7 @@
 # - the list of packages they maintain (given by cygwin-pkg-list)
 # - an email address (in HOME/!email (or !mail), as we don't want to publish
 #   it, and want to allow the maintainer to change it)
+# - the timestamp when 'ignoring' warnings were last emitted
 #
 
 import itertools
@@ -39,6 +40,19 @@ import logging
 import os
 import re
 import sys
+
+#
+#
+#
+
+
+def touch(fn, times=None):
+    with open(fn, 'a'):
+        os.utime(fn, times)
+
+#
+#
+#
 
 
 class Maintainer(object):
@@ -54,11 +68,36 @@ class Maintainer(object):
         self.email = email
         self.pkgs = pkgs
 
+        # the mtime of this file records the timestamp
+        reminder_file = os.path.join(self.homedir(), '!reminder-timestamp')
+        if os.path.exists(reminder_file):
+            self.reminder_time = os.path.getmtime(reminder_file)
+        else:
+            self.reminder_time = 0
+        self.reminders_issued = False
+        self.reminders_timestamp_checked = False
+
     def __repr__(self):
         return "maintainers.Maintainer('%s', %s, %s)" % (self.name, self.email, self.pkgs)
 
     def homedir(self):
         return os.path.join(Maintainer._homedirs, self.name)
+
+    def _update_reminder_time(self):
+        reminder_file = os.path.join(self.homedir(), '!reminder-timestamp')
+
+        if self.reminders_issued:
+            # if reminders were issued, update the timestamp
+            logging.debug("updating reminder time for %s" % self.name)
+            touch(reminder_file)
+        elif (not self.reminders_timestamp_checked) and (self.reminder_time != 0):
+            # if we didn't need to check the reminder timestamp, it can be
+            # reset
+            logging.debug("resetting reminder time for %s" % self.name)
+            try:
+                os.remove(reminder_file)
+            except FileNotFoundError:
+                pass
 
     @staticmethod
     def _find(mlist, name):
@@ -139,6 +178,11 @@ class Maintainer(object):
         mlist = Maintainer.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
 
         return mlist
+
+    @staticmethod
+    def update_reminder_times(mlist):
+        for m in mlist.values():
+            m._update_reminder_time()
 
     # a list of all packages
     @staticmethod

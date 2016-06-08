@@ -68,15 +68,9 @@ def scan(m, all_packages, arch, args):
             logging.debug('processing files with mtime older than %d' % (mtime))
             remove.append(ready)
 
-    # the mtime of this file indicates when 'ignoring as there is no !ready'
-    # warnings were last emitted
-    reminder_file = os.path.join(m.homedir(), '!reminder-timestamp')
-    if os.path.exists(reminder_file):
-        reminder_time = os.path.getmtime(reminder_file)
-    else:
-        reminder_time = 0
-    reminders = False
-    logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (reminder_time, REMINDER_INTERVAL, reminder_time + REMINDER_INTERVAL, time.time()))
+    # we record a timestamp when 'ignoring as there is no !ready' warnings were
+    # last emitted
+    logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (m.reminder_time, REMINDER_INTERVAL, m.reminder_time + REMINDER_INTERVAL, time.time()))
 
     # scan package directories
     for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
@@ -140,15 +134,15 @@ def scan(m, all_packages, arch, args):
             # only process files newer than !ready
             if os.path.getmtime(fn) > mtime:
                 if mtime == 0:
-                    reminders = True
+                    m.reminders_timestamp_checked = True
                     lvl = logging.DEBUG
 
                     # if more than REMINDER_INTERVAL has elapsed since we warned
                     # about files being ignored, warn again
-                    if time.time() > (reminder_time + REMINDER_INTERVAL):
+                    if time.time() > (m.reminder_time + REMINDER_INTERVAL):
                         lvl = logging.WARNING
                         if not args.dryrun:
-                            touch(reminder_file)
+                            m.reminders_issued = True
 
                     logging.log(lvl, "ignoring %s as there is no !ready" % fn)
                 else:
@@ -193,23 +187,12 @@ def scan(m, all_packages, arch, args):
             if package.read_package(packages, m.homedir(), dirpath, files, strict=True):
                 error = True
 
-    # if we didn't need to check the reminder timestamp, it can be reset
-    if not reminders and not args.dryrun:
-        try:
-            os.remove(reminder_file)
-        except FileNotFoundError:
-            pass
+    # always consider timestamp as checked during a dry-run, so it is never
+    # reset
+    if args.dryrun:
+        m.reminders_timestamp_checked = True
 
     return ScanResult(error, packages, move, vault, remove, remove_success)
-
-
-#
-#
-#
-
-def touch(fn, times=None):
-    with open(fn, 'a'):
-        os.utime(fn, times)
 
 
 #

@@ -181,6 +181,9 @@ def process(args):
                     packages[arch] = merged_packages[arch]
                     logging.debug("added %d + %d packages from maintainer %s" % (len(scan_result[arch].packages), len(scan_result['noarch'].packages), name))
 
+        # record updated reminder times for maintainers
+        maintainers.Maintainer.update_reminder_times(mlist)
+
     return packages
 
 
