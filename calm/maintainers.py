@@ -137,28 +137,39 @@ class Maintainer(object):
             for (i, l) in enumerate(f):
                 l = l.rstrip()
 
-                # match lines of the form '<package> <maintainer(s)>'
+                # match lines of the form '<package> <maintainer(s)|status>'
                 match = re.match(r'^(\S+)\s+(.+)$', l)
                 if match:
                     pkg = match.group(1)
-                    m = match.group(2)
+                    rest = match.group(2)
 
-                    # if maintainer starts with a word in all caps, just use that
-                    (m, n) = re.subn(r'^([A-Z]+)\b.*$', r'\1', m)
-                    if n > 0:
+                    # does rest starts with a status in all caps?
+                    status_match = re.match(r'^([A-Z]+)\b.*$', rest)
+                    if status_match:
+                        status = status_match.group(1)
+
                         # ignore packages marked as 'OBSOLETE'
-                        if m == 'OBSOLETE':
+                        if status == 'OBSOLETE':
                             continue
 
-                        # orphaned packages get the default maintainer if we have
-                        # one, otherwise are assigned to 'ORPHANED'
-                        elif m == 'ORPHANED':
+                        # orphaned packages get the default maintainer if we
+                        # have one, otherwise they are assigned to 'ORPHANED'
+                        elif status == 'ORPHANED':
                             if orphanMaint is not None:
                                 m = orphanMaint
+                            else:
+                                m = status
+
+                            # also add any previous maintainer(s) listed
+                            prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
+                            if prevm:
+                                m = m + '/' + prevm.group(1)
 
                         else:
-                            logging.error("unknown package status '%s' in line %s:%d: '%s'" % (m, pkglist, i, l))
+                            logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
                             continue
+                    else:
+                        m = rest
 
                     # joint maintainers are separated by '/'
                     for name in m.split('/'):
