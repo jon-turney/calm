@@ -5,3 +5,4 @@
 * run more often, option to not do anything if no uploads (to avoid reading the release area if we don't need to), lockfile to avoid colliding runs
 * work out some way to package it as a replacement for genini
 * use irkerd to report when calm failed due to an error?
+* upload a hash at the same time as package, and pass that through to setup.ini

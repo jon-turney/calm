@@ -31,6 +31,7 @@ import os
 import logging
 import re
 import shutil
+import tarfile
 import time
 
 from . import package
@@ -150,6 +151,7 @@ def scan(m, all_packages, arch, args):
                 files.remove(f)
                 continue
 
+            # a remove file, which indicates some other file should be removed
             if f.startswith('-'):
                 if ('*' in f) or ('?' in f):
                     logging.error("remove file %s name contains metacharacters, which are no longer supported" % fn)
@@ -161,25 +163,44 @@ def scan(m, all_packages, arch, args):
                     vault[relpath].append(f[1:])
                     remove_success.append(fn)
                 files.remove(f)
-            else:
-                dest = os.path.join(releasedir, relpath, f)
-                if os.path.isfile(dest):
-                    if f != 'setup.hint':
-                        if filecmp.cmp(dest, fn, shallow=False):
-                            logging.info("ignoring, identical %s is already in release area" % fn)
-                        else:
-                            logging.error("ignoring, different %s is already in release area (perhaps you should rebuild with a different version-release identifier?)" % fn)
-                            error = True
-                        files.remove(f)
+                continue
+
+            # verify compressed archive files are valid
+            if re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f):
+                valid = True
+                try:
+                    # we need to extract all of an archive contents to validate
+                    # it
+                    with tarfile.open(fn) as a:
+                        a.getmembers()
+                except Exception as e:
+                    valid = False
+                    logging.error("exception %s while reading %s" % (type(e).__name__, fn))
+                    logging.debug('', exc_info=True)
+
+                if not valid:
+                    files.remove(f)
+                    continue
+
+            # does file already exist in release area?
+            dest = os.path.join(releasedir, relpath, f)
+            if os.path.isfile(dest):
+                if f != 'setup.hint':
+                    if filecmp.cmp(dest, fn, shallow=False):
+                        logging.info("ignoring, identical %s is already in release area" % fn)
                     else:
-                        if filecmp.cmp(dest, fn, shallow=False):
-                            logging.debug("identical %s is already in release area" % fn)
-                        else:
-                            logging.debug("different %s is already in release area" % fn)
-                        # we always consider setup.hint, as we can't have a valid package without it
-                        move[relpath].append(f)
+                        logging.error("ignoring, different %s is already in release area (perhaps you should rebuild with a different version-release identifier?)" % fn)
+                        error = True
+                    files.remove(f)
                 else:
+                    if filecmp.cmp(dest, fn, shallow=False):
+                        logging.debug("identical %s is already in release area" % fn)
+                    else:
+                        logging.debug("different %s is already in release area" % fn)
+                    # we always consider setup.hint, as we can't have a valid package without it
                     move[relpath].append(f)
+            else:
+                move[relpath].append(f)
 
         # read and validate package
         if files:

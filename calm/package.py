@@ -245,9 +245,13 @@ def tarfile_is_empty(tf):
         return False
 
     # if it's really a tar file, does it contain zero files?
-    with tarfile.open(tf) as a:
-        if any(a) == 0:
-            return True
+    try:
+        with tarfile.open(tf) as a:
+            if any(a) == 0:
+                return True
+    except Exception as e:
+        logging.error("exception %s while reading %s" % (type(e).__name__, tf))
+        logging.debug('', exc_info=True)
 
     return False
 

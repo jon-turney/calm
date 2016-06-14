@@ -1,0 +1,3 @@
+{'sdesc': '"A corrupt package"',
+ 'ldesc': '"A package containing corrupt archives"',
+ 'category': 'Devel'}

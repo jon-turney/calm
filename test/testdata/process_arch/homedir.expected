@@ -6,6 +6,7 @@
  'Blooey McFooey/x86': [],
  'Blooey McFooey/x86/release': [],
  'Blooey McFooey/x86/release/after-ready': ['after-ready-1.0-1.tar.bz2', 'setup.hint'],
+ 'Blooey McFooey/x86/release/corrupt': ['corrupt-2.1.0-1-src.tar.xz', 'corrupt-2.1.0-1.tar.xz'],
  'Blooey McFooey/x86/release/not-on-maintainer-list': ['not-on-maintainer-list-1.0-1.tar.bz2', 'setup.hint'],
  'Blooey McFooey/x86/release/not-on-package-list': ['not-on-package-list-1.0-1.tar.bz2', 'setup.hint'],
  'Blooey McFooey/x86/release/not-ready': ['-not-ready-0.9-1.tar.bz2', 'not-ready-1.0-1.tar.bz2', 'setup.hint'],

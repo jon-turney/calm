@@ -150,21 +150,26 @@ def update_package_listings(args, packages, arch):
 
                         tf = os.path.join(args.rel_area, packages[p].path, t)
                         if not os.path.exists(tf):
-                            # XXX: this shouldn't happen with a full mirror...
-                            print('tarfile %s not found' % tf, file=f)
+                            # this shouldn't happen with a full mirror
+                            logging.error("tarfile %s not found %s" % (tf))
                         elif os.path.getsize(tf) <= 32:
                             # compressed empty files aren't a valid tar file,
                             # but we can just ignore them
                             pass
                         else:
-                            with tarfile.open(tf) as a:
-                                for i in a:
-                                    print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
-                                    if i.isdir():
-                                        print('/', file=f, end='')
-                                    if i.issym() or i.islnk():
-                                        print(' -> %s' % i.linkname, file=f, end='')
-                                    print('', file=f)
+                            try:
+                                with tarfile.open(tf) as a:
+                                    for i in a:
+                                        print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
+                                        if i.isdir():
+                                            print('/', file=f, end='')
+                                        if i.issym() or i.islnk():
+                                            print(' -> %s' % i.linkname, file=f, end='')
+                                        print('', file=f)
+                            except Exception as e:
+                                print('package is corrupted', file=f)
+                                logging.error("exception %s while reading %s" % (type(e).__name__, tf))
+                                logging.debug('', exc_info=True)
 
                         print(textwrap.dedent('''\
                                                  </pre></tt>

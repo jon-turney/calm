@@ -196,7 +196,8 @@ class CalmTest(unittest.TestCase):
 
         ready_fns = [(os.path.join(m.homedir(), 'x86', 'release', 'testpackage', '!ready'), ''),
                      (os.path.join(m.homedir(), 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
-                     (os.path.join(m.homedir(), 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700')]
+                     (os.path.join(m.homedir(), 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
+                     (os.path.join(m.homedir(), 'x86', 'release', 'corrupt', '!ready'), '')]
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
@@ -259,7 +260,8 @@ class CalmTest(unittest.TestCase):
         ready_fns = [(os.path.join(m_homedir, 'x86', 'release', 'testpackage', '!ready'), ''),
                      (os.path.join(m_homedir, 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
                      (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
-                     (os.path.join(m_homedir, 'noarch', 'release', 'perl-Net-SMTP-SSL', '!ready'), '')]
+                     (os.path.join(m_homedir, 'noarch', 'release', 'perl-Net-SMTP-SSL', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86', 'release', 'corrupt', '!ready'), '')]
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
