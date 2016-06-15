@@ -49,7 +49,6 @@ ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove
 
 def scan(m, all_packages, arch, args):
     basedir = os.path.join(m.homedir(), arch)
-    releasedir = os.path.join(args.rel_area, arch)
 
     packages = defaultdict(package.Package)
     move = defaultdict(list)
@@ -183,7 +182,7 @@ def scan(m, all_packages, arch, args):
                     continue
 
             # does file already exist in release area?
-            dest = os.path.join(releasedir, relpath, f)
+            dest = os.path.join(args.rel_area, relpath, f)
             if os.path.isfile(dest):
                 if f != 'setup.hint':
                     if filecmp.cmp(dest, fn, shallow=False):
