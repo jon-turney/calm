@@ -36,7 +36,7 @@ QUEUE = 'package_queue'
 #
 
 def add(args, movelist, fromdir):
-    if not hasattr(args, 'queuedir'):
+    if not getattr(args, 'queuedir', None):
         return
 
     queue_root = os.path.join(args.queuedir, 'dirq')
