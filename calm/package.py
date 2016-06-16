@@ -397,6 +397,14 @@ def validate_packages(args, packages):
             if l in packages[p].hints:
                 packages[p].stability[l] = packages[p].hints[l]
 
+        # the package must have some versions
+        if not packages[p].stability:
+            logging.error("package '%s' doesn't have any versions" % (p))
+            error = True
+        # it's also probably a really good idea if a curr version exists
+        elif 'curr' not in packages[p].stability:
+            logging.warning("package '%s' doesn't have a curr version" % (p))
+
         # If, for every stability level, the install tarball is empty and there
         # is no source tarball, we should probably be marked obsolete
         if 'skip' not in packages[p].hints:

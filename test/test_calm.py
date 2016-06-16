@@ -285,7 +285,7 @@ class CalmTest(unittest.TestCase):
         # ensure sha512.sum files exist
         os.system("find testdata/relarea/x86 testdata/relarea/noarch -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \;")
         # should remove a sha512.sum file so that we test functioning when it's absent
-        os.unlink('testdata/relarea/x86/release/naim/sha512.sum')
+        os.unlink('testdata/relarea/x86/release/arc/sha512.sum')
         # remove !ready files
         os.system("find testdata/homes -name !ready -exec rm {} \;")
 
