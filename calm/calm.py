@@ -82,6 +82,7 @@ def process(args):
             logging.warning("--dry-run is in effect, nothing will really be done")
 
         # for each arch
+        error = False
         packages = {}
         for arch in common_constants.ARCHES:
             logging.debug("reading existing packages for arch %s" % (arch))
@@ -92,7 +93,10 @@ def process(args):
             # validate the package set
             if not package.validate_packages(args, packages[arch]):
                 logging.error("existing %s package set has errors", arch)
-                return None
+                error = True
+
+        if error:
+            return None
 
         # read maintainer list
         mlist = maintainers.Maintainer.read(args)
