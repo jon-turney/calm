@@ -124,7 +124,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             return True
 
         # read setup.hints
-        hints = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
+        hints = hint.hint_file_parse(os.path.join(dirpath, 'setup.hint'), hint.setup)
         if 'parse-errors' in hints:
             for l in hints['parse-errors']:
                 logging.error("package '%s': %s" % (p, l))

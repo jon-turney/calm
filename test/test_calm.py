@@ -100,7 +100,7 @@ class CalmTest(unittest.TestCase):
             if 'setup.hint' in files:
                 with self.subTest(package=os.path.basename(dirpath)):
                     logging.info('Reading %s' % os.path.join(dirpath, 'setup.hint'))
-                    results = hint.setup_hint_parse(os.path.join(dirpath, 'setup.hint'))
+                    results = hint.hint_file_parse(os.path.join(dirpath, 'setup.hint'), hint.setup)
                     compare_with_expected_file(self, os.path.join('testdata/hints', relpath), results)
 
 #

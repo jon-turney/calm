@@ -22,23 +22,61 @@
 #
 
 #
-# parser for setup.hint files
+# parser for .hint files
 #
 
 from collections import OrderedDict
 import re
 import argparse
 
-# keys which always have a value which may be multiline
-multilinevalkeys = ['ldesc', 'message']
-# keys which always have a value
-valkeys = ['curr', 'prev', 'test', 'category', 'external-source', 'sdesc']
-# keys which may have an empty value
-optvalkeys = ['requires']
-# keys which must have an empty value
-novalkeys = ['skip']
 
-hintkeys = multilinevalkeys + valkeys + optvalkeys + novalkeys
+# helper function to merge dicts
+def merge_dicts(x, *y):
+    z = x.copy()
+    for i in y:
+        z.update(i)
+    return z
+
+# types of key:
+# 'multilineval' - always have a value, which may be multiline
+# 'val'          - always have a value
+# 'optval'       - may have an empty value
+# 'noval'        - always have an empty value
+keytypes = ['multilineval', 'val', 'optval', 'noval']
+
+# kinds of hint file, and their allowed keys
+setup, pvr, override = range(3)
+
+commonkeys = {
+    'ldesc': 'multilineval',
+    'message': 'multilineval',
+    'category': 'val',
+    'external-source': 'val',
+    'sdesc': 'val',
+    'skip': 'noval',
+}
+
+versionkeys = {
+    'curr': 'val',
+    'prev': 'val',
+    'test': 'val',
+}
+
+hintkeys = {}
+
+hintkeys[setup] = merge_dicts(commonkeys, versionkeys, {
+    'requires': 'optval',
+})
+
+hintkeys[pvr] = merge_dicts(commonkeys, {
+    'requires': 'optval',
+    # putative syntax for not yet implemented per-version dependencies
+    # (depends could be an alias for requires in this kind of hint file)
+    'depends': 'optval',
+    'build-depends': 'optval',
+})
+
+hintkeys[override] = versionkeys
 
 # valid categories
 categories = ['accessibility',
@@ -145,15 +183,18 @@ def item_lexer(c):
         yield (i, o, None)
 
 
-def setup_hint_parse(fn):
+# parse the file |fn| as a .hint file of kind |kind|
+def hint_file_parse(fn, kind):
     hints = OrderedDict()
     errors = []
     warnings = []
 
+    assert(kind in hintkeys)
+
     with open(fn, 'rb') as f:
         c = f.read()
 
-        # validate that setup.hint is UTF-8 encoded
+        # validate that .hint file is UTF-8 encoded
         try:
             c = c.decode('utf-8')
 
@@ -172,19 +213,20 @@ def setup_hint_parse(fn):
                     key = match.group(1)
                     value = match.group(2)
 
-                    if key not in hintkeys:
+                    if key not in hintkeys[kind]:
                         errors.append('unknown setup key %s at line %d' % (key, i))
                         continue
+                    type = hintkeys[kind][key]
 
                     # check if the key occurs more than once
                     if key in hints:
                         errors.append('duplicate key %s' % (key))
 
                     # check the value meets any key-specific constraints
-                    if (key in valkeys) and (len(value) == 0):
+                    if (type == 'val') and (len(value) == 0):
                         errors.append('%s has empty value' % (key))
 
-                    if (key in novalkeys) and (len(value) != 0):
+                    if (type == 'noval') and (len(value) != 0):
                         errors.append("%s has non-empty value '%s'" % (key, value))
 
                     # validate all categories are in the category list (case-insensitively)
@@ -211,7 +253,7 @@ def setup_hint_parse(fn):
                             warnings.append("sdesc contains '  '")
 
                     # only 'ldesc' and 'message' are allowed a multi-line value
-                    if (key not in multilinevalkeys) and (len(value.splitlines()) > 1):
+                    if (type != 'multilineval') and (len(value.splitlines()) > 1):
                         errors.append("key %s has multi-line value" % (key))
 
                     # message must have an id and some text
@@ -228,9 +270,10 @@ def setup_hint_parse(fn):
                 else:
                     errors.append("unknown setup construct '%s' at line %d" % (item, i))
 
-            # if 'skip' isn't present, 'category' and 'sdesc' must be
+            # for setup and pvr kinds, if 'skip' isn't present, 'category' and
+            # 'sdesc' must be
             # XXX: genini also requires 'requires' but that seems wrong
-            if 'skip' not in hints:
+            if 'skip' not in hints and kind != override:
                 mandatory = ['category', 'sdesc']
                 for k in mandatory:
                     if k not in hints:
@@ -269,7 +312,7 @@ def main(args):
     status = 0
 
     for fn in args.files:
-        hints = setup_hint_parse(fn)
+        hints = hint_file_parse(fn, setup)
 
         if args.verbose > 1:
             print(hints)
@@ -292,7 +335,7 @@ def main(args):
 #
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='setup.hint validator')
+    parser = argparse.ArgumentParser(description='.hint file validator')
     parser.add_argument('files', nargs='*', metavar='filename', help='list of files')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
 
