@@ -49,8 +49,9 @@ class Package(object):
     def __init__(self):
         self.path = ''  # path to package, relative to release area
         self.tars = {}
-        self.hints = {}
         self.is_used_by = set()
+        self.version_hints = {}
+        self.override_hints = {}
 
     def __repr__(self):
         return "Package('%s', %s, %s)" % (self.path, pprint.pformat(self.tars),
@@ -100,6 +101,46 @@ def sha512_file(fn, block_size=256*128):
     return sha512.hexdigest()
 
 
+# helper function to read hints
+def read_hints(p, fn, kind):
+    hints = hint.hint_file_parse(fn, kind)
+
+    if 'parse-errors' in hints:
+        for l in hints['parse-errors']:
+            logging.error("package '%s': %s" % (p, l))
+        logging.error("errors while parsing hints for package '%s'" % p)
+        return None
+
+    if 'parse-warnings' in hints:
+        for l in hints['parse-warnings']:
+            logging.info("package '%s': %s" % (p, l))
+
+    return hints
+
+
+# helper function to clean up hints
+def clean_hints(p, hints, strict_lvl, warnings):
+    #
+    # fix some common defects in the hints
+    #
+
+    # don't allow a redundant 'package:' or 'package - ' at start of sdesc
+    #
+    # match case-insensitively, and use a base package name (trim off any
+    # leading 'lib' from package name, remove any soversion or 'devel'
+    # suffix)
+    #
+    if 'sdesc' in hints:
+        colon = re.match(r'^"(.*?)(\s*:|\s+-)', hints['sdesc'])
+        if colon:
+            package_basename = re.sub(r'^lib(.*?)(|-devel|\d*)$', r'\1', p)
+            if package_basename.upper().startswith(colon.group(1).upper()):
+                logging.log(strict_lvl, "package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
+                warnings = True
+
+    return warnings
+
+
 #
 # read a single package
 #
@@ -108,8 +149,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
 
-    if 'setup.hint' in files:
-        files.remove('setup.hint')
+    if any([f.endswith('.hint') for f in files]):
         # the package name is always the directory name
         p = os.path.basename(dirpath)
 
@@ -123,16 +163,34 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                           (dirpath, packages[p].path))
             return True
 
-        # read setup.hints
-        hints = hint.hint_file_parse(os.path.join(dirpath, 'setup.hint'), hint.setup)
-        if 'parse-errors' in hints:
-            for l in hints['parse-errors']:
-                logging.error("package '%s': %s" % (p, l))
-            logging.error("errors while parsing hints for package '%s'" % p)
-            return True
-        if 'parse-warnings' in hints:
-            for l in hints['parse-warnings']:
-                logging.info("package '%s': %s" % (p, l))
+        # read setup.hint
+        legacy = 'setup.hint' in files
+        if legacy:
+            hints = read_hints(p, os.path.join(dirpath, 'setup.hint'), hint.setup)
+            if not hints:
+                return True
+            warnings = clean_hints(p, hints, strict_lvl, warnings)
+            files.remove('setup.hint')
+        else:
+            hints = {}
+
+        # determine version overrides
+        if 'override.hint' in files:
+            # read override.hint
+            override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
+            files.remove('override.hint')
+        else:
+            override_hints = {}
+
+            # if we didn't have a version override hint, extract any version
+            # override from legacy hints
+            for level in ['test', 'curr', 'prev']:
+                if level in hints:
+                    override_hints[level] = hints[level]
+
+        for level in ['test', 'curr', 'prev']:
+            if level in hints:
+                del hints[level]
 
         # read sha512.sum
         sha512 = {}
@@ -155,6 +213,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
         # collect the attributes for each tar file
         tars = {}
+        vr_list = set()
 
         for f in list(filter(lambda f: re.match(r'^' + re.escape(p) + r'.*\.tar.*$', f), files)):
             files.remove(f)
@@ -168,15 +227,21 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 logging.log(strict_lvl, "tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warnings = True
             else:
+                v = match.group(1)
+                r = match.group(2)
+
                 # historically, V can contain a '-' (since we can use the fact
                 # we already know P to split unambiguously), but this is a bad
                 # idea.
-                if '-' in match.group(1):
+                if '-' in v:
                     lvl = logging.WARNING if p not in past_mistakes.hyphen_in_version else logging.INFO
                     logging.log(lvl, "tar file '%s' in package '%s' contains '-' in version" % (f, p))
 
-                if not match.group(1)[0].isdigit():
+                if not v[0].isdigit():
                     logging.warning("tar file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
+
+                # if not there already, add to version-release list
+                vr_list.add('%s-%s' % (v, r))
 
             tars[f] = Tar()
             tars[f].size = os.path.getsize(os.path.join(dirpath, f))
@@ -187,6 +252,27 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             else:
                 tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
                 logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
+
+        # determine hints for each version we've encountered
+        version_hints = {}
+        for vr in vr_list:
+            hint_fn = '%s-%s.hint' % (p, vr)
+            if hint_fn in files:
+                # is there a PVR.hint file?
+                pvr_hint = read_hints(p, os.path.join(dirpath,  hint_fn), hint.pvr)
+                if not pvr_hint:
+                    return True
+                warnings = clean_hints(p, pvr_hint, strict_lvl, warnings)
+                files.remove(hint_fn)
+            elif legacy:
+                # otherwise, use setup.hint
+                pvr_hint = hints
+            else:
+                # it's an error to not have either a setup.hint or a pvr.hint
+                logging.error("package %s has packages for version %s, but no %s or setup.hint" % (p, vr, hint_fn))
+                return True
+
+            version_hints[vr] = pvr_hint
 
         # ignore dotfiles
         for f in files:
@@ -199,30 +285,13 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             logging.log(strict_lvl, "unexpected files in %s: %s" % (p, ', '.join(files)))
             warnings = True
 
-        packages[p].hints = hints
+        packages[p].version_hints = version_hints
+        packages[p].override_hints = override_hints
         packages[p].tars = tars
         packages[p].path = relpath
 
-        #
-        # now we have read the package, fix some common defects in the hints
-        #
-
-        # don't allow a redundant 'package:' or 'package - ' at start of sdesc
-        #
-        # match case-insensitively, and use a base package name (trim off any
-        # leading 'lib' from package name, remove any soversion or 'devel'
-        # suffix)
-        #
-        if 'sdesc' in hints:
-            colon = re.match(r'^"(.*?)(\s*:|\s+-)', hints['sdesc'])
-            if colon:
-                package_basename = re.sub(r'^lib(.*?)(|-devel|\d*)$', r'\1', p)
-                if package_basename.upper().startswith(colon.group(1).upper()):
-                    logging.log(strict_lvl, "package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
-                    warnings = True
-
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
-        logging.warning("no setup.hint in %s but has files: %s" % (dirpath, ', '.join(files)))
+        logging.warning("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
 
     if strict:
         return warnings

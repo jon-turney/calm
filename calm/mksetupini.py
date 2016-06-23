@@ -24,7 +24,7 @@
 #
 # mksetupini
 #
-# Make a setup.ini file from a collection of tarfiles and setup.hints
+# Make a setup.ini file from a collection of tarfiles and .hint files
 # (this is intended to be a replacement for genini)
 #
 

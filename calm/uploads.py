@@ -191,7 +191,7 @@ def scan(m, all_packages, arch, args):
             # does file already exist in release area?
             dest = os.path.join(args.rel_area, relpath, f)
             if os.path.isfile(dest):
-                if f != 'setup.hint':
+                if not f.endswith('.hint'):
                     if filecmp.cmp(dest, fn, shallow=False):
                         logging.info("ignoring, identical %s is already in release area" % fn)
                     else:
@@ -203,7 +203,8 @@ def scan(m, all_packages, arch, args):
                         logging.debug("identical %s is already in release area" % fn)
                     else:
                         logging.debug("different %s is already in release area" % fn)
-                    # we always consider setup.hint, as we can't have a valid package without it
+                    # we always consider .hint files as needing to be moved, as
+                    # we currently can't have a valid package without one
                     move[relpath].append(f)
             else:
                 move[relpath].append(f)
