@@ -468,6 +468,10 @@ def validate_packages(args, packages):
                 packages[p].skip = True
                 logging.info("package '%s' appears to be source-only as it has no non-empty install tarfiles and no dependencies, marking as 'skip'" % (p))
 
+        elif has_install and any(['skip' in packages[p].version_hints[vr] for vr in packages[p].version_hints]):
+            logging.error("package '%s' has 'skip:' hint but also has install tarfiles" % (p))
+            error = True
+
         # verify the versions specified for stability level exist
         levels = ['test', 'curr', 'prev']
         for l in levels:
