@@ -50,6 +50,7 @@ class Package(object):
         self.path = ''  # path to package, relative to release area
         self.tars = {}
         self.hints = {}
+        self.is_used_by = set()
 
     def __repr__(self):
         return "Package('%s', %s, %s)" % (self.path, pprint.pformat(self.tars),
@@ -440,6 +441,7 @@ def validate_packages(args, packages):
             # mark the source tarfile as being used by an install tarfile
             if 'source' in packages[p].vermap[v]:
                 packages[p].tars[packages[p].vermap[v]['source']].is_used = True
+                packages[p].is_used_by.add(p)
                 continue
 
             if 'external-source' in packages[p].hints:
@@ -447,6 +449,7 @@ def validate_packages(args, packages):
                 if es_p in packages:
                     if 'source' in packages[es_p].vermap[v]:
                         packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
+                        packages[es_p].is_used_by.add(p)
                         continue
 
             # unless this package is marked as 'self-source'
@@ -469,6 +472,41 @@ def validate_packages(args, packages):
             if not packages[p].tars[packages[p].vermap[v]['source']].is_used:
                 logging.error("package '%s' version '%s' source has no non-empty install tarfiles" % (p, v))
                 error = True
+
+    # do all the packages which use this source package have the same
+    # current version?
+    for source_p in sorted(packages.keys()):
+        versions = defaultdict(list)
+
+        for install_p in packages[source_p].is_used_by:
+            # ignore obsolete packages
+            if '_obsolete' in packages[install_p].hints['category']:
+                continue
+            # ignore runtime library packages, as we may keep old versions of
+            # those
+            if re.match(r'^lib.*\d', install_p):
+                continue
+
+            versions[packages[install_p].stability['curr']].append(install_p)
+
+        if len(versions) > 1:
+            out = []
+            most_common = True
+
+            for v in sorted(versions, key=lambda v: len(versions[v]), reverse=True):
+                # try to keep the output compact by not listing all the packages
+                # the most common current version has, unless it's only one.
+                if most_common and len(versions[v]) != 1:
+                    out.append("%s (%s others)" % (v, len(versions[v])))
+                else:
+                    out.append("%s (%s)" % (v, ','.join(versions[v])))
+                most_common = False
+
+            lvl = logging.DEBUG
+            if source_p not in past_mistakes.nonunique_versions:
+                lvl = logging.ERROR
+                error = True
+            logging.log(lvl, "install packages from source package '%s' have non-unique current versions %s" % (source_p, ', '.join(reversed(out))))
 
     # validate that all packages are in the package maintainers list
     validate_package_maintainers(args, packages)

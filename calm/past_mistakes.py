@@ -95,3 +95,29 @@ self_source = [
     'tesseract-training-spa',
     'tesseract-training-vie',
 ]
+
+# these are source packages which currently have non-unique install versions
+nonunique_versions = [
+    'bzr',              # debuginfo from NMU needs to age out?
+    'cgdb',             # ditto
+    'e2fsprogs',
+    'fltk',
+    'gnome-panel',
+    'guile',
+    'libical',
+    'libjpeg-turbo',    # libturbojpeg isn't detected as an old soversion
+    'librsvg2',
+    'mutter',
+    'ocaml',            # ocaml-camlp4 removed from ocaml distribution after 4.01.0
+    'openmpi',          # libopenmpi isn't detected as an old soversion
+    'python-openssl',   # no debuginfo anymore due to pure python?
+    'python3-openssl',  # ditto?
+    'qt5-webkit',
+    'rsync',            # debuginfo from NMU needs to age out?
+    'ruby-gdk3',
+    'sng',
+    'socat',
+    'sqlite3',          # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
+    'w3m',
+    'zlib',
+]
