@@ -581,11 +581,13 @@ def write_setup_ini(args, packages, arch):
             category = ' '.join(map(upper_first_character, packages[p].hints['category'].split()))
             print("category: %s" % category, file=f)
 
+            # uniquify and sort requires
+            requires = set()
             if 'requires' in packages[p].hints:
-                # for historical reasons, empty requires are suppressed
-                requires = packages[p].hints['requires']
-                if requires:
-                    print("requires: %s" % requires, file=f)
+                requires = set(packages[p].hints['requires'].split())
+            # for historical reasons, empty requires are suppressed
+            if requires:
+                print("requires: %s" % ' '.join(sorted(requires)), file=f)
 
             # write tarfile lines for each stability level
             for level in ['curr', 'prev', 'test']:
