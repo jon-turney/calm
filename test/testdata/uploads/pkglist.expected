@@ -9,6 +9,6 @@
  'ldesc': '"A test subpackage"',
  'category': 'Devel',
  'external-source': 'testpackage'}),
- 'testpackage2-subpackage': Package('x86/release/testpackage2/testpackage2-subpackage', {'testpackage2-subpackage-1.0-1.tar.bz2': Tar('aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'sdesc': '"A test subpackage 2"',
+ 'testpackage2-subpackage': Package('x86/release/testpackage2/testpackage2-subpackage', {'testpackage2-subpackage-1.0-1.tar.bz2': Tar('6de201dfed1d45412509c65deb34690dc2d09c6aafccfe491fd2f440f92842b9c755b61dc7bcdd4cc0c9f18cf46c2b3a1241e99c4c2a33fff5555e7b2f0b6348', 14, True)}, {'sdesc': '"A test subpackage 2"',
  'ldesc': '"A test subpackage 2"',
  'category': 'Devel'})}

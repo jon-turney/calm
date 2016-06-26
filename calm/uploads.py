@@ -170,15 +170,19 @@ def scan(m, all_packages, arch, args):
             # verify compressed archive files are valid
             if re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f):
                 valid = True
-                try:
-                    # we need to extract all of an archive contents to validate
-                    # it
-                    with tarfile.open(fn) as a:
-                        a.getmembers()
-                except Exception as e:
-                    valid = False
-                    logging.error("exception %s while reading %s" % (type(e).__name__, fn))
-                    logging.debug('', exc_info=True)
+
+                # accept a compressed empty file, even though it isn't a valid
+                # compressed archive
+                if os.path.getsize(fn) > 32:
+                    try:
+                        # we need to extract all of an archive contents to validate
+                        # it
+                        with tarfile.open(fn) as a:
+                            a.getmembers()
+                    except Exception as e:
+                        valid = False
+                        logging.error("exception %s while reading %s" % (type(e).__name__, fn))
+                        logging.debug('', exc_info=True)
 
                 if not valid:
                     files.remove(f)
