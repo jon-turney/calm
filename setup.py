@@ -9,7 +9,6 @@ setup(
     author_email='jon.turney@dronecode.org.uk',
     license='MIT',
     packages=['calm'],
-    install_requires=['dirq'],
     entry_points= {
         'console_scripts': [
             'calm = calm.calm:main',

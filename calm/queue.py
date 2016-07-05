@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 #
 
-from dirq.QueueSimple import QueueSimple
 import logging
 import os
 import re
@@ -42,6 +41,7 @@ def add(args, movelist, fromdir):
     queue_root = os.path.join(args.queuedir, 'dirq')
     upload_root = os.path.join(args.queuedir, 'uploads')
 
+    from dirq.QueueSimple import QueueSimple
     dirq = QueueSimple(os.path.join(queue_root, QUEUE))
 
     # clean up empty directories
