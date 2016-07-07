@@ -278,18 +278,26 @@ def validate_packages(args, packages):
     for p in sorted(packages.keys()):
         logging.debug("validating package '%s'" % (p))
 
-        if 'required-package' not in getattr(args, 'okmissing', []):
-            # all packages listed in requires must exist
-            if 'requires' in packages[p].hints:
-                for r in packages[p].hints['requires'].split():
-                    if r not in packages:
+        if 'requires' in packages[p].hints:
+            for r in packages[p].hints['requires'].split():
+
+                # a package should not appear in it's own requires
+                if r == p:
+                    lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
+                    logging.log(lvl, "package '%s' requires itself" % (p))
+
+                # all packages listed in requires must exist (unless okmissing
+                # says that's ok)
+                if r not in packages:
+                    if 'required-package' not in getattr(args, 'okmissing', []):
                         logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
                         error = True
+                    continue
 
-                        # a package is should not appear in it's own requires
-                        if r == p:
-                            lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.INFO
-                            logging.log(lvl, "package '%s' requires itself" % (p))
+                # requiring a source-only package makes no sense
+                if 'skip' in packages[r].hints:
+                    logging.error("package '%s' requires source-only package '%s'" % (p, r))
+                    error = True
 
         # if external-source is used, the package must exist
         if 'external-source' in packages[p].hints:
