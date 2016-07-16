@@ -100,7 +100,7 @@ def main():
     parser = argparse.ArgumentParser(description='Make setup.ini')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
-    parser.add_argument('--okmissing', action='append', help='missing things are ok', choices=['required-package'])
+    parser.add_argument('--okmissing', action='append', help='missing things which are ok', choices=['curr', 'required-package'])
     parser.add_argument('--pkglist', action='store', nargs='?', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", const=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')

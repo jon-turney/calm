@@ -411,7 +411,7 @@ def validate_packages(args, packages):
             logging.error("package '%s' doesn't have any versions" % (p))
             error = True
         # it's also probably a really good idea if a curr version exists
-        elif 'curr' not in packages[p].stability:
+        elif 'curr' not in packages[p].stability and 'curr' not in getattr(args, 'okmissing', []):
             logging.warning("package '%s' doesn't have a curr version" % (p))
 
         # If, for every stability level, the install tarball is empty and there
