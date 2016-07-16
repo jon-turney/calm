@@ -495,7 +495,8 @@ def validate_packages(args, packages):
             if re.match(r'^lib.*\d', install_p):
                 continue
 
-            versions[packages[install_p].stability['curr']].append(install_p)
+            if 'curr' in packages[install_p].stability:
+                versions[packages[install_p].stability['curr']].append(install_p)
 
         if len(versions) > 1:
             out = []
