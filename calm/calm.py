@@ -149,6 +149,7 @@ def process(args):
                     # merge package sets
                     merged_packages[arch] = package.merge(packages[arch], scan_result[arch].packages, scan_result['noarch'].packages)
                     if not merged_packages[arch]:
+                        logging.error("error while merging uploaded %s packages for %s" % (arch, name))
                         valid = False
                         break
 
@@ -160,11 +161,11 @@ def process(args):
                     # validate the package set
                     logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
                     if not package.validate_packages(args, merged_packages[arch]):
+                        logging.error("error while validating merged %s packages for %s" % (arch, name))
                         valid = False
 
                 if not valid:
                     # discard move list and merged_packages
-                    logging.error("error while merging uploaded %s packages for %s" % (arch, name))
                     continue
 
                 # for each arch and noarch
