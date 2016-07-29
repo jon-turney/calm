@@ -52,10 +52,15 @@ class Package(object):
         self.is_used_by = set()
         self.version_hints = {}
         self.override_hints = {}
+        self.skip = False
 
     def __repr__(self):
-        return "Package('%s', %s, %s)" % (self.path, pprint.pformat(self.tars),
-                                          pprint.pformat(self.hints))
+        return "Package('%s', %s, %s, %s, %s)" % (
+            self.path,
+            pprint.pformat(self.tars),
+            pprint.pformat(self.version_hints),
+            pprint.pformat(self.override_hints),
+            self.skip)
 
 
 # information we keep about a tar file
@@ -289,6 +294,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         packages[p].override_hints = override_hints
         packages[p].tars = tars
         packages[p].path = relpath
+        packages[p].skip = any(['skip' in version_hints[vr] for vr in vr_list])
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.warning("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
@@ -347,33 +353,34 @@ def validate_packages(args, packages):
     for p in sorted(packages.keys()):
         logging.debug("validating package '%s'" % (p))
 
-        if 'requires' in packages[p].hints:
-            for r in packages[p].hints['requires'].split():
+        for (v, hints) in packages[p].version_hints.items():
+            if 'requires' in hints:
+                for r in hints['requires'].split():
 
-                # a package should not appear in it's own requires
-                if r == p:
-                    lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
-                    logging.log(lvl, "package '%s' requires itself" % (p))
+                    # a package should not appear in it's own requires
+                    if r == p:
+                        lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
+                        logging.log(lvl, "package '%s' version '%s' requires itself" % (p, v))
 
-                # all packages listed in requires must exist (unless okmissing
-                # says that's ok)
-                if r not in packages:
-                    if 'required-package' not in getattr(args, 'okmissing', []):
-                        logging.error("package '%s' requires nonexistent package '%s'" % (p, r))
+                    # all packages listed in requires must exist (unless
+                    # okmissing says that's ok)
+                    if r not in packages:
+                        if 'required-package' not in getattr(args, 'okmissing', []):
+                            logging.error("package '%s' version '%s' requires nonexistent package '%s'" % (p, v, r))
+                            error = True
+                        continue
+
+                    # requiring a source-only package makes no sense
+                    if packages[r].skip:
+                        logging.error("package '%s' version '%s' requires source-only package '%s'" % (p, v, r))
                         error = True
-                    continue
 
-                # requiring a source-only package makes no sense
-                if 'skip' in packages[r].hints:
-                    logging.error("package '%s' requires source-only package '%s'" % (p, r))
+            # if external-source is used, the package must exist
+            if 'external-source' in hints:
+                e = hints['external-source']
+                if e not in packages:
+                    logging.error("package '%s' version '%s' refers to nonexistent external-source '%s'" % (p, v, e))
                     error = True
-
-        # if external-source is used, the package must exist
-        if 'external-source' in packages[p].hints:
-            e = packages[p].hints['external-source']
-            if e not in packages:
-                logging.error("package '%s' refers to nonexistent external-source '%s'" % (p, e))
-                error = True
 
         packages[p].vermap = defaultdict(defaultdict)
         is_empty = {}
@@ -410,18 +417,19 @@ def validate_packages(args, packages):
         # package set, so that an upload containing just a replacement
         # setup.hint is not considered a source-only package)
         #
-        # XXX: the check should probably be for any non-empty install files, but
-        # that differs from what upset does
-        if not has_install and 'skip' not in packages[p].hints:
-            packages[p].hints['skip'] = ''
-            logging.info("package '%s' appears to be source-only as it has no install tarfiles, adding 'skip:' hint" % (p))
+        # XXX: the check should probably be for any non-empty install files, or
+        # (any install files or any dependencies), but that differs from what
+        # upset does
+        if not has_install and not packages[p].skip:
+            packages[p].skip = True
+            logging.info("package '%s' appears to be source-only as it has no install tarfiles, marking as 'skip'" % (p))
 
         # verify the versions specified for stability level exist
         levels = ['test', 'curr', 'prev']
         for l in levels:
-            if l in packages[p].hints:
+            if l in packages[p].override_hints:
                 # check that version exists
-                v = packages[p].hints[l]
+                v = packages[p].override_hints[l]
                 if v not in packages[p].vermap:
                     logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
                     error = True
@@ -444,9 +452,9 @@ def validate_packages(args, packages):
                 l = levels[0]
 
                 # if current stability level has an override
-                if l in packages[p].hints:
+                if l in packages[p].override_hints:
                     # if we haven't reached that version yet
-                    if v != packages[p].hints[l]:
+                    if v != packages[p].override_hints[l]:
                         break
                     else:
                         logging.debug("package '%s' stability '%s' overridden to version '%s'" % (p, l, v))
@@ -472,8 +480,8 @@ def validate_packages(args, packages):
         # lastly, fill in any levels which we skipped over because a higher
         # stability level was overriden to a lower version
         for l in levels:
-            if l in packages[p].hints:
-                packages[p].stability[l] = packages[p].hints[l]
+            if l in packages[p].override_hints:
+                packages[p].stability[l] = packages[p].override_hints[l]
 
         # the package must have some versions
         if not packages[p].stability:
@@ -485,8 +493,8 @@ def validate_packages(args, packages):
 
         # If, for every stability level, the install tarball is empty and there
         # is no source tarball, we should probably be marked obsolete
-        if 'skip' not in packages[p].hints:
-            if '_obsolete' not in packages[p].hints['category']:
+        if not packages[p].skip:
+            if not any(['_obsolete' in packages[p].version_hints[vr]['category'] for vr in packages[p].version_hints]):
                 has_something = False
 
                 for l in ['test', 'curr', 'prev']:
@@ -521,8 +529,8 @@ def validate_packages(args, packages):
                 packages[p].is_used_by.add(p)
                 continue
 
-            if 'external-source' in packages[p].hints:
-                es_p = packages[p].hints['external-source']
+            if 'external-source' in packages[p].version_hints[v]:
+                es_p = packages[p].version_hints[v]['external-source']
                 if es_p in packages:
                     if 'source' in packages[es_p].vermap[v]:
                         packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
@@ -557,7 +565,7 @@ def validate_packages(args, packages):
 
         for install_p in packages[source_p].is_used_by:
             # ignore obsolete packages
-            if '_obsolete' in packages[install_p].hints['category']:
+            if not any(['_obsolete' in packages[p].version_hints[vr]['category'] for vr in packages[p].version_hints]):
                 continue
             # ignore runtime library packages, as we may keep old versions of
             # those
@@ -607,10 +615,10 @@ def validate_package_maintainers(args, packages):
     # validate that all packages are in the package list
     for p in sorted(packages):
         # ignore skip packages
-        if 'skip' in packages[p].hints:
+        if packages[p].skip:
             continue
         # ignore obsolete packages
-        if '_obsolete' in packages[p].hints['category']:
+        if any(['_obsolete' in packages[p].version_hints[vr]['category'] for vr in packages[p].version_hints]):
             continue
         if not is_in_package_list(packages[p].path, all_packages):
             logging.error("package '%s' is not in the package list" % (p))
@@ -643,26 +651,28 @@ def write_setup_ini(args, packages, arch):
         # for each package
         for p in sorted(packages.keys(), key=sort_key):
             # do nothing if 'skip'
-            if 'skip' in packages[p].hints:
+            if packages[p].skip:
                 continue
 
             # write package data
             print("\n@ %s" % p, file=f)
 
-            print("sdesc: %s" % packages[p].hints['sdesc'], file=f)
+            curr = packages[p].stability['curr']
+            print("sdesc: %s" % packages[p].version_hints[curr]['sdesc'], file=f)
 
-            if 'ldesc' in packages[p].hints:
-                print("ldesc: %s" % packages[p].hints['ldesc'], file=f)
+            if 'ldesc' in packages[p].version_hints[curr]:
+                print("ldesc: %s" % packages[p].version_hints[curr]['ldesc'], file=f)
 
             # for historical reasons, category names must start with a capital
             # letter
-            category = ' '.join(map(upper_first_character, packages[p].hints['category'].split()))
+            category = ' '.join(map(upper_first_character, packages[p].version_hints[curr]['category'].split()))
             print("category: %s" % category, file=f)
 
-            # uniquify and sort requires
+            # compute the union of requires for all versions
             requires = set()
-            if 'requires' in packages[p].hints:
-                requires = set(packages[p].hints['requires'].split())
+            for hints in packages[p].version_hints.values():
+                if 'requires' in hints:
+                    requires = set.union(requires, hints['requires'].split())
             # for historical reasons, empty requires are suppressed
             if requires:
                 print("requires: %s" % ' '.join(sorted(requires)), file=f)
@@ -684,16 +694,16 @@ def write_setup_ini(args, packages, arch):
                         t = packages[p].vermap[version]['source']
                         tar_line('source', packages[p], t, f)
                     # if that doesn't exist, follow external-source
-                    elif 'external-source' in packages[p].hints:
-                        s = packages[p].hints['external-source']
+                    elif 'external-source' in packages[p].version_hints[version]:
+                        s = packages[p].version_hints[version]['external-source']
                         if 'source' in packages[s].vermap[version]:
                             t = packages[s].vermap[version]['source']
                             tar_line('source', packages[s], t, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
-            if 'message' in packages[p].hints:
-                print("message: %s" % packages[p].hints['message'], file=f)
+            if 'message' in packages[p].version_hints[curr]:
+                print("message: %s" % packages[p].version_hints[curr]['message'], file=f)
 
 
 # helper function to output details for a particular tar file
@@ -741,15 +751,24 @@ def merge(a, *l):
                         else:
                             c[p].tars[t] = b[p].tars[t]
 
-                    # use hints from b, but warn if they have changed
-                    if a[p].hints != b[p].hints:
-                        c[p].hints = b[p].hints
+                    # hints from b override hints from a, but warn if they have
+                    # changed
+                    c[p].version_hints = a[p].version_hints
+                    for vr in b[p].version_hints:
+                        c[p].version_hints[vr] = b[p].version_hints[vr]
+                        if vr in a[p].version_hints:
+                            if a[p].version_hints[vr] != b[p].version_hints[vr]:
+                                diff = '\n'.join(difflib.ndiff(
+                                    pprint.pformat(a[p].version_hints[vr]).splitlines(),
+                                    pprint.pformat(b[p].version_hints[vr]).splitlines()))
 
-                        diff = '\n'.join(difflib.ndiff(
-                            pprint.pformat(a[p].hints).splitlines(),
-                            pprint.pformat(b[p].hints).splitlines()))
+                                logging.warning("package '%s' hints changed\n%s" % (p, diff))
 
-                        logging.warning("package '%s' hints changed\n%s" % (p, diff))
+                    # take overrides from b
+                    c[p].override_hints = b[p].override_hints
+
+                    # skip if both a and b are skip
+                    c[p].skip = a[p].skip and b[p].skip
 
     return c
 

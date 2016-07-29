@@ -88,7 +88,7 @@ def update_package_listings(args, packages, arch):
     for p in packages:
 
         # do nothing for packages marked 'skip'
-        if 'skip' in packages[p].hints:
+        if packages[p].skip:
             continue
 
         dir = os.path.join(base, p)
@@ -134,7 +134,8 @@ def update_package_listings(args, packages, arch):
 
                 if not args.dryrun:
                     with open(html, 'w') as f:
-                        header = p + ": " + packages[p].hints['sdesc'].replace('"', '')
+                        curr = packages[p].stability['curr']
+                        header = p + ": " + packages[p].version_hints[curr]['sdesc'].replace('"', '')
                         if fver.endswith('-src'):
                             header = header + " (source code)"
                         else:
@@ -202,10 +203,11 @@ def update_package_listings(args, packages, arch):
 
             for p in sorted(packages.keys(), key=package.sort_key):
                 # don't write anything if 'skip'
-                if 'skip' in packages[p].hints:
+                if packages[p].skip:
                     continue
 
-                header = packages[p].hints['sdesc'].replace('"', '')
+                curr = packages[p].stability['curr']
+                header = packages[p].version_hints[curr]['sdesc'].replace('"', '')
 
                 print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + header + '</td></tr>', file=index)
 
