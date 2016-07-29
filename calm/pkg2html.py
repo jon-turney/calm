@@ -134,8 +134,8 @@ def update_package_listings(args, packages, arch):
 
                 if not args.dryrun:
                     with open(html, 'w') as f:
-                        curr = packages[p].stability['curr']
-                        header = p + ": " + packages[p].version_hints[curr]['sdesc'].replace('"', '')
+                        bv = packages[p].best_version
+                        header = p + ": " + packages[p].version_hints[bv]['sdesc'].replace('"', '')
                         if fver.endswith('-src'):
                             header = header + " (source code)"
                         else:
@@ -206,8 +206,8 @@ def update_package_listings(args, packages, arch):
                 if packages[p].skip:
                     continue
 
-                curr = packages[p].stability['curr']
-                header = packages[p].version_hints[curr]['sdesc'].replace('"', '')
+                bv = packages[p].best_version
+                header = packages[p].version_hints[bv]['sdesc'].replace('"', '')
 
                 print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + header + '</td></tr>', file=index)
 

@@ -483,6 +483,13 @@ def validate_packages(args, packages):
             if l in packages[p].override_hints:
                 packages[p].stability[l] = packages[p].override_hints[l]
 
+        # identify a 'best' version to take certain information from: this is
+        # the curr version, if we have one, otherwise, the highest version.
+        if 'curr' in packages[p].stability:
+            packages[p].best_version = packages[p].stability['curr']
+        else:
+            packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
+
         # the package must have some versions
         if not packages[p].stability:
             logging.error("package '%s' doesn't have any versions" % (p))
@@ -572,8 +579,7 @@ def validate_packages(args, packages):
             if re.match(r'^lib.*\d', install_p):
                 continue
 
-            if 'curr' in packages[install_p].stability:
-                versions[packages[install_p].stability['curr']].append(install_p)
+            versions[packages[install_p].best_version].append(install_p)
 
         if len(versions) > 1:
             out = []
@@ -657,15 +663,15 @@ def write_setup_ini(args, packages, arch):
             # write package data
             print("\n@ %s" % p, file=f)
 
-            curr = packages[p].stability['curr']
-            print("sdesc: %s" % packages[p].version_hints[curr]['sdesc'], file=f)
+            bv = packages[p].best_version
+            print("sdesc: %s" % packages[p].version_hints[bv]['sdesc'], file=f)
 
-            if 'ldesc' in packages[p].version_hints[curr]:
-                print("ldesc: %s" % packages[p].version_hints[curr]['ldesc'], file=f)
+            if 'ldesc' in packages[p].version_hints[bv]:
+                print("ldesc: %s" % packages[p].version_hints[bv]['ldesc'], file=f)
 
             # for historical reasons, category names must start with a capital
             # letter
-            category = ' '.join(map(upper_first_character, packages[p].version_hints[curr]['category'].split()))
+            category = ' '.join(map(upper_first_character, packages[p].version_hints[bv]['category'].split()))
             print("category: %s" % category, file=f)
 
             # compute the union of requires for all versions
@@ -702,8 +708,8 @@ def write_setup_ini(args, packages, arch):
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
-            if 'message' in packages[p].version_hints[curr]:
-                print("message: %s" % packages[p].version_hints[curr]['message'], file=f)
+            if 'message' in packages[p].version_hints[bv]:
+                print("message: %s" % packages[p].version_hints[bv]['message'], file=f)
 
 
 # helper function to output details for a particular tar file
