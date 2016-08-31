@@ -92,7 +92,7 @@ def process(args):
 
             # validate the package set
             if not package.validate_packages(args, packages[arch]):
-                logging.error("existing %s package set has errors", arch)
+                logging.error("existing %s package set has errors" % (arch))
                 error = True
 
         if error:
