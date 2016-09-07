@@ -483,13 +483,6 @@ def validate_packages(args, packages):
             if l in packages[p].override_hints:
                 packages[p].stability[l] = packages[p].override_hints[l]
 
-        # identify a 'best' version to take certain information from: this is
-        # the curr version, if we have one, otherwise, the highest version.
-        if 'curr' in packages[p].stability:
-            packages[p].best_version = packages[p].stability['curr']
-        else:
-            packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
-
         # the package must have some versions
         if not packages[p].stability:
             logging.error("package '%s' doesn't have any versions" % (p))
@@ -497,6 +490,13 @@ def validate_packages(args, packages):
         # it's also probably a really good idea if a curr version exists
         elif 'curr' not in packages[p].stability and 'curr' not in getattr(args, 'okmissing', []):
             logging.warning("package '%s' doesn't have a curr version" % (p))
+
+        # identify a 'best' version to take certain information from: this is
+        # the curr version, if we have one, otherwise, the highest version.
+        if 'curr' in packages[p].stability:
+            packages[p].best_version = packages[p].stability['curr']
+        else:
+            packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
 
         # If, for every stability level, the install tarball is empty and there
         # is no source tarball, we should probably be marked obsolete
