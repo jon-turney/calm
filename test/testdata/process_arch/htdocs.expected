@@ -31,5 +31,12 @@
                            'perl-Net-SMTP-SSL-1.03-2',
                            'perl-Net-SMTP-SSL-1.03-2-src'],
  'x86/rpm-doc': ['.htaccess', 'rpm-doc-4.1-2', 'rpm-doc-4.1-2-src', 'rpm-doc-999-1'],
+ 'x86/staleversion': ['.htaccess',
+                      'staleversion-243-0',
+                      'staleversion-243-0-src',
+                      'staleversion-250-0',
+                      'staleversion-250-0-src',
+                      'staleversion-260-0',
+                      'staleversion-260-0-src'],
  'x86/testpackage': ['.htaccess', 'testpackage-1.0-1', 'testpackage-1.0-1-src'],
  'x86/testpackage-subpackage': ['.htaccess', 'testpackage-subpackage-1.0-1']}
