@@ -734,6 +734,10 @@ def upper_first_character(s):
 # - we combine the list of tarfiles, duplicates are not permitted
 # - we use the hints from b, and warn if they are different to the hints for a
 #
+# (XXX: this implementation possibly assumes that a package is at most in a and
+# one of b, which is currently true, but it could be written with more
+# generality)
+#
 def merge(a, *l):
     # start with a copy of a
     c = copy.deepcopy(a)
@@ -770,8 +774,8 @@ def merge(a, *l):
 
                                 logging.warning("package '%s' hints changed\n%s" % (p, diff))
 
-                    # take overrides from b
-                    c[p].override_hints = b[p].override_hints
+                    # overrides from b take precedence
+                    c[p].override_hints.update(b[p].override_hints)
 
                     # skip if both a and b are skip
                     c[p].skip = a[p].skip and b[p].skip
