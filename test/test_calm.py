@@ -272,6 +272,12 @@ class CalmTest(unittest.TestCase):
         pkg2html.update_package_listings(args, packages['x86'], 'x86')
         package.write_setup_ini(args, packages['x86'], 'x86')
 
+        with open(os.path.join(args.rel_area, 'setup.ini')) as inifile:
+            results = inifile.read()
+            # fix the timestamp to match expected
+            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1473797080', results, 1)
+            compare_with_expected_file(self, 'testdata/process_arch', (results,), 'setup.ini')
+
         for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
             with self.subTest(directory=d):
                 dirlist = capture_dirtree(getattr(args, d))
