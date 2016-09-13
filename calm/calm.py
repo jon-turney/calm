@@ -30,6 +30,7 @@
 # - read and validate packages from release area
 # - stop if there are errors
 # otherwise,
+# identify and move stale packages
 # for each maintainer
 # - read and validate any package uploads
 # - build a list of files to move and remove
@@ -37,19 +38,21 @@
 # -- merge package sets
 # -- remove from the package set files which are to be removed
 # -- validate merged package set
+# -- identify stale packages
 # -- process remove list
 # - on failure
 # -- mail maintainer with errors
 # -- empty move list
 # -- discard merged package sets
 # - on success
-# -- process move list
+# -- process move lists
 # -- mail maintainer with movelist
 # -- continue with merged package sets
 # write package listings
 # write setup.ini file
 #
 
+from collections import defaultdict
 from contextlib import ExitStack
 import argparse
 import logging
@@ -97,6 +100,17 @@ def process(args):
 
         if error:
             return None
+
+        # packages can be stale due to changes made directly in the release
+        # area, so first check here if there are any stale packages to vault
+        if args.stale:
+            stale_to_vault = remove_stale_packages(args, packages)
+            if stale_to_vault:
+                for arch in common_constants.ARCHES + ['noarch']:
+                    logging.info("vaulting %d old files for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
+                    uploads.move_to_vault(args, stale_to_vault[arch])
+            else:
+                return None
 
         # read maintainer list
         mlist = maintainers.Maintainer.read(args)
@@ -164,9 +178,20 @@ def process(args):
                         logging.error("error while validating merged %s packages for %s" % (arch, name))
                         valid = False
 
+                # if an error occurred ...
                 if not valid:
-                    # discard move list and merged_packages
+                    # ... discard move list and merged_packages
                     continue
+
+                # check for packages which are stale as a result of this upload,
+                # which we will want in the same report
+                if args.stale:
+                    stale_to_vault = remove_stale_packages(args, merged_packages)
+
+                    # if an error occurred ...
+                    if not stale_to_vault:
+                        # ... discard move list and merged_packages
+                        continue
 
                 # for each arch and noarch
                 for arch in common_constants.ARCHES + ['noarch']:
@@ -178,6 +203,13 @@ def process(args):
                     uploads.move_to_relarea(m, args, scan_result[arch].to_relarea)
 
                 # for each arch
+                if args.stale:
+                    for arch in common_constants.ARCHES + ['noarch']:
+                        if stale_to_vault[arch]:
+                            logging.info("vaulting %d old files for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
+                            uploads.move_to_vault(args, stale_to_vault[arch])
+
+                # for each arch
                 for arch in common_constants.ARCHES:
                     # use merged package list
                     packages[arch] = merged_packages[arch]
@@ -187,6 +219,55 @@ def process(args):
         maintainers.Maintainer.update_reminder_times(mlist)
 
     return packages
+
+
+#
+# remove stale packages
+#
+
+def remove_stale_packages(args, packages):
+    to_vault = {}
+    to_vault['noarch'] = defaultdict(list)
+
+    for arch in common_constants.ARCHES:
+        logging.debug("checking for stale packages for arch %s" % (arch))
+
+        # find stale packages
+        to_vault[arch] = package.stale_packages(packages[arch])
+
+        # remove stale packages from package set
+        for p in to_vault[arch]:
+            for f in to_vault[arch][p]:
+                package.delete(packages[arch], p, f)
+
+    # if there are no stale packages, we don't have anything to do
+    if not any([to_vault[a] for a in to_vault]):
+        logging.debug("nothing is stale")
+        return to_vault
+
+    # re-validate package sets
+    # (this shouldn't fail, but we check just to sure...)
+    error = False
+    for arch in common_constants.ARCHES:
+        if not package.validate_packages(args, packages[arch]):
+            logging.error("%s package set has errors after removing stale packages" % arch)
+            error = True
+
+    if error:
+        return None
+
+    # since noarch packages are included in the package set for both arch, we
+    # will build (hopefully) identical move lists for those packages for each
+    # arch.
+    #
+    # de-duplicate these package moves, as rather awkward workaround for that
+    for path in list(to_vault[common_constants.ARCHES[0]]):
+        if path.startswith('noarch'):
+            to_vault['noarch'][path] = to_vault[common_constants.ARCHES[0]][path]
+            for arch in common_constants.ARCHES:
+                del to_vault[arch][path]
+
+    return to_vault
 
 
 #
@@ -315,6 +396,8 @@ def main():
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
     parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
+    parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")
+    parser.set_defaults(stale=True)
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')

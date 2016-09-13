@@ -251,6 +251,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             tars[f] = Tar()
             tars[f].size = os.path.getsize(os.path.join(dirpath, f))
             tars[f].is_empty = tarfile_is_empty(os.path.join(dirpath, f))
+            tars[f].mtime = os.path.getmtime(os.path.join(dirpath, f))
 
             if f in sha512:
                 tars[f].sha512 = sha512[f]
@@ -260,6 +261,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
         # determine hints for each version we've encountered
         version_hints = {}
+        hint_files = {}
         for vr in vr_list:
             hint_fn = '%s-%s.hint' % (p, vr)
             if hint_fn in files:
@@ -269,6 +271,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                     return True
                 warnings = clean_hints(p, pvr_hint, strict_lvl, warnings)
                 files.remove(hint_fn)
+                hint_files[vr] = hint_fn
             elif legacy:
                 # otherwise, use setup.hint
                 pvr_hint = hints
@@ -293,6 +296,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
         packages[p].version_hints = version_hints
         packages[p].override_hints = override_hints
         packages[p].tars = tars
+        packages[p].hint_files = hint_files
         packages[p].path = relpath
         packages[p].skip = any(['skip' in version_hints[vr] for vr in vr_list])
 
@@ -777,6 +781,9 @@ def merge(a, *l):
                     # overrides from b take precedence
                     c[p].override_hints.update(b[p].override_hints)
 
+                    # merge hint file lists
+                    c[p].hint_files.update(b[p].hint_files)
+
                     # skip if both a and b are skip
                     c[p].skip = a[p].skip and b[p].skip
 
@@ -825,6 +832,97 @@ def is_in_package_list(ppath, plist):
 
     return False
 
+
+#
+# helper function to mark a package version as fresh (not stale)
+#
+
+def mark_package_fresh(packages, p, v):
+    if 'install' in packages[p].vermap[v]:
+        packages[p].tars[packages[p].vermap[v]['install']].fresh = True
+
+    if 'source' in packages[p].vermap[v]:
+        packages[p].tars[packages[p].vermap[v]['source']].fresh = True
+        return
+
+    # unless the install tarfile is empty ...
+    if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
+        return
+
+    # ... mark any corresponding external-source package version as also fresh
+    if 'external-source' in packages[p].version_hints[v]:
+        es_p = packages[p].version_hints[v]['external-source']
+        if es_p in packages:
+            if 'source' in packages[es_p].vermap[v]:
+                packages[es_p].tars[packages[es_p].vermap[v]['source']].fresh = True
+
+
+#
+# construct a move list of stale packages
+#
+
+def stale_packages(packages):
+    for pn, po in packages.items():
+        # mark any versions used by stability levels as fresh
+        for level in ['curr', 'prev', 'test']:
+            if level in po.stability:
+                v = po.stability[level]
+                mark_package_fresh(packages, pn, v)
+
+        # mark any versions explicitly listed in the keep: override hint
+        for v in po.override_hints.get('keep', '').split():
+            mark_package_fresh(packages, pn, v)
+
+        # mark as fresh the highest n versions, where n is given by the
+        # keep-count: override hint, (defaulting to DEFAULT_KEEP_COUNT)
+        keep_count = po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT)
+        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0:keep_count]:
+            mark_package_fresh(packages, pn, v)
+
+        # mark as fresh all versions after the first one which is newer than
+        # the keep-days: override hint, (defaulting to DEFAULT_KEEP_DAYS)
+        # (as opposed to checking the mtime for each version to determine if
+        # it is included)
+        keep_days = po.override_hints.get('keep-days', common_constants.DEFAULT_KEEP_DAYS)
+        newer = False
+        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
+            if not newer:
+                if 'install' in po.vermap[v]:
+                    if po.tars[po.vermap[v]['install']].mtime > (time.time() - (keep_days * 24 * 60 * 60)):
+                        newer = True
+
+            if newer:
+                mark_package_fresh(packages, pn, v)
+
+    # build a move list of stale versions
+    stale = defaultdict(list)
+    for pn, po in packages.items():
+        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
+            all_stale = True
+            for category in ['source', 'install']:
+                if category in po.vermap[v]:
+                    if not getattr(po.tars[po.vermap[v][category]], 'fresh', False):
+                        stale[po.path].append(po.vermap[v][category])
+                        logging.debug("package '%s' version '%s' %s is stale" % (pn, v, category))
+                    else:
+                        all_stale = False
+
+            # if there's a pvr.hint without a fresh source or install of the
+            # same version, move it as well
+            if all_stale:
+                if v in po.hint_files:
+                    stale[po.path].append(po.hint_files[v])
+                    logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
+
+        # clean up freshness mark
+        for v in po.vermap:
+            for c in po.vermap[v]:
+                try:
+                    delattr(po.tars[po.vermap[v][c]], 'fresh')
+                except AttributeError:
+                    pass
+
+    return stale
 
 #
 #

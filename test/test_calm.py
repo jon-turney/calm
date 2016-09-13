@@ -251,6 +251,7 @@ class CalmTest(unittest.TestCase):
         setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
         setattr(args, 'release', 'trial')
         setattr(args, 'setup_version', '3.1415')
+        setattr(args, 'stale', True)
 
         shutil.copytree('testdata/relarea', getattr(args, 'rel_area'))
         shutil.copytree('testdata/homes', getattr(args, 'homedir'))

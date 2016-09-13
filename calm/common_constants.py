@@ -59,6 +59,10 @@ VAULT = '/sourceware/snapshot-tmp/cygwin'
 # SMTP smarthost
 MAILHOST = 'localhost'
 
+# defaults for package freshness
+DEFAULT_KEEP_COUNT = 0
+DEFAULT_KEEP_DAYS = 0
+
 # different values to be used when we are not running on sourceware.org, but my
 # test system...
 if os.uname()[1] == 'tambora':
