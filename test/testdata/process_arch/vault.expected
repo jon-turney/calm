@@ -1,7 +1,6 @@
 {'.': [],
  'x86': [],
  'x86/release': [],
- 'x86/release/per-version': ['per-version-5.0-1-src.tar.xz', 'per-version-5.0-1.hint', 'per-version-5.0-1.tar.xz'],
  'x86/release/staleversion': ['staleversion-240-1-src.tar.xz',
                               'staleversion-240-1.tar.xz',
                               'staleversion-242-0-src.tar.xz',

@@ -267,6 +267,16 @@ def move_to_vault(args, movelist):
     move(args, movelist, args.rel_area, args.vault)
 
 
+# compute the intersection of a pair of movelists
+def movelist_intersect(a, b):
+    i = defaultdict(list)
+    for p in a.keys() & b.keys():
+        pi = set(a[p]) & set(b[p])
+        if pi:
+            i[p] = pi
+    return i
+
+
 #
 #
 #

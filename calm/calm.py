@@ -193,6 +193,18 @@ def process(args):
                         # ... discard move list and merged_packages
                         continue
 
+                # check for conflicting movelists
+                conflicts = False
+                for arch in common_constants.ARCHES + ['noarch']:
+                    conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, scan_result[arch].to_vault, "manually")
+                    if args.stale:
+                        conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, stale_to_vault[arch], "automatically")
+
+                # if an error occurred ...
+                if conflicts:
+                    # ... discard move list and merged_packages
+                    continue
+
                 # for each arch and noarch
                 for arch in common_constants.ARCHES + ['noarch']:
                     logging.debug("moving %s packages for maintainer %s" % (arch, name))
@@ -268,6 +280,23 @@ def remove_stale_packages(args, packages):
                 del to_vault[arch][path]
 
     return to_vault
+
+
+#
+# report movelist conflicts
+#
+
+def report_movelist_conflicts(a, b, reason):
+    conflicts = False
+
+    n = uploads.movelist_intersect(a, b)
+    if n:
+        for p in n:
+            for f in n[p]:
+                logging.error("%s/%s is both uploaded and %s vaulted" % (p, f, reason))
+        conflicts = True
+
+    return conflicts
 
 
 #
