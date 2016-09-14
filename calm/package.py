@@ -295,6 +295,7 @@ def read_package(packages, basedir, dirpath, files, strict=False):
 
         packages[p].version_hints = version_hints
         packages[p].override_hints = override_hints
+        packages[p].legacy_hints = hints
         packages[p].tars = tars
         packages[p].hint_files = hint_files
         packages[p].path = relpath
@@ -779,7 +780,17 @@ def merge(a, *l):
                                     pprint.pformat(a[p].version_hints[vr]).splitlines(),
                                     pprint.pformat(b[p].version_hints[vr]).splitlines()))
 
-                                logging.warning("package '%s' hints changed\n%s" % (p, diff))
+                                logging.warning("package '%s' version '%s' hints changed\n%s" % (p, vr, diff))
+
+                    # XXX: we should really do something complex here, like
+                    # assign the legacy hints from b to all vr in a which didn't
+                    # have a pvr.hint.  Instead, just report if it's going to
+                    # change and let things get sorted out later on...
+                    if a[p].legacy_hints != b[p].legacy_hints:
+                        diff = '\n'.join(difflib.ndiff(
+                            pprint.pformat(a[p].legacy_hints).splitlines(),
+                            pprint.pformat(b[p].legacy_hints).splitlines()))
+                        logging.warning("package '%s' hints changed\n%s" % (p, diff))
 
                     # overrides from b take precedence
                     c[p].override_hints.update(b[p].override_hints)
