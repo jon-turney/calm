@@ -107,7 +107,7 @@ def process(args):
             stale_to_vault = remove_stale_packages(args, packages)
             if stale_to_vault:
                 for arch in common_constants.ARCHES + ['noarch']:
-                    logging.info("vaulting %d old files for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
+                    logging.info("vaulting %d old packages for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
                     uploads.move_to_vault(args, stale_to_vault[arch])
             else:
                 return None
@@ -218,7 +218,7 @@ def process(args):
                 if args.stale:
                     for arch in common_constants.ARCHES + ['noarch']:
                         if stale_to_vault[arch]:
-                            logging.info("vaulting %d old files for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
+                            logging.info("vaulting %d old package for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
                             uploads.move_to_vault(args, stale_to_vault[arch])
 
                 # for each arch
