@@ -1,8 +1,8 @@
-* per-package-version hint files (e.g. named <pvr>.hint, or /.setup.hint inside tar file)
-* automatically vault stuff which has dropped out of setup.ini
-* more than 2 versions possible (and automatically vault 'old' versions, where we have some mechanism to explicity say what is old)
+* more than 2 versions possible
 * automatically suppress 'empty source' packages with no deps from setup.ini ?
 * run more often, option to not do anything if no uploads (to avoid reading the release area if we don't need to), lockfile to avoid colliding runs
-* work out some way to package it as a replacement for genini
 * use irkerd to report when calm failed due to an error?
 * upload a hash at the same time as package, and pass that through to setup.ini
+* mksetupini should have an okmissing option for override.hint which names non-existent versions
+* use ./setup.hint inside the tar file, avoiding all the hint/tar coherence problems
+* mksetupini should write to stdout if --inifile not specified
