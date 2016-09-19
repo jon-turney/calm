@@ -342,8 +342,8 @@ def do_main(args):
                 logging.warning('no existing %s' % (inifile))
                 changed = True
             else:
-                # or, if it's changed in more than timestamp
-                status = os.system('/usr/bin/diff -I^setup-timestamp -w -B -q %s %s >/dev/null' % (inifile, tmpfile.name))
+                # or, if it's changed in more than timestamp and comments
+                status = os.system('/usr/bin/diff -I^setup-timestamp -I^# -w -B -q %s %s >/dev/null' % (inifile, tmpfile.name))
                 logging.debug('diff exit status %d' % (status))
                 if (status >> 8) == 1:
                     changed = True
