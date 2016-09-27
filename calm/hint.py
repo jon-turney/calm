@@ -62,6 +62,11 @@ versionkeys = {
     'test': 'val',
 }
 
+overridekeys = {
+    'keep-count': 'val',
+    'keep-days': 'val',
+}
+
 hintkeys = {}
 
 hintkeys[setup] = merge_dicts(commonkeys, versionkeys, {
@@ -76,7 +81,7 @@ hintkeys[pvr] = merge_dicts(commonkeys, {
     'build-depends': 'optval',
 })
 
-hintkeys[override] = versionkeys
+hintkeys[override] = merge_dicts(versionkeys, overridekeys)
 
 # valid categories
 categories = ['accessibility',
