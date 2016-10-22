@@ -1,10 +1,9 @@
 <div id="x86">
-<div id="background">
+<div class="background">
 <b class="rtop"><b class="r1"></b><b class="r2"></b><b class="r3"></b><b class="r4"></b></b>
 <h2>Available Packages for x86</h2>
 <b class="rbottom"><b class="r4"></b><b class="r3"></b><b class="r2"></b><b class="r1"></b></b>
 </div>
-<br>
 <table class="pkglist">
 <tr><td><a href="x86/arc">arc</a></td><td>The ARC archive utility</td></tr>
 <tr><td><a href="x86/base-cygwin">base-cygwin</a></td><td>Initial base installation helper script</td></tr>
