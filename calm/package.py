@@ -878,7 +878,7 @@ def stale_packages(packages):
 
         # mark as fresh the highest n versions, where n is given by the
         # keep-count: override hint, (defaulting to DEFAULT_KEEP_COUNT)
-        keep_count = po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT)
+        keep_count = int(po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT))
         for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0:keep_count]:
             mark_package_fresh(packages, pn, v)
 
