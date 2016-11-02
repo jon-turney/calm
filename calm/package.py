@@ -193,6 +193,13 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 if level in hints:
                     override_hints[level] = hints[level]
 
+        # explicitly note any absent stability level hints
+        for level in ['test', 'curr', 'prev']:
+            if level not in override_hints:
+                override_hints[level] = None
+
+        # after we have migrated them to override hints, remove stability
+        # level hints from legacy hints
         for level in ['test', 'curr', 'prev']:
             if level in hints:
                 del hints[level]
@@ -433,8 +440,12 @@ def validate_packages(args, packages):
         levels = ['test', 'curr', 'prev']
         for l in levels:
             if l in packages[p].override_hints:
-                # check that version exists
+                # check that if a version was specified, it exists
                 v = packages[p].override_hints[l]
+
+                if v is None:
+                    continue
+
                 if v not in packages[p].vermap:
                     logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
                     error = True
@@ -457,7 +468,7 @@ def validate_packages(args, packages):
                 l = levels[0]
 
                 # if current stability level has an override
-                if l in packages[p].override_hints:
+                if (l in packages[p].override_hints) and (packages[p].override_hints[l] is not None):
                     # if we haven't reached that version yet
                     if v != packages[p].override_hints[l]:
                         break
@@ -486,7 +497,8 @@ def validate_packages(args, packages):
         # stability level was overriden to a lower version
         for l in levels:
             if l in packages[p].override_hints:
-                packages[p].stability[l] = packages[p].override_hints[l]
+                if packages[p].override_hints[l] is not None:
+                    packages[p].stability[l] = packages[p].override_hints[l]
 
         # the package must have some versions
         if not packages[p].stability:
