@@ -149,7 +149,7 @@ def clean_hints(p, hints, strict_lvl, warnings):
 #
 # read a single package
 #
-def read_package(packages, basedir, dirpath, files, strict=False):
+def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
     strict_lvl = logging.ERROR if strict else logging.WARNING
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
@@ -180,6 +180,8 @@ def read_package(packages, basedir, dirpath, files, strict=False):
             hints = {}
 
         # determine version overrides
+        note_absent = ('override.hint' in remove) or ('override.hint' in files)
+
         if 'override.hint' in files:
             # read override.hint
             override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
@@ -193,10 +195,12 @@ def read_package(packages, basedir, dirpath, files, strict=False):
                 if level in hints:
                     override_hints[level] = hints[level]
 
-        # explicitly note any absent stability level hints
-        for level in ['test', 'curr', 'prev']:
-            if level not in override_hints:
-                override_hints[level] = None
+        # if override.hint exists or is being removed, explicitly note absent
+        # stability level hints
+        if note_absent:
+            for level in ['test', 'curr', 'prev']:
+                if level not in override_hints:
+                    override_hints[level] = None
 
         # after we have migrated them to override hints, remove stability
         # level hints from legacy hints

@@ -75,6 +75,7 @@ def scan(m, all_packages, arch, args):
     # scan package directories
     for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
         relpath = os.path.relpath(dirpath, m.homedir())
+        removed_files = []
 
         # skip uninteresting directories
         if (not files) or (relpath == os.path.join(arch, 'release')):
@@ -164,6 +165,7 @@ def scan(m, all_packages, arch, args):
                 else:
                     vault[relpath].append(f[1:])
                     remove_success.append(fn)
+                    removed_files.append(f[1:])
                 files.remove(f)
                 continue
 
@@ -212,7 +214,7 @@ def scan(m, all_packages, arch, args):
         # read and validate package
         if files:
             # strict means we consider warnings as fatal for upload
-            if package.read_package(packages, m.homedir(), dirpath, files, strict=True):
+            if package.read_package(packages, m.homedir(), dirpath, files, strict=True, remove=removed_files):
                 error = True
 
     # always consider timestamp as checked during a dry-run, so it is never
