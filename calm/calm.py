@@ -110,6 +110,7 @@ def process(args):
                     logging.info("vaulting %d old packages for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
                     uploads.move_to_vault(args, stale_to_vault[arch])
             else:
+                logging.error("error while evaluating stale packages")
                 return None
 
         # read maintainer list
@@ -191,6 +192,7 @@ def process(args):
                     # if an error occurred ...
                     if not stale_to_vault:
                         # ... discard move list and merged_packages
+                        logging.error("error while evaluating stale packages for %s" % (name))
                         continue
 
                 # check for conflicting movelists
@@ -203,6 +205,7 @@ def process(args):
                 # if an error occurred ...
                 if conflicts:
                     # ... discard move list and merged_packages
+                    logging.error("error while validating movelists for %s" % (name))
                     continue
 
                 # for each arch and noarch
