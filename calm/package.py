@@ -798,7 +798,7 @@ def merge(a, *l):
                     # assign the legacy hints from b to all vr in a which didn't
                     # have a pvr.hint.  Instead, just report if it's going to
                     # change and let things get sorted out later on...
-                    if a[p].legacy_hints != b[p].legacy_hints:
+                    if a[p].legacy_hints and b[p].legacy_hints and a[p].legacy_hints != b[p].legacy_hints:
                         diff = '\n'.join(difflib.ndiff(
                             pprint.pformat(a[p].legacy_hints).splitlines(),
                             pprint.pformat(b[p].legacy_hints).splitlines()))
