@@ -213,10 +213,12 @@ def process(args):
                     logging.debug("moving %s packages for maintainer %s" % (arch, name))
 
                     # process the move lists
-                    logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
+                    if scan_result[arch].to_vault:
+                        logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
                     uploads.move_to_vault(args, scan_result[arch].to_vault)
                     uploads.remove(args, scan_result[arch].remove_success)
-                    logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
+                    if scan_result[arch].to_relarea:
+                        logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
                     uploads.move_to_relarea(m, args, scan_result[arch].to_relarea)
 
                 # for each arch
