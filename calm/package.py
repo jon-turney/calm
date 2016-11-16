@@ -180,7 +180,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
             hints = {}
 
         # determine version overrides
-        note_absent = ('override.hint' in remove) or ('override.hint' in files)
+        note_absent = ('override.hint' in remove) or ('override.hint' in files) or legacy
 
         if 'override.hint' in files:
             # read override.hint
