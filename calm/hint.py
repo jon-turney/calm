@@ -79,6 +79,8 @@ hintkeys[pvr] = merge_dicts(commonkeys, {
     # (depends could be an alias for requires in this kind of hint file)
     'depends': 'optval',
     'build-depends': 'optval',
+    # mark the package as a test version
+    'test': 'noval',
 })
 
 hintkeys[override] = merge_dicts(versionkeys, overridekeys)

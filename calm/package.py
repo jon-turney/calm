@@ -478,12 +478,22 @@ def validate_packages(args, packages):
                         break
                     else:
                         logging.debug("package '%s' stability '%s' overridden to version '%s'" % (p, l, v))
+                # if package is explicitly marked as having that stability level
+                # (only used for test, currently)
+                elif (l == 'test') and ('test' in packages[p].version_hints[v]):
+                    logging.debug("package '%s' version '%s' marked as stability '%s'" % (p, v, l))
                 else:
                     # level 'test' must be assigned by override
                     if l == 'test':
                         levels.remove(l)
                         # go around again to check for override at the new level
                         continue
+                    else:
+                        # if version is explicitly marked test, it can't be
+                        # assigned to any other stability level
+                        if 'test' in packages[p].version_hints[v]:
+                            logging.debug("package '%s' version '%s' can't be used for stability '%s' as it's marked test" % (p, v, l))
+                            break
 
                 level_found = True
                 logging.log(5, "package '%s' stability '%s' assigned version '%s'" % (p, l, v))
