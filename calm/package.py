@@ -516,7 +516,7 @@ def validate_packages(args, packages):
 
         # the package must have some versions
         if not packages[p].stability:
-            logging.error("package '%s' doesn't have any versions" % (p))
+            logging.error("no versions at any stability level for package '%s'" % (p))
             error = True
         # it's also probably a really good idea if a curr version exists
         elif 'curr' not in packages[p].stability and 'curr' not in getattr(args, 'okmissing', []):
@@ -526,8 +526,12 @@ def validate_packages(args, packages):
         # the curr version, if we have one, otherwise, the highest version.
         if 'curr' in packages[p].stability:
             packages[p].best_version = packages[p].stability['curr']
-        else:
+        elif len(packages[p].vermap):
             packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
+        else:
+            logging.error("package '%s' doesn't have any versions" % (p))
+            packages[p].best_version = None
+            error = True
 
         # If, for every stability level, the install tarball is empty and there
         # is no source tarball, we should probably be marked obsolete
