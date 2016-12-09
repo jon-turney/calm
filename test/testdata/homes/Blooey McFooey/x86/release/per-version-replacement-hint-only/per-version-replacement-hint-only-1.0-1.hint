@@ -1,0 +1,4 @@
+sdesc: "Replacement per-version hint test package - updated"
+ldesc: "Replacement per-version hint test package - updated"
+category: Base
+requires: base-cygwin per-version

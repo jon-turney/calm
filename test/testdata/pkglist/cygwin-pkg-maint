@@ -1703,6 +1703,7 @@ perl-YAML                                    Achim Gratz/Yaakov Selkowitz
 perl-YAML-LibYAML                            Achim Gratz
 per-version                                  Blooey McFooey
 per-version-incomplete                       Blooey McFooey
+per-version-replacement-hint-only            Blooey McFooey
 phodav                                       Yaakov Selkowitz
 phonon                                       Yaakov Selkowitz
 phonon-backend-gstreamer                     Yaakov Selkowitz

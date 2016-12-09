@@ -11,6 +11,7 @@
  'Blooey McFooey/x86/release/not-on-package-list': ['not-on-package-list-1.0-1.tar.bz2', 'setup.hint'],
  'Blooey McFooey/x86/release/not-ready': ['-not-ready-0.9-1.tar.bz2', 'not-ready-1.0-1.tar.bz2', 'setup.hint'],
  'Blooey McFooey/x86/release/per-version': [],
+ 'Blooey McFooey/x86/release/per-version-replacement-hint-only': [],
  'Blooey McFooey/x86/release/testpackage': [],
  'Blooey McFooey/x86/release/testpackage/testpackage-subpackage': [],
  'Blooey McFooey/x86/release/testpackage2': ['setup.hint', 'testpackage2-1.0-1.tar.bz2'],

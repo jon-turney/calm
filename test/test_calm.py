@@ -264,7 +264,8 @@ class CalmTest(unittest.TestCase):
                      (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
                      (os.path.join(m_homedir, 'noarch', 'release', 'perl-Net-SMTP-SSL', '!ready'), ''),
                      (os.path.join(m_homedir, 'x86', 'release', 'corrupt', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'per-version', '!ready'), '')]
+                     (os.path.join(m_homedir, 'x86', 'release', 'per-version', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86', 'release', 'per-version-replacement-hint-only', '!ready'), '')]
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
