@@ -227,20 +227,27 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
         if 'md5.sum' in files:
             files.remove('md5.sum')
 
-        # collect the attributes for each tar file
+        # build a list of version-releases (since replacement pvr.hint files are
+        # allowed to be uploaded, we must consider both .tar and .hint files for
+        # that), and collect the attributes for each tar file
         tars = {}
         vr_list = set()
 
-        for f in list(filter(lambda f: re.match(r'^' + re.escape(p) + r'.*\.tar.*$', f), files)):
-            files.remove(f)
+        for f in list(files):
+            match = re.match(r'^' + re.escape(p) + r'.*\.(tar\.(bz2|gz|lzma|xz)|hint)$', f)
+            if not match:
+                continue
 
-            # warn if tar filename doesn't follow P-V-R naming convention
+            if not f.endswith('.hint'):
+                files.remove(f)
+
+            # warn if filename doesn't follow P-V-R naming convention
             #
             # P must match the package name, V can contain anything, R must
             # start with a number
-            match = re.match(r'^' + re.escape(p) + '-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.match(r'^' + re.escape(p) + '-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.' + match.group(1) + '$', f)
             if not match:
-                logging.log(strict_lvl, "tar file '%s' in package '%s' doesn't follow naming convention" % (f, p))
+                logging.log(strict_lvl, "file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 warnings = True
             else:
                 v = match.group(1)
@@ -251,24 +258,26 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
                 # idea.
                 if '-' in v:
                     lvl = logging.WARNING if p not in past_mistakes.hyphen_in_version else logging.INFO
-                    logging.log(lvl, "tar file '%s' in package '%s' contains '-' in version" % (f, p))
+                    logging.log(lvl, "file '%s' in package '%s' contains '-' in version" % (f, p))
 
                 if not v[0].isdigit():
-                    logging.warning("tar file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
+                    logging.warning("file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
 
                 # if not there already, add to version-release list
                 vr_list.add('%s-%s' % (v, r))
 
-            tars[f] = Tar()
-            tars[f].size = os.path.getsize(os.path.join(dirpath, f))
-            tars[f].is_empty = tarfile_is_empty(os.path.join(dirpath, f))
-            tars[f].mtime = os.path.getmtime(os.path.join(dirpath, f))
+            if not f.endswith('.hint'):
+                # collect the attributes for each tar file
+                tars[f] = Tar()
+                tars[f].size = os.path.getsize(os.path.join(dirpath, f))
+                tars[f].is_empty = tarfile_is_empty(os.path.join(dirpath, f))
+                tars[f].mtime = os.path.getmtime(os.path.join(dirpath, f))
 
-            if f in sha512:
-                tars[f].sha512 = sha512[f]
-            else:
-                tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
-                logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
+                if f in sha512:
+                    tars[f].sha512 = sha512[f]
+                else:
+                    tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
+                    logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
 
         # determine hints for each version we've encountered
         version_hints = {}
