@@ -41,6 +41,7 @@
 from collections import defaultdict
 import argparse
 import glob
+import html
 import logging
 import os
 import re
@@ -125,15 +126,15 @@ def update_package_listings(args, packages, arch):
         for t in packages[p].tars:
 
             fver = re.sub(r'\.tar.*$', '', t)
-            html = os.path.join(dir, fver)
+            listing = os.path.join(dir, fver)
 
             # ... if it doesn't already exist, or force
-            if not os.path.exists(html) or args.force:
+            if not os.path.exists(listing) or args.force:
 
-                logging.debug('writing %s' % html)
+                logging.debug('writing %s' % listing)
 
                 if not args.dryrun:
-                    with open(html, 'w') as f:
+                    with open(listing, 'w') as f:
                         bv = packages[p].best_version
                         header = p + ": " + packages[p].version_hints[bv]['sdesc'].replace('"', '')
                         if fver.endswith('-src'):
@@ -147,7 +148,7 @@ def update_package_listings(args, packages, arch):
                         print(textwrap.dedent('''\
                                                  <html>
                                                  <h1>%s</h1>
-                                                 <tt><pre>''' % (header)), file=f)
+                                                 <tt><pre>''' % (html.escape(header, quote=False))), file=f)
 
                         tf = os.path.join(args.rel_area, packages[p].path, t)
                         if not os.path.exists(tf):
@@ -176,11 +177,11 @@ def update_package_listings(args, packages, arch):
                                                  </pre></tt>
                                                  </html>'''), file=f)
             else:
-                logging.log(5, 'not writing %s, already exists' % html)
+                logging.log(5, 'not writing %s, already exists' % listing)
 
             # this file should exist, so remove from the toremove list
-            if html in toremove:
-                toremove.remove(html)
+            if listing in toremove:
+                toremove.remove(listing)
 
     #
     # write packages.inc
@@ -208,7 +209,7 @@ def update_package_listings(args, packages, arch):
                 bv = packages[p].best_version
                 header = packages[p].version_hints[bv]['sdesc'].replace('"', '')
 
-                print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + header + '</td></tr>', file=index)
+                print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + html.escape(header, quote=False) + '</td></tr>', file=index)
 
             print(textwrap.dedent('''\
                                      </table>
