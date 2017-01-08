@@ -1,8 +1,14 @@
+<!DOCTYPE html>
 <html>
+<head>
+<title>corrupt: A corrupt package (source code)</title>
+</head>
+<body>
 <h1>corrupt: A corrupt package (source code)</h1>
-<tt><pre>
+<pre>
     2016-06-11 10:34           0 perl-Business-ISBN-2.011-1.src/
     2016-06-11 10:34      364175 perl-Business-ISBN-2.011-1.src/Business-ISBN-2.011.tar.gz
 package is corrupted
-</pre></tt>
+</pre>
+</body>
 </html>

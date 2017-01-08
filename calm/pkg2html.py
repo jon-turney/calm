@@ -141,10 +141,17 @@ def update_package_listings(args, packages, arch):
                         if fver.endswith('-src'):
                             header = header + " (source code)"
 
+                        header = html.escape(header, quote=False)
+
                         print(textwrap.dedent('''\
+                                                 <!DOCTYPE html>
                                                  <html>
+                                                 <head>
+                                                 <title>%s</title>
+                                                 </head>
+                                                 <body>
                                                  <h1>%s</h1>
-                                                 <tt><pre>''' % (html.escape(header, quote=False))), file=f)
+                                                 <pre>''' % (header, header)), file=f)
 
                         tf = os.path.join(args.rel_area, packages[p].path, t)
                         if not os.path.exists(tf):
@@ -170,7 +177,8 @@ def update_package_listings(args, packages, arch):
                                 logging.debug('', exc_info=True)
 
                         print(textwrap.dedent('''\
-                                                 </pre></tt>
+                                                 </pre>
+                                                 </body>
                                                  </html>'''), file=f)
             else:
                 logging.log(5, 'not writing %s, already exists' % listing)

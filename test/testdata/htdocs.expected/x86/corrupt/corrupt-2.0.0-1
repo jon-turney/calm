@@ -1,6 +1,12 @@
+<!DOCTYPE html>
 <html>
+<head>
+<title>corrupt: A corrupt package</title>
+</head>
+<body>
 <h1>corrupt: A corrupt package</h1>
-<tt><pre>
+<pre>
 package is corrupted
-</pre></tt>
+</pre>
+</body>
 </html>

@@ -1,6 +1,11 @@
+<!DOCTYPE html>
 <html>
+<head>
+<title>keychain: Key manager for OpenSSH</title>
+</head>
+<body>
 <h1>keychain: Key manager for OpenSSH</h1>
-<tt><pre>
+<pre>
     2012-10-10 05:40           0 usr/
     2012-10-10 05:40           0 usr/bin/
     2012-10-10 05:40       50490 usr/bin/keychain
@@ -15,5 +20,6 @@
     2012-10-10 05:40           0 usr/share/man/
     2012-10-10 05:40           0 usr/share/man/man1/
     2012-10-10 05:40        5326 usr/share/man/man1/keychain.1.gz
-</pre></tt>
+</pre>
+</body>
 </html>

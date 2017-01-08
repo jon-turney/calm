@@ -1,7 +1,13 @@
+<!DOCTYPE html>
 <html>
+<head>
+<title>openssh: The OpenSSH server and client programs (source code)</title>
+</head>
+<body>
 <h1>openssh: The OpenSSH server and client programs (source code)</h1>
-<tt><pre>
+<pre>
     2015-10-11 14:45          26 test/test.1
     2015-10-11 14:45          31 test/test.2
-</pre></tt>
+</pre>
+</body>
 </html>

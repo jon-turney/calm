@@ -1,6 +1,11 @@
+<!DOCTYPE html>
 <html>
+<head>
+<title>rpm-doc: Obsolete package for RPM package management system manual pages</title>
+</head>
+<body>
 <h1>rpm-doc: Obsolete package for RPM package management system manual pages</h1>
-<tt><pre>
+<pre>
     2003-05-02 11:46       25562 usr/man/fr/man8/rpm.8
     2003-05-02 11:46       39721 usr/man/ja/man8/rpm.8
     2003-05-02 11:46         962 usr/man/ja/man8/rpm2cpio.8
@@ -14,5 +19,6 @@
     2003-05-02 11:46       22681 usr/man/ru/man8/rpm.8
     2003-05-02 11:46         603 usr/man/ru/man8/rpm2cpio.8
     2003-05-02 11:46       23159 usr/man/sk/man8/rpm.8
-</pre></tt>
+</pre>
+</body>
 </html>
