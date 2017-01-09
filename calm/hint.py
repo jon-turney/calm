@@ -63,6 +63,7 @@ versionkeys = {
 }
 
 overridekeys = {
+    'keep': 'val',
     'keep-count': 'val',
     'keep-days': 'val',
 }
@@ -221,7 +222,7 @@ def hint_file_parse(fn, kind):
                     value = match.group(2)
 
                     if key not in hintkeys[kind]:
-                        errors.append('unknown setup key %s at line %d' % (key, i))
+                        errors.append('unknown key %s at line %d' % (key, i))
                         continue
                     type = hintkeys[kind][key]
 

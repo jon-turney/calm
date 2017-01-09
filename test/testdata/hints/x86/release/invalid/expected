@@ -1,4 +1,4 @@
-{'parse-errors': ['unknown setup key unknown-key at line 0',
+{'parse-errors': ['unknown key unknown-key at line 0',
                   "unknown setup construct 'invalid-construct' at line 1",
                   "required key 'category' missing",
                   "required key 'sdesc' missing"]}

@@ -924,7 +924,10 @@ def stale_packages(packages):
 
         # mark any versions explicitly listed in the keep: override hint
         for v in po.override_hints.get('keep', '').split():
-            mark_package_fresh(packages, pn, v)
+            if v in po.vermap:
+                mark_package_fresh(packages, pn, v)
+            else:
+                logging.error("package '%s' has non-existent keep: version '%s'" % (pn, v))
 
         # mark as fresh the highest n versions, where n is given by the
         # keep-count: override hint, (defaulting to DEFAULT_KEEP_COUNT)
