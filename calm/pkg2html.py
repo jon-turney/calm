@@ -137,13 +137,9 @@ def update_package_listings(args, packages, arch):
                     with open(listing, 'w') as f:
                         bv = packages[p].best_version
                         header = p + ": " + packages[p].version_hints[bv]['sdesc'].replace('"', '')
+
                         if fver.endswith('-src'):
                             header = header + " (source code)"
-                        else:
-                            header = header + " (installed binaries and support files)"
-                        # XXX: also recognize '-devel', '-doc', '-debuginfo' ?
-                        # XXX: '(utilities)', '(runtime)'
-                        # XXX: and work out if it's runtime library?
 
                         print(textwrap.dedent('''\
                                                  <html>

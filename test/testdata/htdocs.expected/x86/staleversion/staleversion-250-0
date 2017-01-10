@@ -1,5 +1,5 @@
 <html>
-<h1>staleversion: Test package for stale version removal (installed binaries and support files)</h1>
+<h1>staleversion: Test package for stale version removal</h1>
 <tt><pre>
     2015-10-11 14:45          26 test/test.1
     2015-10-11 14:45          31 test/test.2

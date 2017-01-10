@@ -1,5 +1,5 @@
 <html>
-<h1>corrupt: A corrupt package (installed binaries and support files)</h1>
+<h1>corrupt: A corrupt package</h1>
 <tt><pre>
 package is corrupted
 </pre></tt>

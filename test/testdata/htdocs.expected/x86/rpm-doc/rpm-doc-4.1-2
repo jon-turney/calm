@@ -1,5 +1,5 @@
 <html>
-<h1>rpm-doc: Obsolete package for RPM package management system manual pages (installed binaries and support files)</h1>
+<h1>rpm-doc: Obsolete package for RPM package management system manual pages</h1>
 <tt><pre>
     2003-05-02 11:46       25562 usr/man/fr/man8/rpm.8
     2003-05-02 11:46       39721 usr/man/ja/man8/rpm.8
