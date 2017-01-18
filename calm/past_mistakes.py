@@ -96,28 +96,28 @@ self_source = [
     'tesseract-training-vie',
 ]
 
-# these are source packages which currently have non-unique install versions
+# these are packages which currently have versions different to all the other
+# install packages from the same source package
 nonunique_versions = [
-    'bzr',              # debuginfo from NMU needs to age out?
-    'cgdb',             # ditto
-    'e2fsprogs',
-    'fltk',
-    'gnome-panel',
-    'guile',
-    'libical',
-    'libjpeg-turbo',    # libturbojpeg isn't detected as an old soversion
-    'librsvg2',
-    'mutter',
-    'ocaml',            # ocaml-camlp4 removed from ocaml distribution after 4.01.0
-    'openmpi',          # libopenmpi isn't detected as an old soversion
-    'python-openssl',   # no debuginfo anymore due to pure python?
-    'python3-openssl',  # ditto?
-    'qt5-webkit',
-    'rsync',            # debuginfo from NMU needs to age out?
-    'ruby-gdk3',
-    'sng',
-    'socat',
-    'sqlite3',          # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
-    'w3m',
-    'zlib',
+    'bzr-debuginfo',              # debuginfo from NMU needs to age out
+    'cgdb-debuginfo',             # debuginfo from NMU needs to age out
+    'gnome-panel-doc',
+    'gtk2.0-engines-svg',
+    'guile-doc',
+    'info',                       # something went wrong with package build?
+    'libfltk-doc',
+    'libical_cxx-devel',
+    'libquota-devel',             # no longer provided by e2fsprogs
+    'libturbojpeg',               # no number means it isn't considered an old soversion
+    'minizip',
+    'mutter-doc',
+    'ocaml-camlp4',               # ocaml-camlp4 removed from ocaml distribution after 4.01.0
+    'python-openssl-debuginfo',   # no debuginfo anymore due to pure python
+    'python3-openssl-debuginfo',  # no debuginfo anymore due to pure python
+    'ruby-gdk3-debuginfo',        # no debuginfo anymore due to pure ruby
+    'sng-debuginfo',
+    'socat-debuginfo',            # debuginfo for test version when curr has no debuginfo
+    'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
+    'texinfo-debuginfo',          # something went wrong with package build?
+    'w3m-img',
 ]

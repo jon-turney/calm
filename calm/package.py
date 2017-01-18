@@ -616,11 +616,16 @@ def validate_packages(args, packages):
 
         for install_p in packages[source_p].is_used_by:
             # ignore obsolete packages
-            if not any(['_obsolete' in packages[p].version_hints[vr]['category'] for vr in packages[p].version_hints]):
+            if any(['_obsolete' in packages[install_p].version_hints[vr]['category'] for vr in packages[install_p].version_hints]):
                 continue
+
             # ignore runtime library packages, as we may keep old versions of
             # those
             if re.match(r'^lib.*\d', install_p):
+                continue
+
+            # ignore specific packages
+            if install_p in past_mistakes.nonunique_versions:
                 continue
 
             versions[packages[install_p].best_version].append(install_p)
@@ -638,11 +643,8 @@ def validate_packages(args, packages):
                     out.append("%s (%s)" % (v, ','.join(versions[v])))
                 most_common = False
 
-            lvl = logging.DEBUG
-            if source_p not in past_mistakes.nonunique_versions:
-                lvl = logging.ERROR
-                error = True
-            logging.log(lvl, "install packages from source package '%s' have non-unique current versions %s" % (source_p, ', '.join(reversed(out))))
+            error = True
+            logging.error("install packages from source package '%s' have non-unique current versions %s" % (source_p, ', '.join(reversed(out))))
 
     # validate that all packages are in the package maintainers list
     validate_package_maintainers(args, packages)
