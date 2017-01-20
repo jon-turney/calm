@@ -112,7 +112,7 @@ def process_relarea(args):
         if args.stale:
             stale_to_vault = remove_stale_packages(args, packages)
             if stale_to_vault:
-                for arch in common_constants.ARCHES + ['noarch']:
+                for arch in common_constants.ARCHES + ['noarch', 'src']:
                     logging.info("vaulting %d old package(s) for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
                     uploads.move_to_vault(args, stale_to_vault[arch])
             else:
@@ -143,7 +143,7 @@ def process_uploads(args, state):
                 # for each arch and noarch
                 scan_result = {}
                 skip_maintainer = False
-                for arch in common_constants.ARCHES + ['noarch']:
+                for arch in common_constants.ARCHES + ['noarch', 'src']:
                     logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
 
                     # read uploads
@@ -176,7 +176,7 @@ def process_uploads(args, state):
                     logging.debug("merging %s package set with uploads from maintainer %s" % (arch, name))
 
                     # merge package sets
-                    merged_packages[arch] = package.merge(state.packages[arch], scan_result[arch].packages, scan_result['noarch'].packages)
+                    merged_packages[arch] = package.merge(state.packages[arch], scan_result[arch].packages, scan_result['noarch'].packages, scan_result['src'].packages)
                     if not merged_packages[arch]:
                         logging.error("error while merging uploaded %s packages for %s" % (arch, name))
                         valid = False
@@ -211,7 +211,7 @@ def process_uploads(args, state):
 
                 # check for conflicting movelists
                 conflicts = False
-                for arch in common_constants.ARCHES + ['noarch']:
+                for arch in common_constants.ARCHES + ['noarch', 'src']:
                     conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, scan_result[arch].to_vault, "manually")
                     if args.stale:
                         conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, stale_to_vault[arch], "automatically")
@@ -223,7 +223,7 @@ def process_uploads(args, state):
                     continue
 
                 # for each arch and noarch
-                for arch in common_constants.ARCHES + ['noarch']:
+                for arch in common_constants.ARCHES + ['noarch', 'src']:
                     logging.debug("moving %s packages for maintainer %s" % (arch, name))
 
                     # process the move lists
@@ -237,7 +237,7 @@ def process_uploads(args, state):
 
                 # for each arch
                 if args.stale:
-                    for arch in common_constants.ARCHES + ['noarch']:
+                    for arch in common_constants.ARCHES + ['noarch', 'src']:
                         if stale_to_vault[arch]:
                             logging.info("vaulting %d old package(s) for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
                             uploads.move_to_vault(args, stale_to_vault[arch])
@@ -246,7 +246,7 @@ def process_uploads(args, state):
                 for arch in common_constants.ARCHES:
                     # use merged package list
                     state.packages[arch] = merged_packages[arch]
-                    logging.debug("added %d + %d packages from maintainer %s" % (len(scan_result[arch].packages), len(scan_result['noarch'].packages), name))
+                    logging.debug("added %d (%s) + %d (noarch) + %d (src) packages from maintainer %s" % (len(scan_result[arch].packages), arch, len(scan_result['noarch'].packages), len(scan_result['src'].packages), name))
 
         # record updated reminder times for maintainers
         maintainers.Maintainer.update_reminder_times(mlist)
@@ -280,6 +280,7 @@ def process(args, state):
 def remove_stale_packages(args, packages):
     to_vault = {}
     to_vault['noarch'] = defaultdict(list)
+    to_vault['src'] = defaultdict(list)
 
     for arch in common_constants.ARCHES:
         logging.debug("checking for stale packages for arch %s" % (arch))
@@ -308,16 +309,17 @@ def remove_stale_packages(args, packages):
     if error:
         return None
 
-    # since noarch packages are included in the package set for both arch, we
-    # will build (hopefully) identical move lists for those packages for each
-    # arch.
+    # since noarch and src packages are included in the package set for both
+    # arch, we will build (hopefully) identical move lists for those packages
+    # for each arch.
     #
     # de-duplicate these package moves, as rather awkward workaround for that
     for path in list(to_vault[common_constants.ARCHES[0]]):
-        if path.startswith('noarch'):
-            to_vault['noarch'][path] = to_vault[common_constants.ARCHES[0]][path]
-            for arch in common_constants.ARCHES:
-                del to_vault[arch][path]
+        for prefix in ['noarch', 'src']:
+            if path.startswith(prefix):
+                to_vault[prefix][path] = to_vault[common_constants.ARCHES[0]][path]
+                for arch in common_constants.ARCHES:
+                    del to_vault[arch][path]
 
     return to_vault
 

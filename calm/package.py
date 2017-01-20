@@ -82,8 +82,8 @@ class Tar(object):
 def read_packages(rel_area, arch):
     packages = defaultdict(Package)
 
-    # both noarch/ and <arch>/ directories are considered
-    for root in ['noarch', arch]:
+    # <arch>/ noarch/ and src/ directories are considered
+    for root in ['noarch', 'src', arch]:
         releasedir = os.path.join(rel_area, root)
         logging.debug('reading packages from %s' % releasedir)
 
@@ -423,7 +423,7 @@ def validate_packages(args, packages):
 
         for (t, tar) in packages[p].tars.items():
             # categorize each tarfile as either 'source' or 'install'
-            if re.search(r'-src\.tar', t):
+            if re.search(r'-src.*\.tar', t):
                 category = 'source'
             else:
                 category = 'install'
@@ -736,7 +736,7 @@ def write_setup_ini(args, packages, arch):
         # for each package
         for p in sorted(packages.keys(), key=sort_key):
             # do nothing if 'skip'
-            if packages[p].skip:
+            if packages[p].skip and not p.endswith('-src'):
                 continue
 
             # write package data
@@ -784,11 +784,16 @@ def write_setup_ini(args, packages, arch):
                     # if that doesn't exist, follow external-source
                     elif 'external-source' in packages[p].version_hints[version]:
                         s = packages[p].version_hints[version]['external-source']
-                        if 'source' in packages[s].vermap[version]:
-                            t = packages[s].vermap[version]['source']
-                            tar_line('source', packages[s], t, f)
+                        # external-source points to a real source package (-src)
+                        if s.endswith('-src'):
+                            print("Source: %s" % (s), file=f)
+                        # external-source points to a source file in another package
                         else:
-                            logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
+                            if 'source' in packages[s].vermap[version]:
+                                t = packages[s].vermap[version]['source']
+                                tar_line('source', packages[s], t, f)
+                            else:
+                                logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
 
 # helper function to output details for a particular tar file
