@@ -25,7 +25,7 @@
 # utilities for working with a package database
 #
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import copy
 import difflib
 import hashlib
@@ -779,35 +779,88 @@ def write_setup_ini(args, packages, arch):
             if 'message' in packages[p].version_hints[bv]:
                 print("message: %s" % packages[p].version_hints[bv]['message'], file=f)
 
-            # write tarfile lines for each stability level
-            for level in ['curr', 'prev', 'test']:
+            # make a list of version sections
+            #
+            # (they are put in a particular order to ensure certain behaviour
+            # from setup)
+            vs = []
+
+            # put 'curr' first
+            #
+            # due to a historic bug in setup (fixed in 78e4c7d7), we keep the
+            # [curr] version first, to ensure that dependencies are used
+            # correctly.
+            if 'curr' in packages[p].stability:
+                version = packages[p].stability['curr']
+                vs.append((version, 'curr'))
+
+            # next put any other versions
+            #
+            # these [prev] or [test] sections are superseded by the final ones.
+            for i, version in enumerate(sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)):
+                # ignore versions which should have been removed by stale
+                # package removal
+                if not (set(['install', 'source']) & set(packages[p].vermap[version])):
+                    continue
+
+                # skip over versions assigned to stability level: 'curr' has
+                # already be done, and 'prev' and 'test' will be done later
+                skip = False
+                for level in ['curr', 'prev', 'test']:
+                    if level in packages[p].stability:
+                        if version == packages[p].stability[level]:
+                            skip = True
+                            break
+
+                if skip:
+                    continue
+
+                # test versions receive the test label
+                if 'test' in packages[p].version_hints[version]:
+                    level = "test"
+                else:
+                    level = "prev"
+                vs.append((version, level))
+
+            # finally, add 'prev' and 'test' versions
+            #
+            # because setup processes version sections in order, these supersede
+            # any previous [prev] and [test] sections (hopefully).  i.e. the
+            # version in the final [test] section is the one selected when test
+            # packages are requested.
+            for level in ['prev', 'test']:
                 if level in packages[p].stability:
                     version = packages[p].stability[level]
-                    if level != 'curr':
-                        print("[%s]" % level, file=f)
-                    print("version: %s" % version, file=f)
+                    vs.append((version, level))
 
-                    if 'install' in packages[p].vermap[version]:
-                        t = packages[p].vermap[version]['install']
-                        tar_line('install', packages[p], t, f)
+            # write the section for each version
+            for (version, tag) in vs:
+                # [curr] can be omitted if it's the first section
+                if tag != 'curr':
+                    print("[%s]" % tag, file=f)
+                print("version: %s" % version, file=f)
 
-                    # look for corresponding source in this package first
-                    if 'source' in packages[p].vermap[version]:
-                        t = packages[p].vermap[version]['source']
-                        tar_line('source', packages[p], t, f)
-                    # if that doesn't exist, follow external-source
-                    elif 'external-source' in packages[p].version_hints[version]:
-                        s = packages[p].version_hints[version]['external-source']
-                        # external-source points to a real source package (-src)
-                        if s.endswith('-src'):
-                            print("Source: %s" % (s), file=f)
-                        # external-source points to a source file in another package
+                if 'install' in packages[p].vermap[version]:
+                    t = packages[p].vermap[version]['install']
+                    tar_line('install', packages[p], t, f)
+
+                # look for corresponding source in this package first
+                if 'source' in packages[p].vermap[version]:
+                    t = packages[p].vermap[version]['source']
+                    tar_line('source', packages[p], t, f)
+                # if that doesn't exist, follow external-source
+                elif 'external-source' in packages[p].version_hints[version]:
+                    s = packages[p].version_hints[version]['external-source']
+                    # external-source points to a real source package (-src)
+                    if s.endswith('-src'):
+                        print("Source: %s" % (s), file=f)
+                    # external-source points to a source file in another package
+                    else:
+                        if 'source' in packages[s].vermap[version]:
+                            t = packages[s].vermap[version]['source']
+                            tar_line('source', packages[s], t, f)
                         else:
-                            if 'source' in packages[s].vermap[version]:
-                                t = packages[s].vermap[version]['source']
-                                tar_line('source', packages[s], t, f)
-                            else:
-                                logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
+                            logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
 
 # helper function to output details for a particular tar file
@@ -904,6 +957,7 @@ def delete(packages, path, fn):
             for t in packages[p].tars:
                 if t == fn:
                     del packages[p].tars[t]
+                    # XXX: should also remove from vermap
                     break
 
             for h in packages[p].hint_files:
