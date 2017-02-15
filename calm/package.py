@@ -86,7 +86,7 @@ def read_packages(rel_area, arch):
         releasedir = os.path.join(rel_area, root)
         logging.debug('reading packages from %s' % releasedir)
 
-        for (dirpath, subdirs, files) in os.walk(releasedir):
+        for (dirpath, subdirs, files) in os.walk(releasedir, followlinks=True):
             read_package(packages, rel_area, dirpath, files)
 
         logging.debug("%d packages read" % len(packages))
