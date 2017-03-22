@@ -110,7 +110,9 @@ nonunique_versions = [
     'gnome-panel-doc',
     'gtk2.0-engines-svg',
     'guile-doc',
+    'guile-gv',                   # dropped pending guile-2
     'info',                       # something went wrong with package build?
+    'libcaca-doc',                # dropped pending fix for current doxygen
     'libfltk-doc',
     'libical_cxx-devel',
     'libquota-devel',             # no longer provided by e2fsprogs
@@ -118,9 +120,9 @@ nonunique_versions = [
     'minizip',
     'mutter-doc',
     'ocaml-camlp4',               # ocaml-camlp4 removed from ocaml distribution after 4.01.0
-    'python-openssl-debuginfo',   # no debuginfo anymore due to pure python
-    'python3-openssl-debuginfo',  # no debuginfo anymore due to pure python
-    'ruby-gdk3-debuginfo',        # no debuginfo anymore due to pure ruby
+    'ocaml-gv',                   # dropped pending ocaml cleanup
+    'python-clang',               # split out from clang
+    'python3-clang',              # split out from clang
     'sng-debuginfo',
     'socat-debuginfo',            # debuginfo for test version when curr has no debuginfo
     'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
