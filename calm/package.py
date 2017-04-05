@@ -149,7 +149,7 @@ def clean_hints(p, hints, strict_lvl, warnings):
 #
 # read a single package
 #
-def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
+def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upload=False):
     strict_lvl = logging.ERROR if strict else logging.WARNING
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
@@ -170,6 +170,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
 
         # read setup.hint
         legacy = 'setup.hint' in files
+        legacy_used = False
         if legacy:
             hints = read_hints(p, os.path.join(dirpath, 'setup.hint'), hint.setup)
             if not hints:
@@ -295,6 +296,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
             elif legacy:
                 # otherwise, use setup.hint
                 pvr_hint = hints
+                legacy_used = True
             else:
                 # it's an error to not have either a setup.hint or a pvr.hint
                 logging.error("package %s has packages for version %s, but no %s or setup.hint" % (p, vr, hint_fn))
@@ -312,6 +314,10 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[]):
         if files:
             logging.log(strict_lvl, "unexpected files in %s: %s" % (p, ', '.join(files)))
             warnings = True
+
+        if not upload and legacy and not legacy_used:
+            logging.warning("package '%s' has a setup.hint which no version uses, removing it" % (p))
+            os.unlink(os.path.join(dirpath, 'setup.hint'))
 
         packages[p].version_hints = version_hints
         packages[p].override_hints = override_hints
