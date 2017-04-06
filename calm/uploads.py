@@ -169,6 +169,10 @@ def scan(m, all_packages, arch, args):
                 files.remove(f)
                 continue
 
+            # warn about legacy setup.hint uploads
+            if f == 'setup.hint':
+                logging.warning("'%s' seen, please update to cygport >= 0.23.0" % fn)
+
             # verify compressed archive files are valid
             if re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f):
                 valid = True
