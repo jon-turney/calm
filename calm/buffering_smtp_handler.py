@@ -52,6 +52,15 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                 s = self.format(record)
                 msg = msg + s + "\r\n"
 
+            # append a summary of severities
+            summary = {}
+
+            for record in self.buffer:
+                summary[record.levelname] = summary.get(record.levelname, 0) + 1
+
+            msg = msg + 'SUMMARY: ' + ', '.join(['%d %s(s)' % (v, k) for (k, v) in summary.items()]) + "\r\n"
+
+            # build the email
             m = email.message.Message()
             m['From'] = self.fromaddr
             m['To'] = ','.join(self.toaddrs)
