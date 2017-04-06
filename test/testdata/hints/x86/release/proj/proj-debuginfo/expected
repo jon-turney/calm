@@ -1,5 +1,0 @@
-{'category': 'Debug',
- 'requires': 'cygwin-debuginfo',
- 'external-source': 'proj',
- 'sdesc': '"Debug info for proj"',
- 'ldesc': '"This package contains files necessary for debugging the\nproj package with gdb."'}
