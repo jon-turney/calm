@@ -252,10 +252,10 @@ def move(args, movelist, fromdir, todir):
                 os.makedirs(os.path.join(todir, p), exist_ok=True)
             except FileExistsError:
                 pass
-        logging.info("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
+        logging.debug("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
         for f in sorted(movelist[p]):
             if os.path.exists(os.path.join(fromdir, p, f)):
-                logging.info("%s" % (f))
+                logging.info("%s" % os.path.join(p, f))
                 if not args.dryrun:
                     os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
             else:
@@ -263,6 +263,8 @@ def move(args, movelist, fromdir, todir):
 
 
 def move_to_relarea(m, args, movelist):
+    if movelist:
+        logging.info("move from %s's upload area to release area:" % (m.name))
     move(args, movelist, m.homedir(), args.rel_area)
     # XXX: Note that there seems to be a separate process, not run from
     # cygwin-admin's crontab, which changes the ownership of files in the
@@ -270,6 +272,8 @@ def move_to_relarea(m, args, movelist):
 
 
 def move_to_vault(args, movelist):
+    if movelist:
+        logging.info("move from release area to vault:")
     move(args, movelist, args.rel_area, args.vault)
 
 
