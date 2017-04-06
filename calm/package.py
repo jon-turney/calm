@@ -382,7 +382,7 @@ def validate_packages(args, packages):
     error = False
 
     for p in sorted(packages.keys()):
-        logging.debug("validating package '%s'" % (p))
+        logging.log(5, "validating package '%s'" % (p))
 
         for (v, hints) in packages[p].version_hints.items():
             if 'requires' in hints:
