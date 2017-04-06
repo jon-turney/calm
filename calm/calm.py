@@ -58,8 +58,10 @@ import argparse
 import logging
 import os
 import shutil
+import signal
 import sys
 import tempfile
+import time
 
 from .abeyance_handler import AbeyanceHandler
 from .buffering_smtp_handler import BufferingSMTPHandler
@@ -76,17 +78,21 @@ from . import uploads
 #
 #
 
-def process(args):
-    subject = 'calm%s: cygwin package upload report from %s' % (' [dry-run]' if args.dryrun else '', os.uname()[1])
+class CalmState(object):
+    def __init__(self):
+        self.subject = ''
+        self.packages = {}
 
-    # send one email per run to leads, if any errors occurred
-    with mail_logs(args.email, toaddrs=args.email, subject='%s' % (subject), thresholdLevel=logging.ERROR) as leads_email:
-        if args.dryrun:
-            logging.warning("--dry-run is in effect, nothing will really be done")
+
+#
+#
+#
+
+def process_relarea(args):
+        packages = {}
+        error = False
 
         # for each arch
-        error = False
-        packages = {}
         for arch in common_constants.ARCHES:
             logging.debug("reading existing packages for arch %s" % (arch))
 
@@ -113,6 +119,14 @@ def process(args):
                 logging.error("error while evaluating stale packages")
                 return None
 
+        return packages
+
+
+#
+#
+#
+
+def process_uploads(args, state):
         # read maintainer list
         mlist = maintainers.Maintainer.read(args)
 
@@ -124,7 +138,7 @@ def process(args):
             m = mlist[name]
 
             # also send a mail to each maintainer about their packages
-            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (subject, name), thresholdLevel=logging.INFO) as maint_email:
+            with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (state.subject, name), thresholdLevel=logging.INFO) as maint_email:
 
                 # for each arch and noarch
                 scan_result = {}
@@ -162,7 +176,7 @@ def process(args):
                     logging.debug("merging %s package set with uploads from maintainer %s" % (arch, name))
 
                     # merge package sets
-                    merged_packages[arch] = package.merge(packages[arch], scan_result[arch].packages, scan_result['noarch'].packages)
+                    merged_packages[arch] = package.merge(state.packages[arch], scan_result[arch].packages, scan_result['noarch'].packages)
                     if not merged_packages[arch]:
                         logging.error("error while merging uploaded %s packages for %s" % (arch, name))
                         valid = False
@@ -231,13 +245,32 @@ def process(args):
                 # for each arch
                 for arch in common_constants.ARCHES:
                     # use merged package list
-                    packages[arch] = merged_packages[arch]
+                    state.packages[arch] = merged_packages[arch]
                     logging.debug("added %d + %d packages from maintainer %s" % (len(scan_result[arch].packages), len(scan_result['noarch'].packages), name))
 
         # record updated reminder times for maintainers
         maintainers.Maintainer.update_reminder_times(mlist)
 
-    return packages
+        return state.packages
+
+
+#
+#
+#
+
+def process(args, state):
+    # send one email per run to leads, if any errors occurred
+    with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
+        if args.dryrun:
+            logging.warning("--dry-run is in effect, nothing will really be done")
+
+        state.packages = process_relarea(args)
+        if not state.packages:
+            return None
+
+        state.packages = process_uploads(args, state)
+
+    return state.packages
 
 
 #
@@ -310,19 +343,29 @@ def report_movelist_conflicts(a, b, reason):
 #
 #
 
-def do_main(args):
+def do_main(args, state):
     # read package set and process uploads
-    packages = process(args)
+    packages = process(args, state)
 
     if not packages:
         logging.error("not processing uploads or writing setup.ini")
         return
 
+    state.packages = packages
+
+    do_output(args, state)
+
+
+#
+#
+#
+
+def do_output(args, state):
     # for each arch
     for arch in common_constants.ARCHES:
         # update packages listings
         # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
-        pkg2html.update_package_listings(args, packages[arch], arch)
+        pkg2html.update_package_listings(args, state.packages[arch], arch)
 
     # for each arch
     for arch in common_constants.ARCHES:
@@ -342,7 +385,7 @@ def do_main(args):
             changed = False
 
             # write setup.ini
-            package.write_setup_ini(args, packages[arch], arch)
+            package.write_setup_ini(args, state.packages[arch], arch)
 
             if not os.path.exists(inifile):
                 # if the setup.ini file doesn't exist yet
@@ -380,7 +423,7 @@ def do_main(args):
                         elif ext == '.xz':
                             os.system('/usr/bin/xz -6e <%s >%s' % (inifile, os.path.splitext(inifile)[0] + ext))
 
-                        os.system('/usr/bin/gpg --batch --yes -b ' + os.path.join(basedir, 'setup' + ext))
+                        os.system('/usr/bin/gpg --batch --yes -b </dev/null ' + os.path.join(basedir, 'setup' + ext))
 
                     # arrange for checksums to be recomputed
                     for sumfile in ['md5.sum', 'sha512.sum']:
@@ -391,6 +434,99 @@ def do_main(args):
             else:
                 logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
                 os.remove(tmpfile.name)
+
+
+#
+# daemonization loop
+#
+
+def do_daemon(args, state):
+    import daemon
+    import lockfile.pidlockfile
+
+    context = daemon.DaemonContext(
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+        pidfile=lockfile.pidlockfile.PIDLockFile(args.daemon))
+
+    running = True
+    read_relarea = True
+    read_uploads = True
+
+    # signals! the first, and best, interprocess communications mechanism! :)
+    def sigusr1(signum, frame):
+        logging.info("SIGUSR1")
+        nonlocal read_uploads
+        read_uploads = True
+
+    def sigusr2(signum, frame):
+        logging.info("SIGUSR2")
+        nonlocal read_relarea
+        read_relarea = True
+
+    def sigalrm(signum, frame):
+        logging.info("SIGALRM")
+        nonlocal read_relarea
+        read_relarea = True
+        nonlocal read_uploads
+        read_uploads = True
+
+    def sigterm(signum, frame):
+        logging.info("SIGTERM")
+        nonlocal running
+        running = False
+
+    context.signal_map = {
+        signal.SIGUSR1: sigusr1,
+        signal.SIGUSR2: sigusr2,
+        signal.SIGALRM: sigalrm,
+        signal.SIGTERM: sigterm,
+    }
+
+    with context:
+        logging_setup(args)
+        logging.info("calm daemon started, pid %d" % (os.getpid()))
+
+        state.packages = {}
+
+        while running:
+            with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
+                # re-read relarea on SIGALRM or SIGUSR2
+                if read_relarea:
+                    read_relarea = False
+                    state.packages = process_relarea(args)
+
+                if not state.packages:
+                    logging.error("not processing uploads or writing setup.ini")
+                else:
+                    if read_uploads:
+                        # read uploads on SIGUSR1
+                        read_uploads = False
+                        state.packages = process_uploads(args, state)
+
+                    do_output(args, state)
+
+                    # if there is more work to do, but don't spin if we can't do it
+                    if read_uploads:
+                        continue
+
+            # we wake at a 10 minute offset from the next 30 minute boundary
+            # (i.e. at :10 or :40 past the hour) to check the state of the
+            # release area, in case someone has ninja-ed in a change there...
+            interval = 30*60
+            offset = 10*60
+            delay = interval - ((time.time() - offset) % interval)
+            signal.alarm(int(delay))
+
+            # wait until interrupted by a signal
+            logging.info("sleeping for %d seconds" % (delay))
+            signal.pause()
+            logging.info("woken")
+
+            # cancel any pending alarm
+            signal.alarm(0)
+
+        logging.info("calm daemon stopped")
 
 
 #
@@ -406,46 +542,16 @@ def mail_logs(enabled, toaddrs, subject, thresholdLevel, retainLevel=None):
 
 
 #
+# setup logging configuration
 #
-#
 
-def main():
-    htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
-    homedir_default = common_constants.HOMEDIR
-    orphanmaint_default = common_constants.ORPHANMAINT
-    pkglist_default = common_constants.PKGMAINT
-    relarea_default = common_constants.FTP
-    setupdir_default = common_constants.HTDOCS
-    vault_default = common_constants.VAULT
-    logdir_default = '/sourceware/cygwin-staging/logs'
-    queuedir_default = '/sourceware/cygwin-staging/queue'
-
-    parser = argparse.ArgumentParser(description='Upset replacement')
-    parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help='email output to maintainer and ADDRS (default: ' + common_constants.EMAILS + ')', metavar='ADDRS')
-    parser.add_argument('--force', action='store_true', help="overwrite existing files")
-    parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
-    parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
-    parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
-    parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
-    parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
-    parser.add_argument('--queuedir', action='store', nargs='?', metavar='DIR', help="queue directory (default: '" + queuedir_default + "')", const=queuedir_default)
-    parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
-    parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
-    parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
-    parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")
-    parser.set_defaults(stale=True)
-    parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
-    parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
-    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
-    (args) = parser.parse_args()
-
+def logging_setup(args):
     # set up logging to a file
     try:
         os.makedirs(args.logdir, exist_ok=True)
     except FileExistsError:
         pass
-    rfh = logging.handlers.RotatingFileHandler(os.path.join(args.logdir, 'calm.log'), backupCount=48)
-    rfh.doRollover()  # force a rotate on every run
+    rfh = logging.handlers.TimedRotatingFileHandler(os.path.join(args.logdir, 'calm.log'), backupCount=48, when='midnight')
     rfh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)-8s - %(message)s'))
     rfh.setLevel(logging.DEBUG)
     logging.getLogger().addHandler(rfh)
@@ -463,10 +569,54 @@ def main():
     # doesn't filter out any log messages due to level
     logging.getLogger().setLevel(logging.NOTSET)
 
+
+#
+#
+#
+
+def main():
+    htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
+    homedir_default = common_constants.HOMEDIR
+    orphanmaint_default = common_constants.ORPHANMAINT
+    pidfile_default = '/sourceware/cygwin-staging/calm.pid'
+    pkglist_default = common_constants.PKGMAINT
+    relarea_default = common_constants.FTP
+    setupdir_default = common_constants.HTDOCS
+    vault_default = common_constants.VAULT
+    logdir_default = '/sourceware/cygwin-staging/logs'
+    queuedir_default = '/sourceware/cygwin-staging/queue'
+
+    parser = argparse.ArgumentParser(description='Upset replacement')
+    parser.add_argument('-d', '--daemon', action='store', nargs='?', const=pidfile_default, help="daemonize (PIDFILE defaults to " + pidfile_default + ")", metavar='PIDFILE')
+    parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help="email output to maintainer and ADDRS (ADDRS defaults to '" + common_constants.EMAILS + "')", metavar='ADDRS')
+    parser.add_argument('--force', action='store_true', help="overwrite existing files")
+    parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
+    parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
+    parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
+    parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
+    parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
+    parser.add_argument('--queuedir', action='store', nargs='?', metavar='DIR', help="queue directory (default: '" + queuedir_default + "')", const=queuedir_default)
+    parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
+    parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
+    parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")
+    parser.set_defaults(stale=True)
+    parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
+    parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
+    (args) = parser.parse_args()
+
     if args.email:
         args.email = args.email.split(',')
 
-    do_main(args)
+    state = CalmState()
+    state.subject = 'calm%s: cygwin package upload report from %s' % (' [dry-run]' if args.dryrun else '', os.uname()[1])
+
+    if args.daemon:
+        do_daemon(args, state)
+    else:
+        logging_setup(args)
+        do_main(args, state)
 
 
 #

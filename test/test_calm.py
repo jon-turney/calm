@@ -254,6 +254,8 @@ class CalmTest(unittest.TestCase):
         setattr(args, 'setup_version', '3.1415')
         setattr(args, 'stale', True)
 
+        state = calm.calm.CalmState()
+
         shutil.copytree('testdata/relarea', getattr(args, 'rel_area'))
         shutil.copytree('testdata/homes', getattr(args, 'homedir'))
 
@@ -269,7 +271,7 @@ class CalmTest(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        packages = calm.calm.process(args)
+        packages = calm.calm.process(args, state)
         self.assertTrue(packages)
 
         pkg2html.update_package_listings(args, packages['x86'], 'x86')
