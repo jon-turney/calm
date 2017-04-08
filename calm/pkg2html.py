@@ -31,8 +31,8 @@
 # --- if a package listing HTML file doesn't already exist
 # ---- write a HTML package listing file listing the tar file contents
 # - write packages.inc, the list of packages
-# - remove any listing files for which there was no package
-# - remove any empty directories (TBD)
+# - remove any .htaccess or listing files for which there was no package
+# - remove any directories which are now empty
 #
 # note that the directory hierarchy of (noarch|arch)/package/subpackages is
 # flattened in the package listing to just the package name
@@ -84,7 +84,7 @@ def update_package_listings(args, packages, arch):
                 print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (arch),
                       file=f)
 
-    toremove = glob.glob(os.path.join(base, '*', '*'))
+    toremove = glob.glob(os.path.join(base, '*', '*')) + glob.glob(os.path.join(base, '*', '.*'))
 
     for p in packages:
 
@@ -118,6 +118,10 @@ def update_package_listings(args, packages, arch):
                     # XXX: omitting 0 here doesn't make much sense.  and this
                     # doesn't help for src packages, so is it actually having
                     # any effect?
+
+        # this file should exist, so remove from the toremove list
+        if htaccess in toremove:
+            toremove.remove(htaccess)
 
         #
         # for each tarfile, write tarfile listing
@@ -220,13 +224,23 @@ def update_package_listings(args, packages, arch):
                                      </div>'''), file=index)
 
     #
-    # remove any remaining listing files for which there was no corresponding package
+    # remove any remaining files for which there was no corresponding package
     #
 
     for r in toremove:
         logging.debug('rm %s' % r)
         if not args.dryrun:
             os.unlink(r)
+
+            #
+            # remove any directories which are now empty
+            #
+
+            dirpath = os.path.dirname(r)
+            if len(os.listdir(dirpath)) == 0:
+                logging.debug('rmdir %s' % dirpath)
+                os.rmdir(os.path.join(dirpath))
+
 
 if __name__ == "__main__":
     htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
