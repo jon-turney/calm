@@ -55,6 +55,22 @@ from . import package
 
 
 #
+# get sdesc for a package
+#
+# some source-only packages don't have an sdesc, since they consist of just
+# 'skip':', in which case we try to make a reasonable one
+#
+
+def desc(packages, p, bv):
+    if 'sdesc' in packages[p].version_hints[bv]:
+        header = packages[p].version_hints[bv]['sdesc']
+    else:
+        header = p
+
+    return header.replace('"', '')
+
+
+#
 #
 #
 
@@ -87,10 +103,6 @@ def update_package_listings(args, packages, arch):
     toremove = glob.glob(os.path.join(base, '*', '*')) + glob.glob(os.path.join(base, '*', '.*'))
 
     for p in packages:
-
-        # do nothing for packages marked 'skip'
-        if packages[p].skip:
-            continue
 
         dir = os.path.join(base, p)
         if not args.dryrun:
@@ -140,7 +152,7 @@ def update_package_listings(args, packages, arch):
                 if not args.dryrun:
                     with open(listing, 'w') as f:
                         bv = packages[p].best_version
-                        header = p + ": " + packages[p].version_hints[bv]['sdesc'].replace('"', '')
+                        header = p + ": " + desc(packages, p, bv)
 
                         if fver.endswith('-src'):
                             header = header + " (source code)"
@@ -210,12 +222,9 @@ def update_package_listings(args, packages, arch):
                                      <table class="pkglist">''') % (arch, arch), file=index)
 
             for p in sorted(packages.keys(), key=package.sort_key):
-                # don't write anything if 'skip'
-                if packages[p].skip:
-                    continue
 
                 bv = packages[p].best_version
-                header = packages[p].version_hints[bv]['sdesc'].replace('"', '')
+                header = desc(packages, p, bv)
 
                 print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + html.escape(header, quote=False) + '</td></tr>', file=index)
 
