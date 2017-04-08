@@ -24,6 +24,7 @@
 import logging
 import logging.handlers
 import email.message
+import email.utils
 
 from . import common_constants
 
@@ -56,6 +57,8 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
             m['To'] = ','.join(self.toaddrs)
             m['Bcc'] = common_constants.ALWAYS_BCC
             m['Subject'] = self.subject
+            m['Message-Id'] = email.utils.make_msgid()
+            m['Date'] = email.utils.formatdate()
             m['X-Calm'] = '1'
 
             # use utf-8 only if the message can't be ascii encoded
