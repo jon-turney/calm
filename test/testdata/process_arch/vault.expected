@@ -7,4 +7,4 @@
                               'staleversion-242-0.tar.xz',
                               'staleversion-251-0-src.tar.xz',
                               'staleversion-251-0.tar.xz'],
- 'x86/release/testpackage': ['testpackage-0.1-1.tar.bz2']}
+ 'x86/release/testpackage': ['testpackage-0.1-1-src.tar.bz2', 'testpackage-0.1-1.tar.bz2']}

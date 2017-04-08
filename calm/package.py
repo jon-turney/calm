@@ -383,10 +383,12 @@ def validate_packages(args, packages):
 
     for p in sorted(packages.keys()):
         logging.log(5, "validating package '%s'" % (p))
+        has_requires = False
 
         for (v, hints) in packages[p].version_hints.items():
             if 'requires' in hints:
                 for r in hints['requires'].split():
+                    has_requires = True
 
                     # a package should not appear in it's own requires
                     if r == p:
@@ -416,6 +418,7 @@ def validate_packages(args, packages):
         packages[p].vermap = defaultdict(defaultdict)
         is_empty = {}
         has_install = False
+        has_nonempty_install = False
 
         for t in packages[p].tars:
             # categorize each tarfile as either 'source' or 'install'
@@ -425,6 +428,8 @@ def validate_packages(args, packages):
                 category = 'install'
                 has_install = True
                 is_empty[t] = packages[p].tars[t].is_empty
+                if not is_empty[t]:
+                    has_nonempty_install = True
 
             # extract just the version part from tar filename
             v = re.sub(r'^' + re.escape(p) + '-', '', t)
@@ -440,20 +445,28 @@ def validate_packages(args, packages):
             # store tarfile corresponding to this version and category
             packages[p].vermap[v][category] = t
 
+        obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
+
         # if the package has no install tarfiles (i.e. is source only), make
         # sure it is marked as 'skip' (which really means 'source-only' at the
         # moment)
+        #
+        # if the package has no non-empty install tarfiles, and no dependencies
+        # installing it will do nothing (and making it appear in the package
+        # list is just confusing), so if it's not obsolete, mark it as 'skip'
         #
         # (this needs to take place after uploads have been merged into the
         # package set, so that an upload containing just a replacement
         # setup.hint is not considered a source-only package)
         #
-        # XXX: the check should probably be for any non-empty install files, or
-        # (any install files or any dependencies), but that differs from what
-        # upset does
-        if not has_install and not packages[p].skip:
-            packages[p].skip = True
-            logging.info("package '%s' appears to be source-only as it has no install tarfiles, marking as 'skip'" % (p))
+        if not packages[p].skip:
+            if not has_install:
+                packages[p].skip = True
+                logging.info("package '%s' appears to be source-only as it has no install tarfiles, marking as 'skip'" % (p))
+
+            elif not has_nonempty_install and not has_requires and not obsolete:
+                packages[p].skip = True
+                logging.info("package '%s' appears to be source-only as it has no non-empty install tarfiles and no dependencies, marking as 'skip'" % (p))
 
         # verify the versions specified for stability level exist
         levels = ['test', 'curr', 'prev']
@@ -551,7 +564,7 @@ def validate_packages(args, packages):
         # If, for every stability level, the install tarball is empty and there
         # is no source tarball, we should probably be marked obsolete
         if not packages[p].skip:
-            if not any(['_obsolete' in packages[p].version_hints[vr]['category'] for vr in packages[p].version_hints]):
+            if not obsolete:
                 has_something = False
 
                 for l in ['test', 'curr', 'prev']:
