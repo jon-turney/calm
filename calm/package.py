@@ -561,23 +561,17 @@ def validate_packages(args, packages):
             packages[p].best_version = None
             error = True
 
-        # If, for every stability level, the install tarball is empty and there
-        # is no source tarball, we should probably be marked obsolete
+        # If the install tarball is empty and there is no source tarball, we
+        # should probably be marked obsolete
+        # (XXX: should consider external-source: ?)
         if not packages[p].skip:
-            if not obsolete:
-                has_something = False
-
-                for l in ['test', 'curr', 'prev']:
-                    if l in packages[p].stability:
-                        v = packages[p].stability[l]
-                        if 'source' in packages[p].vermap[v]:
-                            has_something = True
-                        elif 'install' in packages[p].vermap[v]:
-                            if not packages[p].tars[packages[p].vermap[v]['install']].is_empty:
-                                has_something = True
-
-                if not has_something:
-                    logging.warning("package '%s' has empty install tar file and no source for all levels, but it's not in the _obsolete category" % (p))
+            for vr in packages[p].version_hints:
+                if '_obsolete' not in packages[p].version_hints[vr].get('category', ''):
+                    if 'source' not in packages[p].vermap[vr]:
+                        if 'install' in packages[p].vermap[vr]:
+                            if packages[p].tars[packages[p].vermap[vr]['install']].is_empty:
+                                lvl = logging.WARNING if p not in past_mistakes.empty_but_not_obsolete else logging.DEBUG
+                                logging.log(lvl, "package '%s' version '%s' has empty install tar file and no source, but it's not in the _obsolete category" % (p, vr))
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
@@ -920,6 +914,9 @@ def mark_package_fresh(packages, p, v):
         return
 
     # unless the install tarfile is empty ...
+    if 'install' not in packages[p].vermap[v]:
+        return
+
     if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
         return
 

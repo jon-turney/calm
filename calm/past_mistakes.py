@@ -129,3 +129,14 @@ nonunique_versions = [
     'texinfo-debuginfo',          # something went wrong with package build?
     'w3m-img',
 ]
+
+# packages with an empty install file, no source, but aren't obsolete
+empty_but_not_obsolete = [
+    'gcc-java',        # gcc-java will be obsolete in test version 6.3
+    'gdal-debuginfo',  # version 2.1.2-1 has empty debuginfo
+    'libgcj-common',
+    'libgcj16',
+    'libpopt0',        # version 1.16-1 was empty (x8_64)
+    'libpopt-devel',   #
+    'mutt-debuginfo',  # version 1.7.2-1 has empty debuginfo
+]
