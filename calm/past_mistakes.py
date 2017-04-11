@@ -140,3 +140,23 @@ empty_but_not_obsolete = [
     'libpopt-devel',   #
     'mutt-debuginfo',  # version 1.7.2-1 has empty debuginfo
 ]
+
+# packages with timestamp anomalies
+mtime_anomalies = [
+    'gcc-tools-epoch2-autoconf',
+    'glproto',
+    'gv-debuginfo',
+    'python-gtk2.0',
+    'python-gtk2.0-demo',
+    'python-gtk2.0-devel',
+    'subversion',
+    'subversion-debuginfo',
+    'subversion-devel',
+    'subversion-gnome',
+    'subversion-httpd',
+    'subversion-perl',
+    'subversion-python',
+    'subversion-ruby',
+    'subversion-tools',
+    'xextproto',
+]

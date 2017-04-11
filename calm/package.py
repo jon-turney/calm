@@ -420,7 +420,7 @@ def validate_packages(args, packages):
         has_install = False
         has_nonempty_install = False
 
-        for t in packages[p].tars:
+        for (t, tar) in packages[p].tars.items():
             # categorize each tarfile as either 'source' or 'install'
             if re.search(r'-src\.tar', t):
                 category = 'source'
@@ -444,6 +444,7 @@ def validate_packages(args, packages):
 
             # store tarfile corresponding to this version and category
             packages[p].vermap[v][category] = t
+            packages[p].vermap[v]['mtime'] = tar.mtime
 
         obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
 
@@ -536,6 +537,7 @@ def validate_packages(args, packages):
 
             # assign version to level
             packages[p].stability[l] = v
+            packages[p].version_hints[v][l] = ''
             # and remove from list of unallocated levels
             levels.remove(l)
 
@@ -553,6 +555,17 @@ def validate_packages(args, packages):
         # it's also probably a really good idea if a curr version exists
         elif 'curr' not in packages[p].stability and 'curr' not in getattr(args, 'okmissing', []):
             logging.warning("package '%s' doesn't have a curr version" % (p))
+
+        # warn if the curr: version isn't the most recent non-test: version
+        for v in sorted(packages[p].vermap.keys(), key=lambda v: packages[p].vermap[v]['mtime'], reverse=True):
+            if 'test' in packages[p].version_hints[v]:
+                continue
+
+            if packages[p].stability['curr'] != v:
+                lvl = logging.WARNING if p not in past_mistakes.mtime_anomalies else logging.DEBUG
+                logging.log(lvl, "package '%s' version '%s' is most recent non-test version, but version '%s' is curr:" % (p, v, packages[p].stability['curr']))
+
+            break
 
         # identify a 'best' version to take certain information from: this is
         # the curr version, if we have one, otherwise, the highest version.
@@ -994,10 +1007,10 @@ def stale_packages(packages):
 
         # clean up freshness mark
         for v in po.vermap:
-            for c in po.vermap[v]:
+            for c in ['source', 'install']:
                 try:
                     delattr(po.tars[po.vermap[v][c]], 'fresh')
-                except AttributeError:
+                except (KeyError, AttributeError):
                     pass
 
     return stale
