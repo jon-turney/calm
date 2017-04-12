@@ -489,42 +489,45 @@ def do_daemon(args, state):
 
         state.packages = {}
 
-        while running:
-            with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
-                # re-read relarea on SIGALRM or SIGUSR2
-                if read_relarea:
-                    read_relarea = False
-                    state.packages = process_relarea(args)
+        try:
+            while running:
+                with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
+                    # re-read relarea on SIGALRM or SIGUSR2
+                    if read_relarea:
+                        read_relarea = False
+                        state.packages = process_relarea(args)
 
-                if not state.packages:
-                    logging.error("not processing uploads or writing setup.ini")
-                else:
-                    if read_uploads:
-                        # read uploads on SIGUSR1
-                        read_uploads = False
-                        state.packages = process_uploads(args, state)
+                    if not state.packages:
+                        logging.error("not processing uploads or writing setup.ini")
+                    else:
+                        if read_uploads:
+                            # read uploads on SIGUSR1
+                            read_uploads = False
+                            state.packages = process_uploads(args, state)
 
-                    do_output(args, state)
+                        do_output(args, state)
 
-                    # if there is more work to do, but don't spin if we can't do it
-                    if read_uploads:
-                        continue
+                        # if there is more work to do, but don't spin if we can't do it
+                        if read_uploads:
+                            continue
 
-            # we wake at a 10 minute offset from the next 30 minute boundary
-            # (i.e. at :10 or :40 past the hour) to check the state of the
-            # release area, in case someone has ninja-ed in a change there...
-            interval = 30*60
-            offset = 10*60
-            delay = interval - ((time.time() - offset) % interval)
-            signal.alarm(int(delay))
+                # we wake at a 10 minute offset from the next 30 minute boundary
+                # (i.e. at :10 or :40 past the hour) to check the state of the
+                # release area, in case someone has ninja-ed in a change there...
+                interval = 30*60
+                offset = 10*60
+                delay = interval - ((time.time() - offset) % interval)
+                signal.alarm(int(delay))
 
-            # wait until interrupted by a signal
-            logging.info("sleeping for %d seconds" % (delay))
-            signal.pause()
-            logging.info("woken")
+                # wait until interrupted by a signal
+                logging.info("sleeping for %d seconds" % (delay))
+                signal.pause()
+                logging.info("woken")
 
-            # cancel any pending alarm
-            signal.alarm(0)
+                # cancel any pending alarm
+                signal.alarm(0)
+        except Exception as e:
+            logging.error("exception %s" % (type(e).__name__), exc_info=True)
 
         logging.info("calm daemon stopped")
 
