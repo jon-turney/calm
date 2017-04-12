@@ -13,6 +13,7 @@ setup(
         'console_scripts': [
             'calm = calm.calm:main',
             'mksetupini = calm.mksetupini:main',
+            'calm-mkgitoliteconf = calm.mkgitoliteconf:main',
         ],
     },
     url='https://cygwin.com/git/?p=cygwin-apps/calm.git',
