@@ -455,24 +455,24 @@ def do_daemon(args, state):
 
     # signals! the first, and best, interprocess communications mechanism! :)
     def sigusr1(signum, frame):
-        logging.info("SIGUSR1")
+        logging.debug("SIGUSR1")
         nonlocal read_uploads
         read_uploads = True
 
     def sigusr2(signum, frame):
-        logging.info("SIGUSR2")
+        logging.debug("SIGUSR2")
         nonlocal read_relarea
         read_relarea = True
 
     def sigalrm(signum, frame):
-        logging.info("SIGALRM")
+        logging.debug("SIGALRM")
         nonlocal read_relarea
         read_relarea = True
         nonlocal read_uploads
         read_uploads = True
 
     def sigterm(signum, frame):
-        logging.info("SIGTERM")
+        logging.debug("SIGTERM")
         nonlocal running
         running = False
 
