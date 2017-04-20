@@ -38,6 +38,8 @@ from . import package
 
 # reminders will be issued daily
 REMINDER_INTERVAL = 60*60*24
+# reminders don't start to be issued until an hour after upload
+REMINDER_GRACE = 60*60
 
 # a named tuple type to hold the result of scan
 ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove_always,remove_success')
@@ -133,14 +135,17 @@ def scan(m, all_packages, arch, args):
                 continue
 
             # only process files newer than !ready
-            if os.path.getmtime(fn) > mtime:
+            file_mtime = os.path.getmtime(fn)
+            if file_mtime > mtime:
                 if mtime == 0:
                     m.reminders_timestamp_checked = True
                     lvl = logging.DEBUG
 
+                    # don't warn until file is at least REMINDER_GRACE old, and
                     # if more than REMINDER_INTERVAL has elapsed since we warned
                     # about files being ignored, warn again
-                    if time.time() > (m.reminder_time + REMINDER_INTERVAL):
+                    if ((file_mtime < (time.time() - REMINDER_GRACE)) and
+                        (time.time() > (m.reminder_time + REMINDER_INTERVAL))):
                         lvl = logging.WARNING
                         if not args.dryrun:
                             m.reminders_issued = True
