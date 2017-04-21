@@ -287,7 +287,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
             hint_fn = '%s-%s.hint' % (p, vr)
             if hint_fn in files:
                 # is there a PVR.hint file?
-                pvr_hint = read_hints(p, os.path.join(dirpath,  hint_fn), hint.pvr)
+                pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
                 if not pvr_hint:
                     return True
                 warnings = clean_hints(p, pvr_hint, strict_lvl, warnings)

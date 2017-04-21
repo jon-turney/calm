@@ -132,7 +132,7 @@ class Maintainer(object):
     # add maintainers from the package maintainers list, with the packages they
     # maintain
     @staticmethod
-    def add_packages(mlist,  pkglist, orphanMaint=None):
+    def add_packages(mlist, pkglist, orphanMaint=None):
         with open(pkglist) as f:
             for (i, l) in enumerate(f):
                 l = l.rstrip()
