@@ -49,6 +49,7 @@ class Package(object):
     def __init__(self):
         self.path = ''  # path to package, relative to release area
         self.tars = {}
+        self.hint_files = {}
         self.is_used_by = set()
         self.version_hints = {}
         self.override_hints = {}
@@ -885,6 +886,11 @@ def delete(packages, path, fn):
             for t in packages[p].tars:
                 if t == fn:
                     del packages[p].tars[t]
+                    break
+
+            for h in packages[p].hint_files:
+                if packages[p].hint_files[h] == fn:
+                    del packages[p].hint_files[h]
                     break
 
 
