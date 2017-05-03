@@ -296,7 +296,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                 hint_files[vr] = hint_fn
             elif legacy:
                 # otherwise, use setup.hint
-                pvr_hint = hints
+                pvr_hint = hints.copy()
                 legacy_used = True
             else:
                 # it's an error to not have either a setup.hint or a pvr.hint
