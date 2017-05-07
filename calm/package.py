@@ -647,7 +647,7 @@ def validate_packages(args, packages):
 
         for install_p in packages[source_p].is_used_by:
             # ignore obsolete packages
-            if any(['_obsolete' in packages[install_p].version_hints[vr]['category'] for vr in packages[install_p].version_hints]):
+            if any(['_obsolete' in packages[install_p].version_hints[vr].get('category', '') for vr in packages[install_p].version_hints]):
                 continue
 
             # ignore runtime library packages, as we may keep old versions of
