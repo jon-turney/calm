@@ -276,7 +276,7 @@ def hint_file_parse(fn, kind):
                     # store the key:value
                     hints[key] = value
                 else:
-                    errors.append("unknown setup construct '%s' at line %d" % (item, i))
+                    errors.append("unknown construct '%s' at line %d" % (item, i))
 
             # for setup and pvr kinds, if 'skip' isn't present, 'category' and
             # 'sdesc' must be
