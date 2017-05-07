@@ -166,6 +166,7 @@ mtime_anomalies = [
     'libquadmath0',
     'libssp0',
     'libstdc++6',
+    'opencv',  # 2.4.11-1 was created when changed from source-only to install
     'python-gtk2.0',
     'python-gtk2.0-demo',
     'python-gtk2.0-devel',

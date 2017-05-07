@@ -8,3 +8,4 @@
 * check packages for path collisions
 * don't do upload authorization by path, then remove unique path constraint
 * mksetupini should be able to verify requires: contains valid package names using a provided list of packages (or a cygwin-pkg-maint file?)
+* certain checks where we have past_mistakes to forgive should instead have a forgive: key in override.hint to disable?
