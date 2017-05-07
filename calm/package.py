@@ -97,7 +97,7 @@ def read_packages(rel_area, arch):
 
 # helper function to compute sha512 for a particular file
 # (block_size should be some multiple of sha512 block size which can be efficiently read)
-def sha512_file(fn, block_size=256*128):
+def sha512_file(fn, block_size=256 * 128):
     sha512 = hashlib.sha512()
 
     with open(fn, 'rb') as f:

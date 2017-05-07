@@ -37,9 +37,9 @@ import time
 from . import package
 
 # reminders will be issued daily
-REMINDER_INTERVAL = 60*60*24
+REMINDER_INTERVAL = 60 * 60 * 24
 # reminders don't start to be issued until an hour after upload
-REMINDER_GRACE = 60*60
+REMINDER_GRACE = 60 * 60
 
 # a named tuple type to hold the result of scan
 ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove_always,remove_success')

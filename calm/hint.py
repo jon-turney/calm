@@ -150,7 +150,7 @@ def item_lexer(c):
     i = -1
     lines = c.splitlines()
 
-    while i < len(lines)-1:
+    while i < len(lines) - 1:
         i = i + 1
         o = lines[i]
 
@@ -172,7 +172,7 @@ def item_lexer(c):
         # if the line contains an opening quote
         if '"' in o:
             # continue reading lines till closing quote
-            while i < len(lines)-1:
+            while i < len(lines) - 1:
                 i = i + 1
                 # multi-line quoted text preserves any leading space used for
                 # indentation, but removes any trailing space
@@ -293,7 +293,7 @@ def hint_file_parse(fn, kind):
             # packages like to repeat the basic description in ldesc in every
             # subpackage, but add to sdesc to distinguish the subpackages)
             if 'ldesc' in hints:
-                if len(hints['sdesc']) > 2*len(hints['ldesc']):
+                if len(hints['sdesc']) > 2 * len(hints['ldesc']):
                     warnings.append('sdesc is much longer than ldesc')
 
             # sort requires: as differences in ordering are uninteresting

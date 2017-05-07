@@ -113,7 +113,7 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.INFO)
 
-    logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
+    logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
     do_main(args)
 

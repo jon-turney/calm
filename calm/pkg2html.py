@@ -258,7 +258,7 @@ if __name__ == "__main__":
     if args.verbose:
         logging.getLogger().setLevel(logging.INFO)
 
-    logging.basicConfig(format=os.path.basename(sys.argv[0])+': %(message)s')
+    logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
     packages = package.read_packages(args.rel_area, args.arch)
     update_package_listings(args, packages, args.arch)

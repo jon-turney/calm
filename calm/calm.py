@@ -514,8 +514,8 @@ def do_daemon(args, state):
                 # we wake at a 10 minute offset from the next 240 minute boundary
                 # (i.e. at :10 past every fourth hour) to check the state of the
                 # release area, in case someone has ninja-ed in a change there...
-                interval = 240*60
-                offset = 10*60
+                interval = 240 * 60
+                offset = 10 * 60
                 delay = interval - ((time.time() - offset) % interval)
                 signal.alarm(int(delay))
 
@@ -561,7 +561,7 @@ def logging_setup(args):
 
     # setup logging to stdout, of WARNING messages or higher (INFO if verbose)
     ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(logging.Formatter(os.path.basename(sys.argv[0])+': %(message)s'))
+    ch.setFormatter(logging.Formatter(os.path.basename(sys.argv[0]) + ': %(message)s'))
     if args.verbose:
         ch.setLevel(logging.INFO)
     else:
