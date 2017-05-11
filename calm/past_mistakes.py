@@ -112,6 +112,7 @@ nonunique_versions = [
     'guile-doc',
     'guile-gv',                   # dropped pending guile-2
     'info',                       # something went wrong with package build?
+    'libatomic_ops-devel',        # separated out from libgc
     'libcaca-doc',                # dropped pending fix for current doxygen
     'libfltk-doc',
     'libical_cxx-devel',
