@@ -173,6 +173,17 @@ class Maintainer(object):
 
                     # joint maintainers are separated by '/'
                     for name in m.split('/'):
+
+                        # is the maintainer name ascii?
+                        #
+                        # (despite containing spaces, think of these as an account
+                        # name, rather than a display name)
+                        try:
+                            name.encode('ascii')
+                        except UnicodeError:
+                            logging.error("non-ascii maintainer name '%s' in line %s:%d, skipped" % (rest, pkglist, i))
+                            continue
+
                         m = Maintainer._find(mlist, name)
                         m.pkgs.append(pkg)
 
@@ -199,18 +210,3 @@ class Maintainer(object):
     @staticmethod
     def all_packages(mlist):
         return list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))
-
-#
-# We must be able to use pathnames which contain any character in the maintainer
-# name, read from the maintainer list file.
-#
-# So, this test is somewhat sloppy.  In theory the filesystem encoding might be
-# some encoding which can represent the subset of the io encoding that
-# maintainer names actually use.  In practice, use a utf-8 locale.
-#
-
-if sys.getfilesystemencoding() != sys.getdefaultencoding():
-    print("IO encoding is '%s', filesystem encoding is '%s'" % (sys.getdefaultencoding(), sys.getfilesystemencoding()), file=sys.stderr)
-    print('It is required that IO encoded strings are convertible to the filesystem encoding', file=sys.stderr)
-    print("Please set the locale", file=sys.stderr)
-    exit(1)

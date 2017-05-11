@@ -43,7 +43,6 @@ from . import maintainers
 def transform_username(name):
     name = name.replace('.', '')
     name = name.replace(' ', '_')
-    name = name.encode('ascii', 'replace').decode()
     return name
 
 
