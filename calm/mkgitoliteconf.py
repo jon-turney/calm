@@ -74,12 +74,14 @@ def do_main(args):
     # for each package
     for p in sorted(pkgs):
         users = ' '.join(map(transform_username, pkgs[p]))
+        owner = pkgs[p][0]  # first named maintainer
         if p.startswith('_'):
             p = p[1:]
 
         print("repo cygwin-packages/%s" % (p))
         print("C  = %s" % (users))
         print("RW = %s" % (users))
+        print("owner = %s" % (owner))
         print("")
 
 #
