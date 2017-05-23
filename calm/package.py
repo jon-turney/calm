@@ -636,6 +636,9 @@ def validate_packages(args, packages):
             if packages[p].tars[packages[p].vermap[v]['source']].is_empty:
                 continue
 
+            if '_obsolete' in packages[p].version_hints[v].get('category', ''):
+                continue
+
             if not packages[p].tars[packages[p].vermap[v]['source']].is_used:
                 logging.error("package '%s' version '%s' source has no non-empty install tarfiles" % (p, v))
                 error = True
