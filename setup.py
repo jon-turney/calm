@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='calm',
-    version='20170327',
+    version='20170525',
     description='Cygwin packaging maintenance tool',
     long_description=open('README.md').read(),
     author='Jon Turney',
