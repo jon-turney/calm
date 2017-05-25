@@ -393,27 +393,40 @@ def validate_packages(args, packages):
         has_requires = False
 
         for (v, hints) in packages[p].version_hints.items():
-            if 'requires' in hints:
-                for r in hints['requires'].split():
-                    has_requires = True
+            for (c, okmissing, splitchar) in [
+                    ('requires', 'required-package', None),
+                    ('obsoletes', 'obsoleted-package', ',')
+            ]:
+                if c in hints:
+                    for r in hints[c].split(splitchar):
+                        if c == 'requires':
+                            has_requires = True
 
-                    # a package should not appear in it's own requires
-                    if r == p:
-                        lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
-                        logging.log(lvl, "package '%s' version '%s' requires itself" % (p, v))
+                        # remove any extraneous whitespace
+                        r = r.strip()
 
-                    # all packages listed in requires must exist (unless
-                    # okmissing says that's ok)
-                    if r not in packages:
-                        if 'required-package' not in getattr(args, 'okmissing', []):
-                            logging.error("package '%s' version '%s' requires nonexistent package '%s'" % (p, v, r))
+                        # strip off any version relation enclosed in '()'
+                        # following the package name
+                        if splitchar:
+                            r = re.sub(r'(.*) +\(.*\)', r'\1', r)
+
+                        # a package should not appear in it's own hint
+                        if r == p:
+                            lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
+                            logging.log(lvl, "package '%s' version '%s' %s itself" % (p, v, c))
+
+                        # all packages listed in a hint must exist (unless
+                        # okmissing says that's ok)
+                        if r not in packages:
+                            if okmissing not in getattr(args, 'okmissing', []):
+                                logging.error("package '%s' version '%s' %s nonexistent package '%s'" % (p, v, c, r))
+                                error = True
+                            continue
+
+                        # hint referencing a source-only package makes no sense
+                        if packages[r].skip:
+                            logging.error("package '%s' version '%s' %s source-only package '%s'" % (p, v, c, r))
                             error = True
-                        continue
-
-                    # requiring a source-only package makes no sense
-                    if packages[r].skip:
-                        logging.error("package '%s' version '%s' requires source-only package '%s'" % (p, v, r))
-                        error = True
 
             # if external-source is used, the package must exist
             if 'external-source' in hints:
@@ -867,6 +880,9 @@ def write_setup_ini(args, packages, arch):
                             tar_line('source', packages[s], t, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
+
+                if 'obsoletes' in packages[p].version_hints[version]:
+                    print("obsoletes: %s" % packages[p].version_hints[version]['obsoletes'], file=f)
 
 
 # helper function to output details for a particular tar file

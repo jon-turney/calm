@@ -80,6 +80,7 @@ hintkeys[pvr] = merge_dicts(commonkeys, {
     # (depends could be an alias for requires in this kind of hint file)
     'depends': 'optval',
     'build-depends': 'optval',
+    'obsoletes': 'optval',
     # mark the package as a test version
     'test': 'noval',
 })
@@ -296,9 +297,12 @@ def hint_file_parse(fn, kind):
                 if len(hints['sdesc']) > 2 * len(hints['ldesc']):
                     warnings.append('sdesc is much longer than ldesc')
 
-            # sort requires: as differences in ordering are uninteresting
+            # sort these hints, as differences in ordering are uninteresting
             if 'requires' in hints:
                 hints['requires'] = ' '.join(sorted(hints['requires'].split()))
+
+            if 'obsoletes' in hints:
+                hints['obsoletes'] = ','.join(sorted(hints['obsoletes'].split(',')))
 
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')
