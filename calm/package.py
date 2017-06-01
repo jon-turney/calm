@@ -766,6 +766,9 @@ def write_setup_ini(args, packages, arch):
             if requires:
                 print("requires: %s" % ' '.join(sorted(requires)), file=f)
 
+            if 'message' in packages[p].version_hints[bv]:
+                print("message: %s" % packages[p].version_hints[bv]['message'], file=f)
+
             # write tarfile lines for each stability level
             for level in ['curr', 'prev', 'test']:
                 if level in packages[p].stability:
@@ -790,9 +793,6 @@ def write_setup_ini(args, packages, arch):
                             tar_line('source', packages[s], t, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
-
-            if 'message' in packages[p].version_hints[bv]:
-                print("message: %s" % packages[p].version_hints[bv]['message'], file=f)
 
 
 # helper function to output details for a particular tar file
