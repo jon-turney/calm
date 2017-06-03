@@ -395,6 +395,7 @@ def validate_packages(args, packages):
         for (v, hints) in packages[p].version_hints.items():
             for (c, okmissing, splitchar) in [
                     ('requires', 'required-package', None),
+                    ('depends', 'depended-package', ','),
                     ('obsoletes', 'obsoleted-package', ',')
             ]:
                 if c in hints:
@@ -880,6 +881,9 @@ def write_setup_ini(args, packages, arch):
                             tar_line('source', packages[s], t, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
+
+                if 'depends' in packages[p].version_hints[version]:
+                    print("depends: %s" % packages[p].version_hints[version]['depends'], file=f)
 
                 if 'obsoletes' in packages[p].version_hints[version]:
                     print("obsoletes: %s" % packages[p].version_hints[version]['obsoletes'], file=f)

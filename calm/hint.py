@@ -76,8 +76,6 @@ hintkeys[setup] = merge_dicts(commonkeys, versionkeys, {
 
 hintkeys[pvr] = merge_dicts(commonkeys, {
     'requires': 'optval',
-    # putative syntax for not yet implemented per-version dependencies
-    # (depends could be an alias for requires in this kind of hint file)
     'depends': 'optval',
     'build-depends': 'optval',
     'obsoletes': 'optval',
@@ -300,6 +298,9 @@ def hint_file_parse(fn, kind):
             # sort these hints, as differences in ordering are uninteresting
             if 'requires' in hints:
                 hints['requires'] = ' '.join(sorted(hints['requires'].split()))
+
+            if 'depends' in hints:
+                hints['depends'] = ','.join(sorted(hints['depends'].split(',')))
 
             if 'obsoletes' in hints:
                 hints['obsoletes'] = ','.join(sorted(hints['obsoletes'].split(',')))
