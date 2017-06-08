@@ -14,6 +14,7 @@ setup(
             'calm = calm.calm:main',
             'mksetupini = calm.mksetupini:main',
             'calm-mkgitoliteconf = calm.mkgitoliteconf:main',
+            'dedup-source = calm.dedupsrc:main',
         ],
     },
     url='https://cygwin.com/git/?p=cygwin-apps/calm.git',
