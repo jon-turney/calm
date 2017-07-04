@@ -107,23 +107,28 @@ self_source = [
 nonunique_versions = [
     'bzr-debuginfo',              # debuginfo from NMU needs to age out
     'cgdb-debuginfo',             # debuginfo from NMU needs to age out
+    'girepository-SpiceClientGtk2.0',  # gtk2 dropped from spice-gtk
     'gnome-panel-doc',
     'gtk2.0-engines-svg',
     'guile-doc',
     'guile-gv',                   # dropped pending guile-2
     'info',                       # something went wrong with package build?
     'libatomic_ops-devel',        # separated out from libgc
+    'khelpcenter',                # split out from kde-runtime
     'libcaca-doc',                # dropped pending fix for current doxygen
     'libfltk-doc',
     'libical_cxx-devel',
     'libquota-devel',             # no longer provided by e2fsprogs
     'libturbojpeg',               # no number means it isn't considered an old soversion
+    'mingw64-i686-spice-gtk2.0',  # gtk2 dropped from spice-gtk
+    'mingw64-x86_64-spice-gtk2.0',  # gtk2 dropped from spice-gtk
     'minizip',
     'mutter-doc',
     'ocaml-camlp4',               # ocaml-camlp4 removed from ocaml distribution after 4.01.0
     'ocaml-gv',                   # dropped pending ocaml cleanup
     'python-clang',               # split out from clang
     'python3-clang',              # split out from clang
+    'python-spiceclientgtk',      # gtk2 dropped from spice-gtk
     'sng-debuginfo',
     'socat-debuginfo',            # debuginfo for test version when curr has no debuginfo
     'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
@@ -156,6 +161,7 @@ mtime_anomalies = [
     'gcc-tools-epoch2-autoconf',
     'glproto',
     'gv-debuginfo',
+    'info',
     'libatomic1',
     'libcilkrts5',
     'libgcc1',
@@ -180,5 +186,6 @@ mtime_anomalies = [
     'subversion-python',
     'subversion-ruby',
     'subversion-tools',
+    'texinfo-debuginfo',
     'xextproto',
 ]
