@@ -242,7 +242,10 @@ def remove(args, remove):
     for f in remove:
         logging.debug("rm %s", f)
         if not args.dryrun:
-            os.unlink(f)
+            try:
+                os.unlink(f)
+            except FileNotFoundError:
+                logging.error("%s can't be deleted as it doesn't exist" % (f))
 
 
 #
