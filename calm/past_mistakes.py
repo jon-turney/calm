@@ -107,16 +107,30 @@ self_source = [
 nonunique_versions = [
     'bzr-debuginfo',              # debuginfo from NMU needs to age out
     'cgdb-debuginfo',             # debuginfo from NMU needs to age out
+    'dolphin',                    # split out from kde-baseapps
+    'dolphin4',                   # dropped from kde-baseapps
+    'gcc-java',                   # dropped from gcc 6
     'girepository-SpiceClientGtk2.0',  # gtk2 dropped from spice-gtk
     'gnome-panel-doc',
     'gtk2.0-engines-svg',
     'guile-doc',
     'guile-gv',                   # dropped pending guile-2
     'info',                       # something went wrong with package build?
-    'libatomic_ops-devel',        # separated out from libgc
+    'kdepasswd',                  # dropped from split kde-baseapps
+    'kdialog',                    # split out from kde-baseapps
+    'keditbookmarks',             # split out from kde-baseapps
+    'kexi',                       # split out from calligra
+    'kfind',                      # split out from kde-baseapps
+    'kfilereplace',               # split out from kdewebdev
     'khelpcenter',                # split out from kde-runtime
+    'kimagemapeditor',            # split out from kdewebdev
+    'klinkstatus',                # split out from kdewebdev
+    'konqueror',                  # split out from kde-baseapps
+    'konqueror-devel',            # split out from kde-baseapps
+    'libatomic_ops-devel',        # separated out from libgc
     'libcaca-doc',                # dropped pending fix for current doxygen
     'libfltk-doc',
+    'libgcj-common',              # dropped from gcc 6
     'libical_cxx-devel',
     'libquota-devel',             # no longer provided by e2fsprogs
     'libturbojpeg',               # no number means it isn't considered an old soversion
@@ -126,6 +140,7 @@ nonunique_versions = [
     'mutter-doc',
     'ocaml-camlp4',               # ocaml-camlp4 removed from ocaml distribution after 4.01.0
     'ocaml-gv',                   # dropped pending ocaml cleanup
+    'okular4-part',               # changed to okular5-part in 17.04
     'python-clang',               # split out from clang
     'python3-clang',              # split out from clang
     'python-spiceclientgtk',      # gtk2 dropped from spice-gtk
