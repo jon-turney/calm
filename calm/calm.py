@@ -527,7 +527,8 @@ def do_daemon(args, state):
                 # cancel any pending alarm
                 signal.alarm(0)
         except Exception as e:
-            logging.error("exception %s" % (type(e).__name__), exc_info=True)
+            with mail_logs(args.email, toaddrs=args.email, subject='calm stopping due to unhandled exception', thresholdLevel=logging.ERROR) as leads_email:
+                logging.error("exception %s" % (type(e).__name__), exc_info=True)
 
         logging.info("calm daemon stopped")
 
