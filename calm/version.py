@@ -22,7 +22,6 @@
 #
 
 import itertools
-import logging
 import re
 
 
@@ -63,8 +62,6 @@ class SetupVersion:
         return self.__cmp__(other) == -1
 
     def __cmp__(self, other):
-        # warn about ill-specified comparisons
-        # SetupVersion._warn_ambiguous_compare(self, other)
 
         # compare V
         c = SetupVersion._compare(self._V, other._V)
@@ -101,30 +98,3 @@ class SetupVersion:
         # if equal length, all components have matched, so equal
         # otherwise, the version with a suffix remaining is greater
         return cmp(len(a), len(b))
-
-    # warn if the comparison of these versions is historically under-specified
-    @staticmethod
-    def _warn_ambiguous_compare(a, b):
-        def classify(s):
-            if len(s) == 0:
-                return 'e'
-            elif s[0].isdigit():
-                return 'n'
-            elif s[0] in '.-_':
-                return s[0]
-            elif s[0].isalpha():
-                return 'a'
-            return 'o'
-
-        def is_ambiguous(a, b):
-            ambiguous = False
-
-            for i in range(0, min(len(a), len(b))):
-                if classify(a[i]) != classify(b[i]):
-                    ambiguous = True
-                    break
-
-            return ambiguous
-
-        if is_ambiguous(a._V, b._V) or is_ambiguous(a._R, b._R):
-            logging.warning("ordering of versions '%s' and '%s' may not be what you expect" % (a._version_string, b._version_string))
