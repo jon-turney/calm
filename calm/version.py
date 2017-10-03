@@ -44,10 +44,14 @@ class SetupVersion:
         # split version into [V, R], on the last '-', if any
         split = list(itertools.chain(version_string.rsplit('-', 1), ['']))[:2]
 
-        # then split each part into numeric and non-numeric sequences.
+        # then split each part into numeric and alphabetic sequences
+        # non-alphanumeric separators are discarded
         # numeric sequences have leading zeroes discarded
         for j, i in enumerate(['V', 'R']):
-            setattr(self, '_' + i, [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in re.finditer(r'(\d+|\D+)', split[j])])
+            sequences = re.finditer(r'(\d+|[a-zA-Z]+|[^a-zA-Z\d]+)', split[j])
+            sequences = [m for m in sequences if not re.match(r'[^a-zA-Z\d]+', m.group(1))]
+            sequences = [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in sequences]
+            setattr(self, '_' + i, sequences)
 
     def __str__(self):
         return '%s (V=%s R=%s)' % (self._version_string, str(self._V), str(self._R))
