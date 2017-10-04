@@ -26,13 +26,16 @@ def send(s, target, message):
 
 
 def irk(message, target=DEFAULT_TARGET, server=DEFAULT_SERVER):
-    s = connect(server)
-    if "irc:" not in target and "ircs:" not in target:
-        target = "irc://chat.freenode.net/{0}".format(target)
+    try:
+        s = connect(server)
+        if "irc:" not in target and "ircs:" not in target:
+            target = "irc://chat.freenode.net/{0}".format(target)
 
-    send(s, target, message)
+        send(s, target, message)
 
-    s.close()
+        s.close()
+    except ConnectionRefusedError:
+        pass
 
 
 def main():

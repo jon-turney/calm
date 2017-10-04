@@ -66,6 +66,7 @@ import time
 from .abeyance_handler import AbeyanceHandler
 from .buffering_smtp_handler import BufferingSMTPHandler
 from . import common_constants
+from . import irk
 from . import maintainers
 from . import package
 from . import pkg2html
@@ -246,7 +247,9 @@ def process_uploads(args, state):
                 for arch in common_constants.ARCHES:
                     # use merged package list
                     state.packages[arch] = merged_packages[arch]
-                    logging.debug("added %d (%s) + %d (noarch) + %d (src) packages from maintainer %s" % (len(scan_result[arch].packages), arch, len(scan_result['noarch'].packages), len(scan_result['src'].packages), name))
+                    msg = "added %d (%s) + %d (noarch) + %d (src) packages from maintainer %s" % (len(scan_result[arch].packages), arch, len(scan_result['noarch'].packages), len(scan_result['src'].packages), name)
+                    logging.debug(msg)
+                    irk.irk(msg)
 
         # record updated reminder times for maintainers
         maintainers.Maintainer.update_reminder_times(mlist)
@@ -488,6 +491,7 @@ def do_daemon(args, state):
     with context:
         logging_setup(args)
         logging.info("calm daemon started, pid %d" % (os.getpid()))
+        irk.irk("calm daemon started")
 
         state.packages = {}
 
@@ -531,6 +535,9 @@ def do_daemon(args, state):
         except Exception as e:
             with mail_logs(args.email, toaddrs=args.email, subject='calm stopping due to unhandled exception', thresholdLevel=logging.ERROR) as leads_email:
                 logging.error("exception %s" % (type(e).__name__), exc_info=True)
+            irk.irk("calm daemon stopped due to unhandled exception")
+        else:
+            irk.irk("calm daemon stopped")
 
         logging.info("calm daemon stopped")
 
