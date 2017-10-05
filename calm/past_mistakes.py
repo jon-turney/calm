@@ -104,6 +104,8 @@ self_source = [
 
 # these are packages which currently have versions different to all the other
 # install packages from the same source package
+#
+# don't add to this list, use 'disable-check: unique-version' in pvr.hint instead
 nonunique_versions = [
     'bzr-debuginfo',              # debuginfo from NMU needs to age out
     'cgdb-debuginfo',             # debuginfo from NMU needs to age out
@@ -152,12 +154,16 @@ nonunique_versions = [
 ]
 
 # packages with an empty install file, no source, but aren't obsolete
+#
+# don't add to this list, use 'disable-check: empty-obsolete' in pvr.hint instead
 empty_but_not_obsolete = [
     'libpopt0',        # version 1.16-1 was empty
     'libpopt-devel',   # version 1.16-1 was empty (x86_64)
 ]
 
 # packages with timestamp anomalies
+#
+# don't add to this list, use 'disable-check: curr-most-recent' in override.hint instead
 mtime_anomalies = [
     'gcc-java',
     'gcc-tools-epoch2-autoconf',

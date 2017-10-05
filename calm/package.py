@@ -641,7 +641,8 @@ def validate_packages(args, packages):
                     if ('source' not in packages[p].vermap[vr]) and ('external-source' not in packages[p].version_hints[vr]):
                         if 'install' in packages[p].vermap[vr]:
                             if packages[p].tar(vr, 'install').is_empty:
-                                if p in past_mistakes.empty_but_not_obsolete:
+                                if ((p in past_mistakes.empty_but_not_obsolete) or
+                                    ('empty-obsolete' in packages[p].version_hints.get('disable-check', ''))):
                                     lvl = logging.DEBUG
                                 else:
                                     lvl = logging.ERROR
@@ -731,8 +732,9 @@ def validate_packages(args, packages):
             if re.match(r'^lib.*\d', install_p):
                 continue
 
-            # ignore specific packages
-            if install_p in past_mistakes.nonunique_versions:
+            # ignore specific packages we disable this check for
+            if ((install_p in past_mistakes.nonunique_versions) or
+                ('unique-version' in packages[install_p].version_hints[packages[install_p].best_version].get('disable-check', ''))):
                 continue
 
             versions[packages[install_p].best_version].append(install_p)
