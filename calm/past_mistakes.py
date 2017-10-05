@@ -114,19 +114,15 @@ nonunique_versions = [
     'gnome-panel-doc',
     'gtk2.0-engines-svg',
     'guile-doc',
-    'guile-gv',                   # dropped pending guile-2
-    'info',                       # something went wrong with package build?
     'kdepasswd',                  # dropped from split kde-baseapps
     'kdialog',                    # split out from kde-baseapps
     'keditbookmarks',             # split out from kde-baseapps
     'kexi',                       # split out from calligra
     'kfind',                      # split out from kde-baseapps
     'kfilereplace',               # split out from kdewebdev
-    'khelpcenter',                # split out from kde-runtime
     'kimagemapeditor',            # split out from kdewebdev
     'klinkstatus',                # split out from kdewebdev
     'konqueror',                  # split out from kde-baseapps
-    'konqueror-devel',            # split out from kde-baseapps
     'libatomic_ops-devel',        # separated out from libgc
     'libcaca-doc',                # dropped pending fix for current doxygen
     'libfltk-doc',
@@ -139,68 +135,31 @@ nonunique_versions = [
     'minizip',
     'mutter-doc',
     'ocaml-camlp4',               # ocaml-camlp4 removed from ocaml distribution after 4.01.0
-    'ocaml-gv',                   # dropped pending ocaml cleanup
     'okular4-part',               # changed to okular5-part in 17.04
-    'python-clang',               # split out from clang
-    'python3-clang',              # split out from clang
     'python-spiceclientgtk',      # gtk2 dropped from spice-gtk
     'sng-debuginfo',
     'socat-debuginfo',            # debuginfo for test version when curr has no debuginfo
     'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
-    'texinfo-debuginfo',          # something went wrong with package build?
     'w3m-img',
 ]
 
 # packages with an empty install file, no source, but aren't obsolete
 empty_but_not_obsolete = [
-    'gcc-java',        # gcc-java will be obsolete in test version 6.3
-    'gdal-debuginfo',  # version 2.1.2-1 has empty debuginfo
-    'libgcj-common',
-    'libgcj16',
-    'libpopt0',        # version 1.16-1 was empty (x8_64)
-    'libpopt-devel',   #
-    'mutt-debuginfo',  # version 1.7.2-1 has empty debuginfo
+    'libpopt0',        # version 1.16-1 was empty
+    'libpopt-devel',   # version 1.16-1 was empty (x86_64)
 ]
 
 # packages with timestamp anomalies
 mtime_anomalies = [
-    'gcc-ada',
-    'gcc-cilkplus',
-    'gcc-core',
-    'gcc-debuginfo',
-    'gcc-fortran',
-    'gcc-g++',
     'gcc-java',
-    'gcc-objc',
-    'gcc-objc++',
     'gcc-tools-epoch2-autoconf',
     'glproto',
     'gv-debuginfo',
-    'info',
-    'libatomic1',
-    'libcilkrts5',
-    'libgcc1',
     'libgcj-common',
     'libgcj16',
-    'libgfortran3',
-    'libgomp1',
-    'libobjc4',
-    'libquadmath0',
-    'libssp0',
-    'libstdc++6',
-    'opencv',  # 2.4.11-1 was created when changed from source-only to install
     'python-gtk2.0',
     'python-gtk2.0-demo',
     'python-gtk2.0-devel',
-    'subversion',
-    'subversion-debuginfo',
-    'subversion-devel',
-    'subversion-gnome',
-    'subversion-httpd',
-    'subversion-perl',
-    'subversion-python',
-    'subversion-ruby',
-    'subversion-tools',
-    'texinfo-debuginfo',
+    'python-wx',  # timestamps reset when split out from wxWidgets
     'xextproto',
 ]
