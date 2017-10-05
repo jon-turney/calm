@@ -376,6 +376,43 @@ class CalmTest(unittest.TestCase):
         # remove !ready files
         os.system("find testdata/homes -name !ready -exec rm {} \;")
 
+        # fix up package timestamps so highest version is also latest
+        # (git doesn't store timestamps, so they will all be dated the time of checkout)
+        relarea_x86 = os.path.join('testdata', 'relarea', 'x86', 'release')
+        relarea_noarch = os.path.join('testdata', 'relarea', 'noarch', 'release')
+        touches = [(os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.0-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.0-1-src.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.1-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.1-1-src.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-debuginfo', 'cygwin-debuginfo-2.2.0-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-debuginfo', 'cygwin-debuginfo-2.2.1-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-devel', 'cygwin-devel-2.2.0-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-devel', 'cygwin-devel-2.2.1-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'base-cygwin', 'base-cygwin-3.6-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'per-version', 'per-version-4.0-1.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_x86, 'per-version', 'per-version-4.0-1-src.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_x86, 'rpm-doc', 'rpm-doc-4.1-2.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'rpm-doc', 'rpm-doc-4.1-2-src.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-240-1.tar.xz'), '2017-04-07'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-240-1-src.tar.xz'), '2017-04-07'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-242-0.tar.xz'), '2017-04-08'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-242-0-src.tar.xz'), '2017-04-08'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-243-0.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-243-0-src.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-250-0.tar.xz'), '2017-04-10'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-250-0-src.tar.xz'), '2017-04-10'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-251-0.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-251-0-src.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-260-0.tar.xz'), '2017-04-12'),
+                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-260-0-src.tar.xz'), '2017-04-12'),
+                   (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1-src.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1-src.tar.xz'), '2016-11-01'),
+        ]
+        for (f, t) in touches:
+            os.system('touch %s -d %s' % (f, t))
+
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)

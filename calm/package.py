@@ -559,13 +559,17 @@ def validate_packages(args, packages):
         elif 'curr' not in packages[p].stability and 'curr' not in getattr(args, 'okmissing', []):
             logging.warning("package '%s' doesn't have a curr version" % (p))
 
-        # warn if the curr: version isn't the most recent non-test: version
+        # error if the curr: version isn't the most recent non-test: version
         for v in sorted(packages[p].vermap.keys(), key=lambda v: packages[p].vermap[v]['mtime'], reverse=True):
             if 'test' in packages[p].version_hints[v]:
                 continue
 
             if packages[p].stability['curr'] != v:
-                lvl = logging.WARNING if p not in past_mistakes.mtime_anomalies else logging.DEBUG
+                if p in past_mistakes.mtime_anomalies:
+                    lvl = logging.DEBUG
+                else:
+                    lvl = logging.ERROR
+                    error = True
                 logging.log(lvl, "package '%s' version '%s' is most recent non-test version, but version '%s' is curr:" % (p, v, packages[p].stability['curr']))
 
             break
@@ -590,7 +594,11 @@ def validate_packages(args, packages):
                     if 'source' not in packages[p].vermap[vr]:
                         if 'install' in packages[p].vermap[vr]:
                             if packages[p].tars[packages[p].vermap[vr]['install']].is_empty:
-                                lvl = logging.WARNING if p not in past_mistakes.empty_but_not_obsolete else logging.DEBUG
+                                if p in past_mistakes.empty_but_not_obsolete:
+                                    lvl = logging.DEBUG
+                                else:
+                                    lvl = logging.ERROR
+                                    error = True
                                 logging.log(lvl, "package '%s' version '%s' has empty install tar file and no source, but it's not in the _obsolete category" % (p, vr))
 
     # make another pass to verify a source tarfile exists for every install
