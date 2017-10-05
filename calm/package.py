@@ -259,11 +259,16 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                 # we already know P to split unambiguously), but this is a bad
                 # idea.
                 if '-' in v:
-                    lvl = logging.WARNING if p not in past_mistakes.hyphen_in_version else logging.INFO
+                    if p not in past_mistakes.hyphen_in_version:
+                        lvl = strict_lvl
+                        warnings = True
+                    else:
+                        lvl = logging.INFO
                     logging.log(lvl, "file '%s' in package '%s' contains '-' in version" % (f, p))
 
                 if not v[0].isdigit():
-                    logging.warning("file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
+                    logging.log(strict_lvl, "file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
+                    warnings = True
 
                 # if not there already, add to version-release list
                 vr_list.add('%s-%s' % (v, r))
@@ -329,7 +334,8 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
         packages[p].skip = any(['skip' in version_hints[vr] for vr in vr_list])
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
-        logging.warning("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
+        logging.log(strict_lvl, "no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
+        warnings = True
 
     if strict:
         return warnings
