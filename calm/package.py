@@ -700,7 +700,7 @@ def validate_package_maintainers(args, packages):
         if packages[p].skip:
             continue
         # ignore obsolete packages
-        if any(['_obsolete' in packages[p].version_hints[vr]['category'] for vr in packages[p].version_hints]):
+        if any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints]):
             continue
         if not is_in_package_list(packages[p].path, all_packages):
             logging.error("package '%s' is not in the package list" % (p))
