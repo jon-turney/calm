@@ -140,6 +140,7 @@ nonunique_versions = [
     'sng-debuginfo',
     'socat-debuginfo',            # debuginfo for test version when curr has no debuginfo
     'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
+    'transfig-debuginfo',         # after transfig 3.2.6 source is included in xfig
     'w3m-img',
 ]
 
