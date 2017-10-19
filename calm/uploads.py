@@ -204,7 +204,8 @@ def scan(m, all_packages, arch, args):
             if os.path.isfile(dest):
                 if not f.endswith('.hint'):
                     if filecmp.cmp(dest, fn, shallow=False):
-                        logging.info("ignoring, identical %s is already in release area" % fn)
+                        logging.info("discarding, identical %s is already in release area" % fn)
+                        remove_success.append(fn)
                     else:
                         logging.error("ignoring, different %s is already in release area (perhaps you should rebuild with a different version-release identifier?)" % fn)
                         error = True
