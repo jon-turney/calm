@@ -190,6 +190,13 @@ def item_lexer(c):
         yield (i, o, None)
 
 
+def split_trim_sort_join(hint, splitchar, joinchar=None):
+    if joinchar is None:
+        joinchar = splitchar + ' '
+
+    return joinchar.join(sorted([s.strip() for s in hint.split(splitchar)]))
+
+
 # parse the file |fn| as a .hint file of kind |kind|
 def hint_file_parse(fn, kind):
     hints = OrderedDict()
@@ -297,13 +304,13 @@ def hint_file_parse(fn, kind):
 
             # sort these hints, as differences in ordering are uninteresting
             if 'requires' in hints:
-                hints['requires'] = ' '.join(sorted(hints['requires'].split()))
+                hints['requires'] = split_trim_sort_join(hints['requires'], None, ' ')
 
             if 'depends' in hints:
-                hints['depends'] = ','.join(sorted(hints['depends'].split(',')))
+                hints['depends'] = split_trim_sort_join(hints['depends'], ',')
 
             if 'obsoletes' in hints:
-                hints['obsoletes'] = ','.join(sorted(hints['obsoletes'].split(',')))
+                hints['obsoletes'] = split_trim_sort_join(hints['obsoletes'], ',')
 
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')
