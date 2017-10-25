@@ -19,6 +19,8 @@
  'x86/libdns_sd-devel': ['.htaccess', 'libdns_sd-devel-379.32.1-1'],
  'x86/libdns_sd1': ['.htaccess', 'libdns_sd1-379.32.1-1'],
  'x86/mDNSResponder': ['.htaccess', 'mDNSResponder-379.32.1-1', 'mDNSResponder-379.32.1-1-src'],
+ 'x86/obs-a': ['.htaccess', 'obs-a-1.0-1', 'obs-a-1.0-1-src'],
+ 'x86/obs-b': ['.htaccess', 'obs-b-1.0-1', 'obs-b-1.0-1-src'],
  'x86/openssh': ['.htaccess', 'openssh-7.2p2-1', 'openssh-7.2p2-1-src'],
  'x86/per-version': ['.htaccess',
                      'per-version-4.0-1',
@@ -43,5 +45,8 @@
                       'staleversion-250-0-src',
                       'staleversion-260-0',
                       'staleversion-260-0-src'],
+ 'x86/test-c': ['.htaccess', 'test-c-1.0-1', 'test-c-1.0-1-src'],
+ 'x86/test-d': ['.htaccess', 'test-d-1.0-1', 'test-d-1.0-1-src'],
+ 'x86/test-e': ['.htaccess', 'test-e-1.0-1', 'test-e-1.0-1-src'],
  'x86/testpackage': ['.htaccess', 'testpackage-1.0-1', 'testpackage-1.0-1-src'],
  'x86/testpackage-subpackage': ['.htaccess', 'testpackage-subpackage-1.0-1']}

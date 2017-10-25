@@ -15,12 +15,17 @@
 <tr><td><a href="x86/libdns_sd-devel">libdns_sd-devel</a></td><td>Bonjour Zeroconf implementation</td></tr>
 <tr><td><a href="x86/libdns_sd1">libdns_sd1</a></td><td>Bonjour Zeroconf implementation</td></tr>
 <tr><td><a href="x86/mDNSResponder">mDNSResponder</a></td><td>Bonjour Zeroconf implementation</td></tr>
+<tr><td><a href="x86/obs-a">obs-a</a></td><td>obsolete package A</td></tr>
+<tr><td><a href="x86/obs-b">obs-b</a></td><td>obsolete package B</td></tr>
 <tr><td><a href="x86/openssh">openssh</a></td><td>The OpenSSH server and client programs</td></tr>
 <tr><td><a href="x86/per-version">per-version</a></td><td>Per-version hint test package</td></tr>
 <tr><td><a href="x86/per-version-replacement-hint-only">per-version-replacement-hint-only</a></td><td>Per-version hint test package</td></tr>
 <tr><td><a href="x86/perl-Net-SMTP-SSL">perl-Net-SMTP-SSL</a></td><td>Perl distribution Net-SMTP-SSL</td></tr>
 <tr><td><a href="x86/rpm-doc">rpm-doc</a></td><td>Obsolete package for RPM package management system manual pages</td></tr>
 <tr><td><a href="x86/staleversion">staleversion</a></td><td>Test package for stale version removal</td></tr>
+<tr><td><a href="x86/test-c">test-c</a></td><td>test package C</td></tr>
+<tr><td><a href="x86/test-d">test-d</a></td><td>test package D</td></tr>
+<tr><td><a href="x86/test-e">test-e</a></td><td>test package E</td></tr>
 <tr><td><a href="x86/testpackage">testpackage</a></td><td>A test package (stuff &amp; other stuff)</td></tr>
 </table>
 </div>

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>obs-a: obsolete package A</title>
+</head>
+<body>
+<h1>obs-a: obsolete package A</h1>
+<pre>
+    2017-05-22 13:04          82 test-a-1.0-1.hint
+</pre>
+</body>
+</html>
