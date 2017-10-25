@@ -65,7 +65,7 @@ class Package(object):
             self.skip)
 
     def tar(self, vr, category):
-        return self.tars[self.vermap[vr][category]]
+        return self.tars[vr][self.vermap[vr][category]]
 
 
 # information we keep about a tar file
@@ -236,7 +236,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
         # build a list of version-releases (since replacement pvr.hint files are
         # allowed to be uploaded, we must consider both .tar and .hint files for
         # that), and collect the attributes for each tar file
-        tars = {}
+        tars = defaultdict(dict)
         vr_list = set()
 
         for f in list(files):
@@ -253,8 +253,8 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
             # start with a number
             match = re.match(r'^' + re.escape(p) + '-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.' + match.group(1) + '$', f)
             if not match:
-                logging.log(strict_lvl, "file '%s' in package '%s' doesn't follow naming convention" % (f, p))
-                warnings = True
+                logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
+                return True
             else:
                 v = match.group(1)
                 r = match.group(2)
@@ -275,24 +275,28 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                     warnings = True
 
                 # if not there already, add to version-release list
-                vr_list.add('%s-%s' % (v, r))
+                vr = '%s-%s' % (v, r)
+                vr_list.add(vr)
 
             if not f.endswith('.hint'):
                 # collect the attributes for each tar file
-                tars[f] = Tar()
-                tars[f].size = os.path.getsize(os.path.join(dirpath, f))
-                tars[f].is_empty = tarfile_is_empty(os.path.join(dirpath, f))
-                tars[f].mtime = os.path.getmtime(os.path.join(dirpath, f))
+                t = Tar()
+                t.size = os.path.getsize(os.path.join(dirpath, f))
+                t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
+                t.mtime = os.path.getmtime(os.path.join(dirpath, f))
 
                 if f in sha512:
-                    tars[f].sha512 = sha512[f]
+                    t.sha512 = sha512[f]
                 else:
-                    tars[f].sha512 = sha512_file(os.path.join(dirpath, f))
-                    logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, tars[f].sha512))
+                    t.sha512 = sha512_file(os.path.join(dirpath, f))
+                    logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, t.sha512))
+
+                tars[vr][f] = t
 
         # determine hints for each version we've encountered
         version_hints = {}
         hint_files = {}
+        actual_tars = {}
         for vr in vr_list:
             hint_fn = '%s-%s.hint' % (p, vr)
             if hint_fn in files:
@@ -302,17 +306,26 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                     return True
                 warnings = clean_hints(p, pvr_hint, strict_lvl, warnings)
                 files.remove(hint_fn)
-                hint_files[vr] = hint_fn
             elif legacy:
                 # otherwise, use setup.hint
                 pvr_hint = hints.copy()
                 legacy_used = True
+                hint_fn = None
             else:
                 # it's an error to not have either a setup.hint or a pvr.hint
                 logging.error("package %s has packages for version %s, but no %s or setup.hint" % (p, vr, hint_fn))
                 return True
 
-            version_hints[vr] = pvr_hint
+            # apply a version override
+            if 'version' in pvr_hint:
+                ovr = pvr_hint['version']
+            else:
+                ovr = vr
+
+            version_hints[ovr] = pvr_hint
+            if hint_fn:
+                hint_files[ovr] = hint_fn
+            actual_tars[ovr] = tars[vr]
 
         # ignore dotfiles
         for f in files:
@@ -332,10 +345,10 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
         packages[p].version_hints = version_hints
         packages[p].override_hints = override_hints
         packages[p].legacy_hints = hints
-        packages[p].tars = tars
+        packages[p].tars = actual_tars
         packages[p].hint_files = hint_files
         packages[p].path = relpath
-        packages[p].skip = any(['skip' in version_hints[vr] for vr in vr_list])
+        packages[p].skip = any(['skip' in version_hints[vr] for vr in version_hints])
 
     elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
         logging.log(strict_lvl, "no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
@@ -445,31 +458,28 @@ def validate_packages(args, packages):
         has_install = False
         has_nonempty_install = False
 
-        for (t, tar) in packages[p].tars.items():
-            # categorize each tarfile as either 'source' or 'install'
-            if re.search(r'-src.*\.tar', t):
-                category = 'source'
-            else:
-                category = 'install'
-                has_install = True
-                is_empty[t] = packages[p].tars[t].is_empty
-                if not is_empty[t]:
-                    has_nonempty_install = True
+        for vr in packages[p].tars:
+            for (t, tar) in packages[p].tars[vr].items():
+                # categorize each tarfile as either 'source' or 'install'
+                if re.search(r'-src.*\.tar', t):
+                    category = 'source'
+                else:
+                    category = 'install'
+                    has_install = True
+                    is_empty[t] = packages[p].tars[vr][t].is_empty
+                    if not is_empty[t]:
+                        has_nonempty_install = True
 
-            # extract just the version part from tar filename
-            v = re.sub(r'^' + re.escape(p) + '-', '', t)
-            v = re.sub(r'(-src|)\.tar\.(bz2|gz|lzma|xz)$', '', v)
+                # for each version, a package can contain at most one source tar
+                # file and at most one install tar file.  warn if we have too many
+                # (for e.g. both a .xz and .bz2 install tar file)
+                if category in packages[p].vermap[vr]:
+                    logging.error("package '%s' has more than one %s tar file for version '%s'" % (p, category, vr))
+                    error = True
 
-            # for each version, a package can contain at most one source tar
-            # file and at most one install tar file.  warn if we have too many
-            # (for e.g. both a .xz and .bz2 install tar file)
-            if category in packages[p].vermap[v]:
-                logging.error("package '%s' has more than one %s tar file for version '%s'" % (p, category, v))
-                error = True
-
-            # store tarfile corresponding to this version and category
-            packages[p].vermap[v][category] = t
-            packages[p].vermap[v]['mtime'] = tar.mtime
+                # store tarfile corresponding to this version and category
+                packages[p].vermap[vr][category] = t
+                packages[p].vermap[vr]['mtime'] = tar.mtime
 
         obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
 
@@ -933,12 +943,16 @@ def merge(a, *l):
                     logging.error("package '%s' is at paths %s and %s" % (p, a[p].path, b[p].path))
                     return None
                 else:
-                    for t in b[p].tars:
-                        if t in c[p].tars:
-                            logging.error("package '%s' has duplicate tarfile %s" % (p, t))
-                            return None
+                    for vr in b[p].tars:
+                        if vr in c[p].tars:
+                            for t in b[p].tars[vr]:
+                                if t in c[p].tars[vr]:
+                                    logging.error("package '%s' has duplicate tarfile %s for version %s" % (p, t, vr))
+                                    return None
+                                else:
+                                    c[p].tars[vr][t] = b[p].tars[vr][t]
                         else:
-                            c[p].tars[t] = b[p].tars[t]
+                            c[p].tars[vr] = b[p].tars[vr]
 
                     # hints from b override hints from a, but warn if they have
                     # changed
@@ -982,11 +996,12 @@ def merge(a, *l):
 def delete(packages, path, fn):
     for p in packages:
         if packages[p].path == path:
-            for t in packages[p].tars:
-                if t == fn:
-                    del packages[p].tars[t]
+            for vr in packages[p].tars:
+                for t in packages[p].tars[vr]:
+                    if t == fn:
+                        del packages[p].tars[vr][t]
                     # XXX: should also remove from vermap
-                    break
+                        break
 
             for h in packages[p].hint_files:
                 if packages[p].hint_files[h] == fn:

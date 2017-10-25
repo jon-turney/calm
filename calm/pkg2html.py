@@ -42,6 +42,7 @@ from collections import defaultdict
 import argparse
 import glob
 import html
+import itertools
 import logging
 import os
 import re
@@ -139,8 +140,7 @@ def update_package_listings(args, packages, arch):
         # for each tarfile, write tarfile listing
         #
 
-        for t in packages[p].tars:
-
+        for t in itertools.chain.from_iterable([packages[p].tars[vr] for vr in packages[p].tars]):
             fver = re.sub(r'\.tar.*$', '', t)
             listing = os.path.join(dir, fver)
 
@@ -172,7 +172,7 @@ def update_package_listings(args, packages, arch):
                         tf = os.path.join(args.rel_area, packages[p].path, t)
                         if not os.path.exists(tf):
                             # this shouldn't happen with a full mirror
-                            logging.error("tarfile %s not found %s" % (tf))
+                            logging.error("tarfile %s not found" % (tf))
                         elif os.path.getsize(tf) <= 32:
                             # compressed empty files aren't a valid tar file,
                             # but we can just ignore them

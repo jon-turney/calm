@@ -310,7 +310,7 @@
  '@ test-d\n'
  'sdesc: "test package D"\n'
  'category: Devel\n'
- 'version: 1.0-1\n'
+ 'version: 1.0.42590-1\n'
  'install: noarch/release/test-d/test-d-1.0-1.tar.xz 236 '
  '2e47817b620a7dbfe6810d47aee0adbcdf4663dc57932bcc51fc4b9bcfafa00dbbc2bfbefb1692dd5f6cc5333f23aea324d7c4d9b2ca091b917811fcdb70ca1f\n'
  'source: noarch/release/test-d/test-d-1.0-1-src.tar.xz 236 '

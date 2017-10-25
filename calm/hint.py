@@ -82,6 +82,8 @@ hintkeys[pvr] = merge_dicts(commonkeys, {
     'obsoletes': 'optval',
     # mark the package as a test version
     'test': 'noval',
+    # version override
+    'version': 'val',
 })
 
 hintkeys[override] = merge_dicts(versionkeys, overridekeys)
