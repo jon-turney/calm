@@ -513,9 +513,14 @@ def do_daemon(args, state):
 
                         do_output(args, state)
 
-                        # if there is more work to do, but don't spin if we can't do it
+                        # if there is more work to do, but don't spin if we
+                        # can't do anything because relarea is bad
                         if read_uploads:
                             continue
+
+                    # if there is more work to do
+                    if read_relarea:
+                        continue
 
                 # we wake at a 10 minute offset from the next 240 minute boundary
                 # (i.e. at :10 past every fourth hour) to check the state of the
