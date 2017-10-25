@@ -162,5 +162,14 @@ mtime_anomalies = [
     'python-gtk2.0-demo',
     'python-gtk2.0-devel',
     'python-wx',  # timestamps reset when split out from wxWidgets
+    'subversion',  # 1.8 and 1.9 might be built in either order...
+    'subversion-debuginfo',
+    'subversion-devel',
+    'subversion-gnome',
+    'subversion-httpd',
+    'subversion-perl',
+    'subversion-python',
+    'subversion-ruby',
+    'subversion-tools',
     'xextproto',
 ]
