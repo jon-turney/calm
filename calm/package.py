@@ -54,6 +54,7 @@ class Package(object):
         self.version_hints = {}
         self.override_hints = {}
         self.skip = False
+        self.vermap = defaultdict(defaultdict)
 
     def __repr__(self):
         return "Package('%s', %s, %s, %s, %s)" % (
@@ -62,6 +63,9 @@ class Package(object):
             pprint.pformat(self.version_hints),
             pprint.pformat(self.override_hints),
             self.skip)
+
+    def tar(self, vr, category):
+        return self.tars[self.vermap[vr][category]]
 
 
 # information we keep about a tar file
@@ -615,7 +619,7 @@ def validate_packages(args, packages):
                 if '_obsolete' not in packages[p].version_hints[vr].get('category', ''):
                     if 'source' not in packages[p].vermap[vr]:
                         if 'install' in packages[p].vermap[vr]:
-                            if packages[p].tars[packages[p].vermap[vr]['install']].is_empty:
+                            if packages[p].tar(vr, 'install').is_empty:
                                 if p in past_mistakes.empty_but_not_obsolete:
                                     lvl = logging.DEBUG
                                 else:
@@ -631,7 +635,7 @@ def validate_packages(args, packages):
                 continue
 
             # unless the install tarfile is empty
-            if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
+            if packages[p].tar(v, 'install').is_empty:
                 continue
 
             # source tarfile may be either in this package or in the
@@ -639,7 +643,7 @@ def validate_packages(args, packages):
             #
             # mark the source tarfile as being used by an install tarfile
             if 'source' in packages[p].vermap[v]:
-                packages[p].tars[packages[p].vermap[v]['source']].is_used = True
+                packages[p].tar(v, 'source').is_used = True
                 packages[p].is_used_by.add(p)
                 continue
 
@@ -647,7 +651,7 @@ def validate_packages(args, packages):
                 es_p = packages[p].version_hints[v]['external-source']
                 if es_p in packages:
                     if 'source' in packages[es_p].vermap[v]:
-                        packages[es_p].tars[packages[es_p].vermap[v]['source']].is_used = True
+                        packages[es_p].tar(v, 'source').is_used = True
                         packages[es_p].is_used_by.add(p)
                         continue
 
@@ -665,13 +669,13 @@ def validate_packages(args, packages):
             if 'source' not in packages[p].vermap[v]:
                 continue
 
-            if packages[p].tars[packages[p].vermap[v]['source']].is_empty:
+            if packages[p].tar(v, 'source').is_empty:
                 continue
 
             if '_obsolete' in packages[p].version_hints[v].get('category', ''):
                 continue
 
-            if not packages[p].tars[packages[p].vermap[v]['source']].is_used:
+            if not packages[p].tar(v, 'source').is_used:
                 logging.error("package '%s' version '%s' source has no non-empty install tarfiles" % (p, v))
                 error = True
 
@@ -861,13 +865,11 @@ def write_setup_ini(args, packages, arch):
                 print("version: %s" % version, file=f)
 
                 if 'install' in packages[p].vermap[version]:
-                    t = packages[p].vermap[version]['install']
-                    tar_line('install', packages[p], t, f)
+                    tar_line(packages[p], 'install', version, f)
 
                 # look for corresponding source in this package first
                 if 'source' in packages[p].vermap[version]:
-                    t = packages[p].vermap[version]['source']
-                    tar_line('source', packages[p], t, f)
+                    tar_line(packages[p], 'source', version, f)
                 # if that doesn't exist, follow external-source
                 elif 'external-source' in packages[p].version_hints[version]:
                     s = packages[p].version_hints[version]['external-source']
@@ -877,8 +879,7 @@ def write_setup_ini(args, packages, arch):
                     # external-source points to a source file in another package
                     else:
                         if 'source' in packages[s].vermap[version]:
-                            t = packages[s].vermap[version]['source']
-                            tar_line('source', packages[s], t, f)
+                            tar_line(packages[s], 'source', version, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
@@ -890,10 +891,11 @@ def write_setup_ini(args, packages, arch):
 
 
 # helper function to output details for a particular tar file
-def tar_line(category, p, t, f):
+def tar_line(p, category, v, f):
+    t = p.vermap[v][category]
     fn = os.path.join(p.path, t)
-    sha512 = p.tars[t].sha512
-    size = p.tars[t].size
+    sha512 = p.tar(v, category).sha512
+    size = p.tar(v, category).size
     print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
 
 
@@ -1028,17 +1030,17 @@ def is_in_package_list(ppath, plist):
 
 def mark_package_fresh(packages, p, v):
     if 'install' in packages[p].vermap[v]:
-        packages[p].tars[packages[p].vermap[v]['install']].fresh = True
+        packages[p].tar(v, 'install').fresh = True
 
     if 'source' in packages[p].vermap[v]:
-        packages[p].tars[packages[p].vermap[v]['source']].fresh = True
+        packages[p].tar(v, 'source').fresh = True
         return
 
     # unless the install tarfile is empty ...
     if 'install' not in packages[p].vermap[v]:
         return
 
-    if packages[p].tars[packages[p].vermap[v]['install']].is_empty:
+    if packages[p].tar(v, 'install').is_empty:
         return
 
     # ... mark any corresponding external-source package version as also fresh
@@ -1046,7 +1048,7 @@ def mark_package_fresh(packages, p, v):
         es_p = packages[p].version_hints[v]['external-source']
         if es_p in packages:
             if 'source' in packages[es_p].vermap[v]:
-                packages[es_p].tars[packages[es_p].vermap[v]['source']].fresh = True
+                packages[es_p].tar(v, 'source').fresh = True
 
 
 #
@@ -1083,7 +1085,7 @@ def stale_packages(packages):
         for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
             if not newer:
                 if 'install' in po.vermap[v]:
-                    if po.tars[po.vermap[v]['install']].mtime > (time.time() - (keep_days * 24 * 60 * 60)):
+                    if po.tar(v, 'install').mtime > (time.time() - (keep_days * 24 * 60 * 60)):
                         newer = True
 
             if newer:
@@ -1096,7 +1098,7 @@ def stale_packages(packages):
             all_stale = True
             for category in ['source', 'install']:
                 if category in po.vermap[v]:
-                    if not getattr(po.tars[po.vermap[v][category]], 'fresh', False):
+                    if not getattr(po.tar(v, category), 'fresh', False):
                         stale[po.path].append(po.vermap[v][category])
                         logging.debug("package '%s' version '%s' %s is stale" % (pn, v, category))
                     else:
@@ -1113,7 +1115,7 @@ def stale_packages(packages):
         for v in po.vermap:
             for c in ['source', 'install']:
                 try:
-                    delattr(po.tars[po.vermap[v][c]], 'fresh')
+                    delattr(po.tar(v, c), 'fresh')
                 except (KeyError, AttributeError):
                     pass
 
