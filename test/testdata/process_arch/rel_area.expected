@@ -4,6 +4,7 @@
  'noarch/release/perl-Net-SMTP-SSL': ['perl-Net-SMTP-SSL-1.03-1-src.tar.xz',
                                       'perl-Net-SMTP-SSL-1.03-1.tar.xz',
                                       'perl-Net-SMTP-SSL-1.03-2-src.tar.xz',
+                                      'perl-Net-SMTP-SSL-1.03-2.hint',
                                       'perl-Net-SMTP-SSL-1.03-2.tar.xz',
                                       'setup.hint',
                                       'sha512.sum'],
@@ -93,5 +94,10 @@
                               'staleversion-250-0.tar.xz',
                               'staleversion-260-0-src.tar.xz',
                               'staleversion-260-0.tar.xz'],
- 'x86/release/testpackage': ['setup.hint', 'sha512.sum', 'testpackage-1.0-1-src.tar.bz2', 'testpackage-1.0-1.tar.bz2'],
- 'x86/release/testpackage/testpackage-subpackage': ['setup.hint', 'testpackage-subpackage-1.0-1.tar.bz2']}
+ 'x86/release/testpackage': ['setup.hint',
+                             'sha512.sum',
+                             'testpackage-1.0-1-src.tar.bz2',
+                             'testpackage-1.0-1.hint',
+                             'testpackage-1.0-1.tar.bz2'],
+ 'x86/release/testpackage/testpackage-subpackage': ['testpackage-subpackage-1.0-1.hint',
+                                                    'testpackage-subpackage-1.0-1.tar.bz2']}

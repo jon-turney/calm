@@ -116,6 +116,36 @@ def scan(m, all_packages, arch, args):
             logging.warning("package '%s' is not in the package list for maintainer %s" % (dirpath, m.name))
             continue
 
+        # see if we can fix-up any setup.hint files
+        pvr = None
+        ambiguous = False
+        seen = False
+
+        for f in sorted(files):
+            # warn about legacy setup.hint uploads
+            if f == 'setup.hint':
+                logging.warning("'%s' seen, please update to cygport >= 0.23.0" % f)
+                seen = True
+
+            match = re.match(r'^([^-].*?)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
+            if match:
+                if (pvr is not None) and (pvr != match.group(1)):
+                    ambiguous = True
+
+                pvr = match.group(1)
+
+        if seen:
+            if ambiguous or (pvr is None):
+                error = True
+                logging.error("'setup.hint' seen in %s, and couldn't determine what version it applies to", dirpath)
+            else:
+                old = "setup.hint"
+                new = pvr + ".hint"
+                logging.warning("renaming '%s' to '%s'" % (old, new))
+                os.rename(os.path.join(dirpath, old), os.path.join(dirpath, new))
+                files.remove(old)
+                files.append(new)
+
         # filter out files we don't need to consider
         for f in sorted(files):
             fn = os.path.join(dirpath, f)
@@ -170,10 +200,6 @@ def scan(m, all_packages, arch, args):
                     removed_files.append(f[1:])
                 files.remove(f)
                 continue
-
-            # warn about legacy setup.hint uploads
-            if f == 'setup.hint':
-                logging.warning("'%s' seen, please update to cygport >= 0.23.0" % fn)
 
             # verify compressed archive files are valid
             if re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f):
