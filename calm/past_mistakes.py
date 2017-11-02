@@ -130,6 +130,8 @@ nonunique_versions = [
     'libical_cxx-devel',
     'libquota-devel',             # no longer provided by e2fsprogs
     'libturbojpeg',               # no number means it isn't considered an old soversion
+    'libtxc_dxtn',                # split out from s2tc
+    'libtxc_dxtn-devel',          # split out from s2tc
     'mingw64-i686-spice-gtk2.0',  # gtk2 dropped from spice-gtk
     'mingw64-x86_64-spice-gtk2.0',  # gtk2 dropped from spice-gtk
     'minizip',
