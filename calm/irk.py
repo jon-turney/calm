@@ -34,7 +34,7 @@ def irk(message, target=DEFAULT_TARGET, server=DEFAULT_SERVER):
         send(s, target, message)
 
         s.close()
-    except ConnectionRefusedError:
+    except (ConnectionRefusedError, OSError):
         pass
 
 
