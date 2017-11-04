@@ -736,8 +736,6 @@ def write_setup_ini(args, packages, arch):
     logging.debug('writing %s' % (args.inifile))
 
     with open(args.inifile, 'w') as f:
-        os.fchmod(f.fileno(), 0o644)
-
         tz = time.time()
         # write setup.ini header
         print(textwrap.dedent('''\

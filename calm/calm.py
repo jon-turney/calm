@@ -392,6 +392,12 @@ def do_output(args, state):
             # write setup.ini
             package.write_setup_ini(args, state.packages[arch], arch)
 
+            # make it world-readable, if we can
+            try:
+                os.chmod(args.inifile, 0o644)
+            except (OSError):
+                pass
+
             if not os.path.exists(inifile):
                 # if the setup.ini file doesn't exist yet
                 logging.warning('no existing %s' % (inifile))
