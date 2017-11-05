@@ -25,7 +25,7 @@
 # utilities for working with a package database
 #
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 import copy
 import difflib
 import hashlib
@@ -797,7 +797,7 @@ def write_setup_ini(args, packages, arch):
             # next put any other versions
             #
             # these [prev] or [test] sections are superseded by the final ones.
-            for i, version in enumerate(sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)):
+            for version in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
                 # ignore versions which should have been removed by stale
                 # package removal
                 if not (set(['install', 'source']) & set(packages[p].vermap[version])):
