@@ -551,6 +551,14 @@ def validate_packages(args, packages):
                 if packages[p].override_hints[l] is not None:
                     packages[p].stability[l] = packages[p].override_hints[l]
 
+        l = 'test'
+        if l not in packages[p].stability:
+            for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+                if 'test' in packages[p].version_hints[v]:
+                    packages[p].stability[l] = v
+                    packages[p].version_hints[v][l] = ''
+                    break
+
         # the package must have some versions
         if not packages[p].stability:
             logging.error("no versions at any stability level for package '%s'" % (p))
