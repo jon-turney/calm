@@ -30,6 +30,7 @@
 # -- for each tar file
 # --- if a package listing HTML file doesn't already exist
 # ---- write a HTML package listing file listing the tar file contents
+# -- write a summary file, if set of versions changed
 # - write packages.inc, the list of packages
 # - remove any .htaccess or listing files for which there was no package
 # - remove any directories which are now empty
@@ -50,7 +51,9 @@ import tarfile
 import textwrap
 import time
 
+from .version import SetupVersion
 from . import common_constants
+from . import maintainers
 from . import package
 
 
@@ -61,7 +64,7 @@ from . import package
 # 'skip':', in which case we try to make a reasonable one
 #
 
-def desc(packages, p, bv):
+def sdesc(packages, p, bv):
     if 'sdesc' in packages[p].version_hints[bv]:
         header = packages[p].version_hints[bv]['sdesc']
     else:
@@ -70,17 +73,196 @@ def desc(packages, p, bv):
     return header.replace('"', '')
 
 
+# ditto for ldesc
+
+def ldesc(packages, p, bv):
+    if 'ldesc' in packages[p].version_hints[bv]:
+        header = packages[p].version_hints[bv]['ldesc']
+    else:
+        header = p
+
+    return header.replace('"', '')
+
+
+# ensure a directory exists
+#
+# for some versions of python, os.makedirs() can still raise FileExistsError
+# even when exists_ok=True, if the directory mode is not as expected.
+
+def ensure_dir_exists(args, path):
+    if not args.dryrun:
+        try:
+            os.makedirs(path, exist_ok=True)
+        except FileExistsError:
+            pass
+        os.chmod(path, 0o755)
+
+
 #
 #
 #
 
-def update_package_listings(args, packages, arch):
-    base = os.path.join(args.htdocs, arch)
+def update_package_listings(args, packages):
+    package_list = set()
+    update_summary = set()
+
+    for arch in packages:
+        update_summary.update(write_arch_listing(args, packages[arch], arch))
+        package_list.update(packages[arch])
+
+    summaries = os.path.join(args.htdocs, 'summary')
+    ensure_dir_exists(args, summaries)
+
+    mlist = maintainers.Maintainer.read(args, None)
+    pkg_maintainers = maintainers.Maintainer.invert(mlist)
+
+    toremove = glob.glob(os.path.join(summaries, '*'))
+
+    def linkify_package(p):
+        if p in package_list:
+            return '<a href="%s.html">%s</a>' % (p, p)
+        logging.debug('package linkification failed for %s' % p)
+        return p
+
+    for p in package_list:
+        #
+        # write package summary
+        #
+        # (these exist in a separate directory to prevent their contents being
+        # searched by the package search script)
+        #
+        summary = os.path.join(summaries, p + '.html')
+
+        # this file should exist, so remove from the toremove list
+        if summary in toremove:
+            toremove.remove(summary)
+
+        # if listing files were added or removed, or it doesn't already exist,
+        # or force, update the summary
+        if p in update_summary or not os.path.exists(summary) or args.force:
+            logging.debug('writing %s' % summary)
+            if not args.dryrun:
+                with open(summary, 'w') as f:
+
+                    arch_packages = None
+                    for arch in common_constants.ARCHES:
+                        if p in packages[arch]:
+                            arch_packages = packages[arch]
+                            break
+
+                    if not arch_packages:
+                        continue
+
+                    bv = arch_packages[p].best_version
+                    title = "Cygwin Package Summary for %s" % p
+
+                    print(textwrap.dedent('''\
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+                    <link rel="stylesheet" type="text/css" href="../../style.css"/>
+                    <title>%s</title>
+                    </head>
+                    <body>
+                    <div id="main">
+                    <h1>Package: %s</h1>''' % (title, p)), file=f)
+
+                    print('<span class="detail">sdesc</span>: %s<br><br>' % sdesc(arch_packages, p, bv), file=f)
+                    print('<span class="detail">ldesc</span>: %s<br><br>' % ldesc(arch_packages, p, bv), file=f)
+                    print('<span class="detail">categories</span>: %s<br><br>' % arch_packages[p].version_hints[bv].get('category', ''), file=f)
+
+                    for key in ['depends', 'obsoletes', 'provides', 'conflicts', 'build-depends']:
+                        value = arch_packages[p].version_hints[bv].get(key, None)
+                        if value:
+                            print('<span class="detail">%s</span>: %s<br><br>' % (key, ', '.join([linkify_package(p) for p in value.split(', ')])), file=f)
+
+                    es = arch_packages[p].version_hints[bv].get('external-source', None)
+                    if es:
+                        print('<span class="detail">source</span>: %s<br><br>' % linkify_package(es), file=f)
+                    else:
+                        print('<span class="detail">binaries</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(arch_packages[p].is_used_by)]), file=f)
+                        es = p
+
+                    print('<span class="detail">maintainer(s)</span>: %s ' % ', '.join(sorted(pkg_maintainers[es])), file=f)
+                    print(textwrap.dedent('''\
+                    <span class="smaller">(Use <a href="https://cygwin.com/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
+                    <a href="https://cygwin.com/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
+                    print('<br><br>', file=f)
+
+                    print('<ul>', file=f)
+                    for arch in sorted(packages):
+                        if p in packages[arch]:
+
+                            print('<li><span class="detail">%s</span></li>' % arch, file=f)
+
+                            print('<table class="pkgtable">', file=f)
+                            print('<tr><th>Version</th><th>Package Size</th><th>Files</th></tr>', file=f)
+
+                            def tar_line(pn, p, category, v, arch, f):
+                                if category not in p.vermap[v]:
+                                    return
+                                t = p.vermap[v][category]
+                                size = round(p.tar(v, category).size / 1024)
+                                name = v if category == 'install' else v + ' (source)'
+                                target = "%s-%s" % (pn, v) + ('' if category == 'install' else '-src')
+                                print('<tr><td>%s</td><td class="right">%d kB</td><td>[<a href="../%s/%s/%s">list of files</a>]</td></tr>' % (name, size, arch, pn, target), file=f)
+
+                            for version in sorted(packages[arch][p].vermap.keys(), key=lambda v: SetupVersion(v)):
+                                tar_line(p, packages[arch][p], 'install', version, arch, f)
+                                tar_line(p, packages[arch][p], 'source', version, arch, f)
+
+                            print('</table><br>', file=f)
+                    print('</ul>', file=f)
+
+                    print(textwrap.dedent('''\
+                    </div>
+                    </body>
+                    </html>'''), file=f)
+
+    for r in toremove:
+        logging.debug('rm %s' % r)
+        if not args.dryrun:
+            os.unlink(r)
+
+    #
+    # write packages.inc
+    #
+
+    packages_inc = os.path.join(args.htdocs, 'packages.inc')
+    logging.debug('writing %s' % packages_inc)
     if not args.dryrun:
-        try:
-            os.makedirs(base, exist_ok=True)
-        except FileExistsError:
-            pass
+        with open(packages_inc, 'w') as index:
+            os.fchmod(index.fileno(), 0o755)
+            print(textwrap.dedent('''\
+                                     <h2 class="cartouche">Available Packages</h2>
+                                     <table class="pkglist">'''), file=index)
+
+            for p in sorted(package_list, key=package.sort_key):
+
+                arch_packages = None
+                for arch in common_constants.ARCHES:
+                    if p in packages[arch]:
+                        arch_packages = packages[arch]
+                        break
+
+                if not arch_packages:
+                    continue
+
+                bv = arch_packages[p].best_version
+                header = sdesc(arch_packages, p, bv)
+
+                print('<tr><td><a href="summary' + '/' + p + '.html">' + p + '</a></td><td>' + html.escape(header, quote=False) + '</td></tr>', file=index)
+
+            print(textwrap.dedent('''\
+                                     </table>
+                                     '''), file=index)
+
+
+def write_arch_listing(args, packages, arch):
+    update_summary = set()
+    base = os.path.join(args.htdocs, arch)
+    ensure_dir_exists(args, base)
 
     #
     # write base directory .htaccess, if needed
@@ -105,12 +287,7 @@ def update_package_listings(args, packages, arch):
     for p in packages:
 
         dir = os.path.join(base, p)
-        if not args.dryrun:
-            try:
-                os.makedirs(dir, exist_ok=True)
-            except FileExistsError:
-                pass
-            os.chmod(dir, 0o777)
+        ensure_dir_exists(args, dir)
 
         #
         # write .htaccess if needed
@@ -138,6 +315,8 @@ def update_package_listings(args, packages, arch):
         #
         # for each tarfile, write tarfile listing
         #
+        listings = os.listdir(dir)
+        listings.remove('.htaccess')
 
         for t in itertools.chain.from_iterable([packages[p].tars[vr] for vr in packages[p].tars]):
             fver = re.sub(r'\.tar.*$', '', t)
@@ -149,9 +328,12 @@ def update_package_listings(args, packages, arch):
                 logging.debug('writing %s' % listing)
 
                 if not args.dryrun:
+                    # versions are being added, so summary needs updating
+                    update_summary.add(p)
+
                     with open(listing, 'w') as f:
                         bv = packages[p].best_version
-                        header = p + ": " + desc(packages, p, bv)
+                        header = p + ": " + sdesc(packages, p, bv)
 
                         if fver.endswith('-src'):
                             header = header + " (source code)"
@@ -202,30 +384,13 @@ def update_package_listings(args, packages, arch):
             if listing in toremove:
                 toremove.remove(listing)
 
-    #
-    # write packages.inc
-    #
+            if fver in listings:
+                listings.remove(fver)
 
-    packages_inc = os.path.join(base, 'packages.inc')
-    logging.debug('writing %s' % packages_inc)
-    if not args.dryrun:
-        with open(packages_inc, 'w') as index:
-            os.fchmod(index.fileno(), 0o755)
-            print(textwrap.dedent('''\
-                                     <div id="%s">
-                                     <h2 class="cartouche">Available Packages for %s</h2>
-                                     <table class="pkglist">''') % (arch, arch), file=index)
-
-            for p in sorted(packages.keys(), key=package.sort_key):
-
-                bv = packages[p].best_version
-                header = desc(packages, p, bv)
-
-                print('<tr><td><a href="' + arch + '/' + p + '">' + p + '</a></td><td>' + html.escape(header, quote=False) + '</td></tr>', file=index)
-
-            print(textwrap.dedent('''\
-                                     </table>
-                                     </div>'''), file=index)
+        # some versions remain on toremove list, and will be removed, so summary
+        # needs updating
+        if listings:
+            update_summary.add(p)
 
     #
     # remove any remaining files for which there was no corresponding package
@@ -244,6 +409,8 @@ def update_package_listings(args, packages, arch):
             if len(os.listdir(dirpath)) == 0:
                 logging.debug('rmdir %s' % dirpath)
                 os.rmdir(os.path.join(dirpath))
+
+    return update_summary
 
 
 if __name__ == "__main__":

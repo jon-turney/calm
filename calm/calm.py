@@ -373,11 +373,9 @@ def do_main(args, state):
 #
 
 def do_output(args, state):
-    # for each arch
-    for arch in common_constants.ARCHES:
-        # update packages listings
-        # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
-        pkg2html.update_package_listings(args, state.packages[arch], arch)
+    # update packages listings
+    # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
+    pkg2html.update_package_listings(args, state.packages)
 
     # for each arch
     for arch in common_constants.ARCHES:

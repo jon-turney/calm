@@ -151,13 +151,15 @@ class CalmTest(unittest.TestCase):
         setattr(args, 'arch', 'x86')
         setattr(args, 'htdocs', htdocs)
         setattr(args, 'rel_area', 'testdata/relarea')
+        setattr(args, 'homedir', 'testdata/homes')
         setattr(args, 'dryrun', False)
         setattr(args, 'force', True)
         setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
 
-        packages = package.read_packages(args.rel_area, args.arch)
-        package.validate_packages(args, packages)
-        pkg2html.update_package_listings(args, packages, args.arch)
+        packages = {}
+        packages[args.arch] = package.read_packages(args.rel_area, args.arch)
+        package.validate_packages(args, packages[args.arch])
+        pkg2html.update_package_listings(args, packages)
 
         # compare the output files with expected
         for (dirpath, subdirs, files) in os.walk(htdocs):
@@ -393,7 +395,7 @@ class CalmTest(unittest.TestCase):
         packages = calm.calm.process(args, state)
         self.assertTrue(packages)
 
-        pkg2html.update_package_listings(args, packages['x86'], 'x86')
+        pkg2html.update_package_listings(args, packages)
         package.write_setup_ini(args, packages['x86'], 'x86')
 
         with open(os.path.join(args.rel_area, 'setup.ini')) as inifile:

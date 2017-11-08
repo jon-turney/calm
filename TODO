@@ -9,3 +9,4 @@
 * something to expire old soversions
 * atomically update .ini/.sig (rename of containing directory, if we put release/ was somewhere else?)
 * report changes in override.hint like we used to for setup.hint
+* maintainers.py should only re-read cygwin-pkg-maint if it's changed

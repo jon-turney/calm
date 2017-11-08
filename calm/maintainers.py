@@ -35,6 +35,12 @@
 # - the timestamp when 'ignoring' warnings were last emitted
 #
 
+# XXX: Rather than this implementing an object which reads cygwin-pkg-maint when
+# constructed at specific places in the code, perhaps this needs to contain the
+# list (and it's inversion) and accessors, and invalidate that stored list when
+# cygwin-pkg-maint changes...
+
+from collections import defaultdict
 import itertools
 import logging
 import os
@@ -199,6 +205,19 @@ class Maintainer(object):
         mlist = Maintainer.add_packages(mlist, args.pkglist, orphanmaint)
 
         return mlist
+
+    # invert to a per-package list of maintainers
+    @staticmethod
+    def invert(mlist):
+        _pkgs = defaultdict(list)
+        # for each maintainer
+        for m in mlist.values():
+            # for each package
+            for p in m.pkgs:
+                # add the maintainer name
+                _pkgs[p].append(m.name)
+
+        return _pkgs
 
     @staticmethod
     def update_reminder_times(mlist):
