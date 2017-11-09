@@ -47,5 +47,6 @@ def main():
         sys.stderr.write("irk: write to server failed: %r\n" % e)
         sys.exit(1)
 
+
 if __name__ == '__main__':
     main()

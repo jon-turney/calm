@@ -1119,9 +1119,11 @@ def stale_packages(packages):
 
     return stale
 
+
 #
 #
 #
+
 if __name__ == "__main__":
     for arch in common_constants.ARCHES:
         packages = read_packages(common_constants.FTP, arch)

@@ -118,9 +118,11 @@ def main(args):
         # (written this way so it doesn't spoil a hardlinked backup of the releasearea)
         os.rename(fn, ofn)
 
+
 #
 #
 #
+
 if __name__ == "__main__":
     relarea_default = common_constants.FTP
 

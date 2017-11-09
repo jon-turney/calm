@@ -37,6 +37,7 @@ def merge_dicts(x, *y):
         z.update(i)
     return z
 
+
 # types of key:
 # 'multilineval' - always have a value, which may be multiline
 # 'val'          - always have a value
@@ -349,6 +350,7 @@ def main(args):
             status = 255
 
     return status
+
 
 #
 #

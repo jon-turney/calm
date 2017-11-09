@@ -56,6 +56,7 @@ def extract_version(fn):
     else:
         return None
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract version from setup executable')
     parser.add_argument('exe', action='store', nargs='?', metavar='filename', help='executable file')

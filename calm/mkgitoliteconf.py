@@ -83,10 +83,10 @@ def do_main(args):
         print("owner = %s" % (owner))
         print("")
 
-#
-#
-#
 
+#
+#
+#
 
 def main():
     pkglist_default = common_constants.PKGMAINT
@@ -96,6 +96,7 @@ def main():
     (args) = parser.parse_args()
 
     do_main(args)
+
 
 #
 #
