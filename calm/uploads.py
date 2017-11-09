@@ -259,7 +259,7 @@ def scan(m, all_packages, arch, args):
     # since we warned about files being ignored, warn again
     if ignored > 0 and m.reminders_issued:
         if (time.time() > (m.reminder_time + REMINDER_INTERVAL)):
-            logging.warning("ignored %d files as there is no !ready" % ignored)
+            logging.warning("ignored %d files in %s as there is no !ready" % (ignored, arch))
 
     return ScanResult(error, packages, move, vault, remove, remove_success)
 
