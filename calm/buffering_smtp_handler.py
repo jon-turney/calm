@@ -92,7 +92,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                     smtp = smtplib.SMTP(self.mailhost, port)
                     smtp.send_message(m)
                     smtp.quit()
-                except:
+                except ImportError:
                     self.handleError(self.buffer[0])  # first record
 
             self.buffer = []
