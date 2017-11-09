@@ -637,6 +637,12 @@ def validate_packages(args, packages):
                                     error = True
                                 logging.log(lvl, "package '%s' version '%s' has empty install tar file and no source, but it's not in the _obsolete category" % (p, vr))
 
+        for vr in packages[p].version_hints:
+            if 'build-depends' in packages[p].version_hints[vr]:
+                if 'source' not in packages[p].vermap[vr]:
+                    logging.error("package '%s' version '%s' has build-depends but no source" % (p, vr))
+                    error = True
+
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
     for p in sorted(packages.keys()):
@@ -898,6 +904,18 @@ def write_setup_ini(args, packages, arch):
 
                 if 'obsoletes' in packages[p].version_hints[version]:
                     print("obsoletes: %s" % packages[p].version_hints[version]['obsoletes'], file=f)
+
+                if 'build-depends' in packages[p].version_hints[version]:
+                    bd = packages[p].version_hints[version]['build-depends']
+
+                    # Ideally, we'd transform dependency atoms which aren't
+                    # cygwin package names into package names. For the moment,
+                    # we don't have the information to do that, so filter them
+                    # all out.
+                    bd = [atom for atom in bd.split() if '(' not in atom]
+
+                    if bd:
+                        print("build-depends: %s" % ', '.join(bd), file=f)
 
 
 # helper function to output details for a particular tar file
