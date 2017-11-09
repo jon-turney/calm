@@ -247,9 +247,14 @@ def process_uploads(args, state):
                 for arch in common_constants.ARCHES:
                     # use merged package list
                     state.packages[arch] = merged_packages[arch]
-                    msg = "added %d (%s) + %d (noarch) + %d (src) packages from maintainer %s" % (len(scan_result[arch].packages), arch, len(scan_result['noarch'].packages), len(scan_result['src'].packages), name)
-                    logging.debug(msg)
-                    irk.irk(msg)
+
+                # report what we've done
+                added = []
+                for arch in common_constants.ARCHES + ['noarch', 'src']:
+                    added.append('%d (%s)' % (len(scan_result[arch].packages), arch))
+                msg = "added %s packages from maintainer %s" % (' + '.join(added), name)
+                logging.debug(msg)
+                irk.irk(msg)
 
         # record updated reminder times for maintainers
         maintainers.Maintainer.update_reminder_times(mlist)
