@@ -2,7 +2,7 @@ language: python
 sudo: false
 python:
  - "3.4"
-install: "pip install pep8 dirq"
+install: "pip install pycodestyle dirq"
 script:
  - ./pep8
  - python -m unittest discover

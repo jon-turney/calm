@@ -1,2 +1,2 @@
 #!/bin/sh
-grep -s -l '^#!/usr/bin/env python' calm/* tests/* | xargs python3 -m pep8 --count --show-source --max-line-length=240 --ignore=E129
+grep -s -l '^#!/usr/bin/env python' calm/* tests/* | xargs python3 -m pycodestyle --count --show-source --max-line-length=240 --ignore=E129
