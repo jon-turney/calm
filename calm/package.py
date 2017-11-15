@@ -605,13 +605,20 @@ def validate_packages(args, packages):
             if 'test' in packages[p].version_hints[v]:
                 continue
 
-            if packages[p].stability['curr'] != v:
-                if p in past_mistakes.mtime_anomalies:
+            cv = packages[p].stability['curr']
+            if cv != v:
+                if packages[p].vermap[v]['mtime'] == packages[p].vermap[cv]['mtime']:
+                    # don't consider an equal mtime to be more recent
+                    continue
+
+                if ((p in past_mistakes.mtime_anomalies) or
+                    ('curr-most-recent' in packages[p].override_hints.get('disable-check', '')) or
+                    ('curr-most-recent' in getattr(args, 'disable_check', []))):
                     lvl = logging.DEBUG
                 else:
                     lvl = logging.ERROR
                     error = True
-                logging.log(lvl, "package '%s' version '%s' is most recent non-test version, but version '%s' is curr:" % (p, v, packages[p].stability['curr']))
+                logging.log(lvl, "package '%s' version '%s' is most recent non-test version, but version '%s' is curr:" % (p, v, cv))
 
             break
 

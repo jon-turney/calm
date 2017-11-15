@@ -101,7 +101,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Make setup.ini')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
-    parser.add_argument('--disable-check', action='append', help='checks to disable', choices=['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package'], default=[])
+    parser.add_argument('--disable-check', action='append', help='checks to disable', choices=['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package', 'curr-most-recent'], default=[])
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--okmissing', action='append', help='superseded by --disable-check', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
     parser.add_argument('--pkglist', action='store', nargs='?', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", const=pkglist_default)

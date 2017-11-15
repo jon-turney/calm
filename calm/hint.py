@@ -67,6 +67,7 @@ overridekeys = {
     'keep': 'val',
     'keep-count': 'val',
     'keep-days': 'val',
+    'disable-check': 'val',
 }
 
 hintkeys = {}
