@@ -124,6 +124,7 @@ categories = ['accessibility',
               'science',
               'security',
               'shells',
+              'source',  # added to all source packages created by deduplicator to ensure they have a category
               'sugar',
               'system',
               'tcl',

@@ -671,6 +671,16 @@ def validate_packages(args, packages):
                         packages[es_p].is_used_by.add(p)
                         continue
 
+                # this is a bodge to follow external-source: which hasn't been
+                # updated following a source package de-duplication
+                es_p = es_p + '-src'
+                if es_p in packages:
+                    if 'source' in packages[es_p].vermap[v]:
+                        logging.warning("package '%s' version '%s' external-source: should be %s" % (p, v, es_p))
+                        packages[es_p].tar(v, 'source').is_used = True
+                        packages[es_p].is_used_by.add(p)
+                        continue
+
             # unless this package is marked as 'self-source'
             if p in past_mistakes.self_source:
                 continue
