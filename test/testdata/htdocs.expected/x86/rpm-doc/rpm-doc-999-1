@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>rpm-doc: Obsolete package for RPM package management system manual pages</title>
+<title>rpm-doc: Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)</title>
 </head>
 <body>
-<h1>rpm-doc: Obsolete package for RPM package management system manual pages</h1>
+<h1>rpm-doc: Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)</h1>
 <pre>
 </pre>
 </body>

@@ -250,7 +250,7 @@
  '4de528554acb0b63f2a964bc8a0421118f96ce05cb4c9d111983aaea1a4a93025b31627fd66875fa09c2dfaecc11a89f2a294bdd3c77055bfaa93a27fdfc1f07\n'
  '\n'
  '@ rpm-doc\n'
- 'sdesc: "Obsolete package for RPM package management system manual pages"\n'
+ 'sdesc: "Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)"\n'
  'category: _obsolete\n'
  'version: 999-1\n'
  'install: x86/release/rpm-doc/rpm-doc-999-1.tar.bz2 42 '
