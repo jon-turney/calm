@@ -310,12 +310,12 @@ class CalmTest(unittest.TestCase):
         scan_result = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args.arch, args)
 
         self.assertEqual(scan_result.error, False)
-        compare_with_expected_file(self, 'testdata/uploads', scan_result.to_relarea, 'move')
+        compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.to_relarea), 'move')
         self.assertCountEqual(scan_result.to_vault, {'x86/release/testpackage': ['x86/release/testpackage/testpackage-0.1-1.tar.bz2']})
         self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
         self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
         with pprint_patch():
-            compare_with_expected_file(self, 'testdata/uploads', scan_result.packages, 'pkglist')
+            compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.packages), 'pkglist')
 
     def test_package_set(self):
         self.maxDiff = None
