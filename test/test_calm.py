@@ -25,6 +25,8 @@
 # tests
 #
 
+import collections
+import contextlib
 import filecmp
 import logging
 import os
@@ -87,6 +89,35 @@ def capture_dirtree(basedir):
 
 
 #
+# a context to monkey-patch pprint so OrderedDict appears as with python <3.5
+# (a dict, with lines ordered, rather than OrderedDict repr)
+#
+
+def patched_pprint_ordered_dict(self, object, stream, indent, allowance, context, level):
+    write = stream.write
+    write('{')
+    if self._indent_per_level > 1:
+        write((self._indent_per_level - 1) * ' ')
+    length = len(object)
+    if length:
+        items = list(object.items())
+        self._format_dict_items(items, stream, indent, allowance + 1,
+                                context, level)
+    write('}')
+
+@contextlib.contextmanager
+def pprint_patch():
+    if isinstance(getattr(pprint.PrettyPrinter, '_dispatch', None), dict):
+        orig = pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__]
+        pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = patched_pprint_ordered_dict
+        try:
+            yield
+        finally:
+            pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = orig
+    else:
+        yield
+
+#
 #
 #
 
@@ -101,7 +132,8 @@ class CalmTest(unittest.TestCase):
                 with self.subTest(package=os.path.basename(dirpath)):
                     logging.info('Reading %s' % os.path.join(dirpath, 'setup.hint'))
                     results = hint.hint_file_parse(os.path.join(dirpath, 'setup.hint'), hint.setup)
-                    compare_with_expected_file(self, os.path.join('testdata/hints', relpath), results)
+                    with pprint_patch():
+                        compare_with_expected_file(self, os.path.join('testdata/hints', relpath), results)
 
 #
 # something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
@@ -282,7 +314,8 @@ class CalmTest(unittest.TestCase):
         self.assertCountEqual(scan_result.to_vault, {'x86/release/testpackage': ['x86/release/testpackage/testpackage-0.1-1.tar.bz2']})
         self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
         self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
-        compare_with_expected_file(self, 'testdata/uploads', scan_result.packages, 'pkglist')
+        with pprint_patch():
+            compare_with_expected_file(self, 'testdata/uploads', scan_result.packages, 'pkglist')
 
     def test_package_set(self):
         self.maxDiff = None
