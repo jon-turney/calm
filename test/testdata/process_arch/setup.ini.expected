@@ -329,7 +329,7 @@
  '@ testpackage\n'
  'sdesc: "A test package"\n'
  'ldesc: "A test package\n'
- "It's description might contains some unicode gibberish\n"
+ "It's description might contains some unicode junk\n"
  'Like it’s you’re Markup Language™ Nokogiri’s tool―that Bézier."\n'
  'category: Devel\n'
  'requires: cygwin\n'
