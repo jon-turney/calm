@@ -227,7 +227,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                     if match:
                         sha512[match.group(2)] = match.group(1)
                     else:
-                        logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l, p))
+                        logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l.strip(), p))
 
         # discard obsolete md5.sum
         if 'md5.sum' in files:
