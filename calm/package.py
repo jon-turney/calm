@@ -350,9 +350,14 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
         packages[p].path = relpath
         packages[p].skip = any(['skip' in version_hints[vr] for vr in version_hints])
 
-    elif (len(files) > 0) and (relpath.count(os.path.sep) > 1):
-        logging.log(strict_lvl, "no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
-        warnings = True
+    elif (relpath.count(os.path.sep) > 1):
+        for s in ['md5.sum', 'sha512.sum']:
+            if s in files:
+                files.remove(s)
+
+        if len(files) > 0:
+            logging.log(strict_lvl, "no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
+            warnings = True
 
     if strict:
         return warnings
