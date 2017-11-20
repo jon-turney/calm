@@ -125,6 +125,13 @@ def read_hints(p, fn, kind):
         for l in hints['parse-warnings']:
             logging.info("package '%s': %s" % (p, l))
 
+    # if we don't have both requires: and depends:, generate the one
+    # from the other
+    if ('requires' in hints) and ('depends' not in hints):
+        hints['depends'] = ', '.join(hints['requires'].split())
+    elif ('depends' in hints) and ('requires' not in hints):
+        hints['requires'] = ' '.join([re.sub(r'(.*)\s+\(.*\)', r'\1', d) for d in hints['depends'].split(',')])
+
     return hints
 
 
@@ -420,7 +427,8 @@ def validate_packages(args, packages):
                     ('depends', 'missing-depended-package', ','),
                     ('obsoletes', 'missing-obsoleted-package', ',')
             ]:
-                if c in hints:
+                # if c is in hints, and not the empty string
+                if hints.get(c, ''):
                     for r in hints[c].split(splitchar):
                         if c == 'requires':
                             has_requires = True
