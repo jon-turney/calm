@@ -628,11 +628,10 @@ def validate_packages(args, packages):
 
         # If the install tarball is empty and there is no source tarball, we
         # should probably be marked obsolete
-        # (XXX: should consider external-source: ?)
         if not packages[p].skip:
             for vr in packages[p].version_hints:
                 if '_obsolete' not in packages[p].version_hints[vr].get('category', ''):
-                    if 'source' not in packages[p].vermap[vr]:
+                    if ('source' not in packages[p].vermap[vr]) and ('external-source' not in packages[p].version_hints[vr]):
                         if 'install' in packages[p].vermap[vr]:
                             if packages[p].tar(vr, 'install').is_empty:
                                 if p in past_mistakes.empty_but_not_obsolete:
