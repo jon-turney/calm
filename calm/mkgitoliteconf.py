@@ -77,7 +77,7 @@ def do_main(args):
         if p.startswith('_'):
             p = p[1:]
 
-        print("repo cygwin-packages/%s" % (p))
+        print("repo git/cygwin-packages/%s" % (p))
         print("C  = %s" % (users))
         print("RW = %s" % (users))
         print("owner = %s" % (owner))
