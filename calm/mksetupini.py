@@ -60,13 +60,15 @@ def do_main(args):
     # validate the package set
     if not package.validate_packages(args, packages):
         logging.error("package set has errors, not writing setup.ini")
-        return
+        return 1
 
     # write setup.ini
     package.write_setup_ini(args, packages, args.arch)
 
     if args.stats:
         stats(packages)
+
+    return 0
 
 
 #
@@ -115,7 +117,7 @@ def main():
 
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
-    do_main(args)
+    return do_main(args)
 
 
 #

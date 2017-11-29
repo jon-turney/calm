@@ -359,11 +359,13 @@ def do_main(args, state):
 
     if not packages:
         logging.error("not processing uploads or writing setup.ini")
-        return
+        return 1
 
     state.packages = packages
 
     do_output(args, state)
+
+    return 0
 
 
 #
@@ -641,11 +643,14 @@ def main():
     state = CalmState()
     state.subject = 'calm%s: cygwin package upload report from %s' % (' [dry-run]' if args.dryrun else '', os.uname()[1])
 
+    status = 0
     if args.daemon:
         do_daemon(args, state)
     else:
         logging_setup(args)
-        do_main(args, state)
+        status = do_main(args, state)
+
+    return status
 
 
 #
