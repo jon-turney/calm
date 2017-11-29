@@ -416,9 +416,9 @@ def validate_packages(args, packages):
 
         for (v, hints) in packages[p].version_hints.items():
             for (c, okmissing, splitchar) in [
-                    ('requires', 'required-package', None),
-                    ('depends', 'depended-package', ','),
-                    ('obsoletes', 'obsoleted-package', ',')
+                    ('requires', 'missing-required-package', None),
+                    ('depends', 'missing-depended-package', ','),
+                    ('obsoletes', 'missing-obsoleted-package', ',')
             ]:
                 if c in hints:
                     for r in hints[c].split(splitchar):
@@ -438,10 +438,10 @@ def validate_packages(args, packages):
                             lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
                             logging.log(lvl, "package '%s' version '%s' %s itself" % (p, v, c))
 
-                        # all packages listed in a hint must exist (unless
-                        # okmissing says that's ok)
+                        # all packages listed in a hint must exist (unless the
+                        # disable-check option says that's ok)
                         if r not in packages:
-                            if okmissing not in getattr(args, 'okmissing', []):
+                            if okmissing not in getattr(args, 'disable_check', []):
                                 logging.error("package '%s' version '%s' %s nonexistent package '%s'" % (p, v, c, r))
                                 error = True
                             continue
@@ -597,7 +597,7 @@ def validate_packages(args, packages):
             logging.error("no versions at any stability level for package '%s'" % (p))
             error = True
         # it's also probably a really good idea if a curr version exists
-        elif 'curr' not in packages[p].stability and 'curr' not in getattr(args, 'okmissing', []):
+        elif 'curr' not in packages[p].stability and 'missing-curr' not in getattr(args, 'disable_check', []):
             logging.warning("package '%s' doesn't have a curr version" % (p))
 
         # error if the curr: version isn't the most recent non-test: version

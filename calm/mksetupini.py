@@ -101,8 +101,9 @@ def main():
 
     parser = argparse.ArgumentParser(description='Make setup.ini')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
+    parser.add_argument('--disable-check', action='append', help='checks to disable', choices=['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package'], default=[])
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
-    parser.add_argument('--okmissing', action='append', help='missing things which are ok', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
+    parser.add_argument('--okmissing', action='append', help='superseded by --disable-check', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
     parser.add_argument('--pkglist', action='store', nargs='?', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", const=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
@@ -116,6 +117,14 @@ def main():
         logging.getLogger().setLevel(logging.INFO)
 
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
+
+    # The option name 'okmissing' was inherited from genini.  The more general
+    # option 'disable-check' is intended to supersede that, eventually.
+    #
+    # For the moment '--okmissing=foo' is silently transformed into it's
+    # equivalent '--disable-check=missing-foo'
+    if args.okmissing:
+        args.disable_check.extend(['missing-' + m for m in args.okmissing])
 
     return do_main(args)
 
