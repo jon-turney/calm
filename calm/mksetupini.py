@@ -93,15 +93,46 @@ def stats(packages):
 
 
 #
+# argparse helpers for an option which can take a comma separated list of
+# choices, or can be repeated (e.g.: --option a --option b,c ->
+# option:[a,b,c])
+#
+
+class flatten_append(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        curr = getattr(namespace, self.dest, self.default)
+        curr.extend(values)
+        setattr(namespace, self.dest, curr)
+
+
+class choiceList(object):
+    def __init__(self, choices):
+        self.choices = choices
+
+    def __call__(self, csv):
+        args = csv.split(',')
+        remainder = sorted(set(args) - set(self.choices))
+        if remainder:
+            msg = "invalid choices: %r (choose from %r)" % (remainder, self.choices)
+            raise argparse.ArgumentTypeError(msg)
+        return args
+
+    def help(self):
+        return '{%s}' % (','.join(self.choices))
+
+
+#
 #
 #
 def main():
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
 
+    disable_check_choices = choiceList(['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package', 'curr-most-recent'])
+
     parser = argparse.ArgumentParser(description='Make setup.ini')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
-    parser.add_argument('--disable-check', action='append', help='checks to disable', choices=['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package', 'curr-most-recent'], default=[])
+    parser.add_argument('--disable-check', action=flatten_append, help='checks to disable', type=disable_check_choices, default=[], metavar=disable_check_choices.help())
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--okmissing', action='append', help='superseded by --disable-check', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
     parser.add_argument('--pkglist', action='store', nargs='?', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", const=pkglist_default)
