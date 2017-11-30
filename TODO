@@ -1,10 +1,8 @@
-* more than 2 versions possible
 * upload a hash at the same time as package, and pass that through to setup.ini
 * mksetupini should have an okmissing option for override.hint which names non-existent versions
 * use ./setup.hint inside the tar file, avoiding all the hint/tar coherence problems
 * mksetupini should write to stdout if --inifile not specified
-* 'not in the _obsolete category' talks about 'all levels' rather than 'all versions'
 * check packages for path collisions
 * don't do upload authorization by path, then remove unique path constraint
 * mksetupini should be able to verify requires: contains valid package names using a provided list of packages (or a cygwin-pkg-maint file?)
-* certain checks where we have past_mistakes to forgive should instead have a forgive: key in override.hint to disable?
+* make override.hint (optionally?) apply recursively?
