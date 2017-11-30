@@ -754,15 +754,16 @@ def validate_packages(args, packages):
             logging.error("install packages from source package '%s' have non-unique current versions %s" % (source_p, ', '.join(reversed(out))))
 
     # validate that all packages are in the package maintainers list
-    validate_package_maintainers(args, packages)
+    error = validate_package_maintainers(args, packages) or error
 
     return not error
 
 
 #
 def validate_package_maintainers(args, packages):
+    error = False
     if not args.pkglist:
-        return
+        return error
 
     # read maintainer list
     mlist = {}
@@ -781,6 +782,9 @@ def validate_package_maintainers(args, packages):
             continue
         if not is_in_package_list(packages[p].path, all_packages):
             logging.error("package '%s' is not in the package list" % (p))
+            error = True
+
+    return error
 
 
 #

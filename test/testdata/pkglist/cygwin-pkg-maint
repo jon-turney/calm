@@ -1337,6 +1337,8 @@ nss                                          Yaakov Selkowitz
 ntl                                          Yue Ren/Marco Atzeri
 nttcp                                        Jari Aalto
 obconf                                       Yaakov Selkowitz
+obs-a                                        ORPHANED
+obs-b                                        ORPHANED
 ocaml                                        Damien Doligez
 ocaml-facile                                 Yaakov Selkowitz
 oclock                                       Yaakov Selkowitz
@@ -2174,6 +2176,9 @@ telepathy-qt                                 Yaakov Selkowitz
 terminus-fonts                               Yaakov Selkowitz
 tesseract-ocr                                Marco Atzeri
 testpackage                                  Blooey McFooey
+test-c                                       ORPHANED
+test-d                                       ORPHANED
+test-e                                       ORPHANED
 tetzle                                       Yaakov Selkowitz
 texi2html                                    Dr. Volker Zell
 texinfo                                      Ken Brown
