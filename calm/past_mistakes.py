@@ -128,16 +128,21 @@ nonunique_versions = [
     'konqueror',                  # split out from kde-baseapps
     'libatomic_ops-devel',        # separated out from libgc
     'libcaca-doc',                # dropped pending fix for current doxygen
+    'libflint',                   # no number means it isn't considered an old soversion
     'libfltk-doc',
     'libgcj-common',              # dropped from gcc 6
     'libical_cxx-devel',
+    'libpoppler-qt4_4',           # dropped since 0.62.0
+    'libpoppler-qt4-devel',       # dropped since 0.62.0
     'libquota-devel',             # no longer provided by e2fsprogs
     'libturbojpeg',               # no number means it isn't considered an old soversion
     'libtxc_dxtn',                # split out from s2tc
     'libtxc_dxtn-devel',          # split out from s2tc
+    'mingw64-i686-poppler-qt4',   # dropped since 0.62.0
     'mingw64-i686-qt5-declarative-debuginfo',    # dropped in 5.9
     'mingw64-i686-qt5-tools-debuginfo',          # dropped in 5.9
     'mingw64-i686-spice-gtk2.0',  # gtk2 dropped from spice-gtk
+    'mingw64-x86_64-poppler-qt4',  # dropped since 0.62.0
     'mingw64-x86_64-qt5-declarative-debuginfo',  # dropped in 5.9
     'mingw64-x86_64-qt5-tools-debuginfo',        # dropped in 5.9
     'mingw64-x86_64-spice-gtk2.0',  # gtk2 dropped from spice-gtk
