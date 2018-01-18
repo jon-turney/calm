@@ -6,3 +6,6 @@
 * don't do upload authorization by path, then remove unique path constraint
 * mksetupini should be able to verify requires: contains valid package names using a provided list of packages (or a cygwin-pkg-maint file?)
 * make override.hint (optionally?) apply recursively?
+* something to expire old soversions
+* atomically update .ini/.sig (rename of containing directory, if we put release/ was somewhere else?)
+* report changes in override.hint like we used to for setup.hint
