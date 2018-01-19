@@ -935,7 +935,7 @@ def write_setup_ini(args, packages, arch):
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
                 if packages[p].version_hints[version].get('depends', ''):
-                    print("depends: %s" % packages[p].version_hints[version]['depends'], file=f)
+                    print("depends2: %s" % packages[p].version_hints[version]['depends'], file=f)
 
                 if packages[p].version_hints[version].get('obsoletes', ''):
                     print("obsoletes: %s" % packages[p].version_hints[version]['obsoletes'], file=f)
