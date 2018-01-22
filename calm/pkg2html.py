@@ -38,7 +38,6 @@
 # flattened in the package listing to just the package name
 #
 
-from collections import defaultdict
 import argparse
 import glob
 import html

@@ -27,8 +27,6 @@
 
 from collections import defaultdict
 import argparse
-import logging
-import os
 import sys
 
 from . import common_constants

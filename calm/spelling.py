@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 #
 
-import logging
 import re
 from enchant import DictWithPWL
 from enchant.checker import SpellChecker
@@ -125,7 +124,7 @@ def spellcheck_hints(args, packages):
                 # XXX: this is doing all the work to generate suggestions, which
                 # we then ignore, so could be written much more efficiently
                 for err in chkr:
-                    # logging.error("package '%s', hint '%s': Is '%s' a word?" % (p, k, err.word))
+                    # print("package '%s', hint '%s': Is '%s' a word?" % (p, k, err.word))
                     misspellings.setdefault(err.word, 0)
                     misspellings[err.word] += 1
 
