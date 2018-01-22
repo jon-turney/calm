@@ -1,1 +1,1 @@
-from . import test_calm
+__all__ = ['test_calm']

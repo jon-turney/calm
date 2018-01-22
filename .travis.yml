@@ -3,7 +3,7 @@ sudo: false
 python:
  - "3.4"
  - "3.6"
-install: "pip install pycodestyle dirq"
+install: "pip install pycodestyle flake8 dirq"
 script:
  - ./pep8
  - python -m unittest discover
