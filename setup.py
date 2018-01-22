@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from setuptools import setup
 
 setup(
@@ -9,7 +10,7 @@ setup(
     author_email='jon.turney@dronecode.org.uk',
     license='MIT',
     packages=['calm'],
-    entry_points= {
+    entry_points={
         'console_scripts': [
             'calm = calm.calm:main',
             'mksetupini = calm.mksetupini:main',
