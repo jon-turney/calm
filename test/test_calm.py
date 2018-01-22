@@ -105,6 +105,7 @@ def patched_pprint_ordered_dict(self, object, stream, indent, allowance, context
                                 context, level)
     write('}')
 
+
 @contextlib.contextmanager
 def pprint_patch():
     if isinstance(getattr(pprint.PrettyPrinter, '_dispatch', None), dict):
@@ -116,6 +117,7 @@ def pprint_patch():
             pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = orig
     else:
         yield
+
 
 #
 #
@@ -193,7 +195,7 @@ class CalmTest(unittest.TestCase):
             ["2.6.0+bzr6602-1", "2.6b2-1", 1],
             ["0.6.7+20150214+git3a710f9-1", "0.6.7-1", 1],
             ["15.8b-1", "15.8.0.1-2", -1],
-            ["1.2rc1-1","1.2.0-2", -1],
+            ["1.2rc1-1", "1.2.0-2", -1],
             # examples from https://fedoraproject.org/wiki/Archive:Tools/RPM/VersionComparison
             ["1.0010", "1.9", 1],
             ["1.05", "1.5", 0],
@@ -441,8 +443,7 @@ class CalmTest(unittest.TestCase):
                    (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1-src.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1.tar.xz'), '2016-11-01'),
-                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1-src.tar.xz'), '2016-11-01'),
-        ]
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1-src.tar.xz'), '2016-11-01')]
         for (f, t) in touches:
             os.system('touch %s -d %s' % (f, t))
 
