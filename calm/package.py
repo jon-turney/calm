@@ -198,6 +198,8 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
         if 'override.hint' in files:
             # read override.hint
             override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
+            if not override_hints:
+                return True
             files.remove('override.hint')
         else:
             override_hints = {}
