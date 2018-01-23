@@ -641,6 +641,15 @@ def validate_packages(args, packages):
             packages[p].best_version = None
             error = True
 
+        # warn if replace-versions lists a version which is less than the
+        # current version (which is pointless as the current version will
+        # replace it anyhow)
+        if 'replace-versions' in packages[p].override_hints:
+            if packages[p].best_version:
+                for rv in packages[p].override_hints['replace-versions'].split():
+                    if SetupVersion(rv) < SetupVersion(packages[p].best_version):
+                        logging.warning("package '%s' replace-versions: lists version '%s' which is less than current version" % (p, rv))
+
         # If the install tarball is empty and there is no source tarball, we
         # should probably be marked obsolete
         if not packages[p].skip:
@@ -853,6 +862,9 @@ def write_setup_ini(args, packages, arch):
 
             if 'message' in packages[p].version_hints[bv]:
                 print("message: %s" % packages[p].version_hints[bv]['message'], file=f)
+
+            if 'replace-versions' in packages[p].override_hints:
+                print("replace-versions: %s" % packages[p].override_hints['replace-versions'], file=f)
 
             # make a list of version sections
             #

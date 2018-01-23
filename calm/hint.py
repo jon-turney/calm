@@ -68,6 +68,7 @@ overridekeys = {
     'keep-count': 'val',
     'keep-days': 'val',
     'disable-check': 'val',
+    'replace-versions': 'val',
 }
 
 hintkeys = {}
@@ -318,6 +319,9 @@ def hint_file_parse(fn, kind):
 
             if 'obsoletes' in hints:
                 hints['obsoletes'] = split_trim_sort_join(hints['obsoletes'], ',')
+
+            if 'replace-versions' in hints:
+                hints['replace-versions'] = split_trim_sort_join(hints['replace-versions'], None, ' ')
 
         except UnicodeDecodeError:
             errors.append('invalid UTF-8')
