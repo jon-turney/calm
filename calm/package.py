@@ -616,6 +616,10 @@ def validate_packages(args, packages):
                 continue
 
             cv = packages[p].stability['curr']
+
+            if cv not in packages[p].vermap:
+                continue
+
             if cv != v:
                 if packages[p].vermap[v]['mtime'] == packages[p].vermap[cv]['mtime']:
                     # don't consider an equal mtime to be more recent
@@ -634,7 +638,7 @@ def validate_packages(args, packages):
 
         # identify a 'best' version to take certain information from: this is
         # the curr version, if we have one, otherwise, the highest version.
-        if 'curr' in packages[p].stability:
+        if ('curr' in packages[p].stability) and (packages[p].stability['curr'] in packages[p].vermap):
             packages[p].best_version = packages[p].stability['curr']
         elif len(packages[p].vermap):
             packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
