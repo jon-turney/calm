@@ -247,7 +247,7 @@ def scan(m, all_packages, arch, args):
         # read and validate package
         if files:
             # strict means we consider warnings as fatal for upload
-            if package.read_package(packages, m.homedir(), dirpath, files, strict=True, remove=removed_files, upload=True):
+            if package.read_package(packages, m.homedir(), dirpath, files, remove=removed_files, upload=True):
                 error = True
 
     # always consider timestamp as checked during a dry-run, so it is never

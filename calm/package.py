@@ -136,7 +136,7 @@ def read_hints(p, fn, kind):
 
 
 # helper function to clean up hints
-def clean_hints(p, hints, strict_lvl, warnings):
+def clean_hints(p, hints, warnings):
     #
     # fix some common defects in the hints
     #
@@ -152,7 +152,7 @@ def clean_hints(p, hints, strict_lvl, warnings):
         if colon:
             package_basename = re.sub(r'^lib(.*?)(|-devel|\d*)$', r'\1', p)
             if package_basename.upper().startswith(colon.group(1).upper()):
-                logging.log(strict_lvl, "package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
+                logging.error("package '%s' sdesc starts with '%s'; this is redundant as the UI will show both the package name and sdesc" % (p, ''.join(colon.group(1, 2))))
                 warnings = True
 
     return warnings
@@ -161,8 +161,7 @@ def clean_hints(p, hints, strict_lvl, warnings):
 #
 # read a single package
 #
-def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upload=False):
-    strict_lvl = logging.ERROR if strict else logging.WARNING
+def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
 
@@ -187,7 +186,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
             hints = read_hints(p, os.path.join(dirpath, 'setup.hint'), hint.setup)
             if not hints:
                 return True
-            warnings = clean_hints(p, hints, strict_lvl, warnings)
+            warnings = clean_hints(p, hints, warnings)
             files.remove('setup.hint')
         else:
             hints = {}
@@ -273,14 +272,14 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                 # idea.
                 if '-' in v:
                     if p not in past_mistakes.hyphen_in_version:
-                        lvl = strict_lvl
+                        lvl = logging.ERROR
                         warnings = True
                     else:
                         lvl = logging.INFO
                     logging.log(lvl, "file '%s' in package '%s' contains '-' in version" % (f, p))
 
                 if not v[0].isdigit():
-                    logging.log(strict_lvl, "file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
+                    logging.error("file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
                     warnings = True
 
                 # if not there already, add to version-release list
@@ -313,7 +312,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                 pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
                 if not pvr_hint:
                     return True
-                warnings = clean_hints(p, pvr_hint, strict_lvl, warnings)
+                warnings = clean_hints(p, pvr_hint, warnings)
                 files.remove(hint_fn)
             elif legacy:
                 # otherwise, use setup.hint
@@ -344,7 +343,7 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
         # warn about unexpected files, including tarfiles which don't match the
         # package name
         if files:
-            logging.log(strict_lvl, "unexpected files in %s: %s" % (p, ', '.join(files)))
+            logging.error("unexpected files in %s: %s" % (p, ', '.join(files)))
             warnings = True
 
         if not upload and legacy and not legacy_used:
@@ -365,13 +364,10 @@ def read_package(packages, basedir, dirpath, files, strict=False, remove=[], upl
                 files.remove(s)
 
         if len(files) > 0:
-            logging.log(strict_lvl, "no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
+            logging.error("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
             warnings = True
 
-    if strict:
-        return warnings
-
-    return False
+    return warnings
 
 
 #
