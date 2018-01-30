@@ -862,7 +862,7 @@ def write_setup_ini(args, packages, arch):
             for hints in packages[p].version_hints.values():
                 if 'requires' in hints:
                     requires = set.union(requires, hints['requires'].split())
-            # for historical reasons, empty requires are suppressed
+            # empty requires are suppressed as setup's parser can't handle that
             if requires:
                 print("requires: %s" % ' '.join(sorted(requires)), file=f)
 
@@ -952,7 +952,7 @@ def write_setup_ini(args, packages, arch):
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
-                if packages[p].version_hints[version].get('depends', ''):
+                if packages[p].version_hints[version].get('depends', '') or requires:
                     print("depends2: %s" % packages[p].version_hints[version]['depends'], file=f)
 
                 if packages[p].version_hints[version].get('obsoletes', ''):
