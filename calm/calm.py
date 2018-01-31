@@ -114,7 +114,7 @@ def process_relarea(args):
             stale_to_vault = remove_stale_packages(args, packages)
             if stale_to_vault:
                 for arch in common_constants.ARCHES + ['noarch', 'src']:
-                    logging.info("vaulting %d old package(s) for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
+                    logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
                     uploads.move_to_vault(args, stale_to_vault[arch])
             else:
                 logging.error("error while evaluating stale packages")
@@ -240,7 +240,7 @@ def process_uploads(args, state):
                 if args.stale:
                     for arch in common_constants.ARCHES + ['noarch', 'src']:
                         if stale_to_vault[arch]:
-                            logging.info("vaulting %d old package(s) for arch %s, which are no longer accessible by installer" % (len(stale_to_vault[arch]), arch))
+                            logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
                             uploads.move_to_vault(args, stale_to_vault[arch])
 
                 # for each arch
