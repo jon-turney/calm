@@ -826,7 +826,10 @@ def write_setup_ini(args, packages, arch):
         # This file was automatically generated at %s.
         #
         # If you edit it, your edits will be discarded next time the file is
-        # generated.  See http://cygwin.com/setup.html for details.''')
+        # generated.
+        #
+        # See https://sourceware.org/cygwin-apps/setup.ini.html for a description
+        # of the format.''')
               % (time.strftime("%F %T %Z", time.localtime(tz))),
               file=f)
 
