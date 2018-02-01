@@ -157,6 +157,16 @@ def main():
     if args.okmissing:
         args.disable_check.extend(['missing-' + m for m in args.okmissing])
 
+    # disabling either of these checks, implies both of these are disabled
+    # (since depends: is generated from requires:, and vice versa, if not
+    # present)
+    implied = ['missing-depended-package', 'missing-required-package']
+    for p in implied:
+        if p in args.disable_check:
+            for c in implied:
+                if c not in args.disable_check:
+                    args.disable_check.append(c)
+
     return do_main(args)
 
 
