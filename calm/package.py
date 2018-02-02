@@ -653,8 +653,8 @@ def validate_packages(args, packages):
         if 'replace-versions' in packages[p].override_hints:
             if packages[p].best_version:
                 for rv in packages[p].override_hints['replace-versions'].split():
-                    if SetupVersion(rv) < SetupVersion(packages[p].best_version):
-                        logging.warning("package '%s' replace-versions: lists version '%s' which is less than current version" % (p, rv))
+                    if SetupVersion(rv) <= SetupVersion(packages[p].best_version):
+                        logging.warning("package '%s' replace-versions: uselessly lists version '%s', which is <= current version" % (p, rv))
 
         # If the install tarball is empty and there is no source tarball, we
         # should probably be marked obsolete

@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 #
 
+import functools
 import itertools
 import re
 
@@ -37,6 +38,7 @@ def cmp(a, b):
 # a helper class which implements the same version ordering as setup
 #
 
+@functools.total_ordering
 class SetupVersion:
     def __init__(self, version_string):
         self._version_string = version_string
@@ -56,17 +58,13 @@ class SetupVersion:
     def __str__(self):
         return '%s (V=%s R=%s)' % (self._version_string, str(self._V), str(self._R))
 
-    # XXX: Implementing the __lt__ comparison operator in terms of the obsolete
-    # __cmp__ operator is rather over-complicated.  If we really only need
-    # __lt__ (which is sufficent to make this class sortable), then we should
-    # just implement it directly.  For the moment, keep __cmp__ around in case
-    # we need to do other comparisons. (in which case, see also functools
-    # @total_ordering class decorator)
     def __lt__(self, other):
         return self.__cmp__(other) == -1
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
 
+    def __cmp__(self, other):
         # compare V
         c = SetupVersion._compare(self._V, other._V)
         if c != 0:
