@@ -318,7 +318,11 @@ def hint_file_parse(fn, kind):
                 hints['depends'] = split_trim_sort_join(hints['depends'], ',')
 
             if 'obsoletes' in hints:
-                hints['obsoletes'] = split_trim_sort_join(hints['obsoletes'], ',')
+                # obsoletes is specified as comma separated, but cygport writes it space separated at the moment...
+                if ',' in hints['obsoletes']:
+                    hints['obsoletes'] = split_trim_sort_join(hints['obsoletes'], ',')
+                else:
+                    hints['obsoletes'] = split_trim_sort_join(hints['obsoletes'], None, ', ')
 
             if 'replace-versions' in hints:
                 hints['replace-versions'] = split_trim_sort_join(hints['replace-versions'], None, ' ')
