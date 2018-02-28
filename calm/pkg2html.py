@@ -213,11 +213,7 @@ def update_package_listings(args, packages, arch):
             os.fchmod(index.fileno(), 0o755)
             print(textwrap.dedent('''\
                                      <div id="%s">
-                                     <div class="background">
-                                     <b class="rtop"><b class="r1"></b><b class="r2"></b><b class="r3"></b><b class="r4"></b></b>
-                                     <h2>Available Packages for %s</h2>
-                                     <b class="rbottom"><b class="r4"></b><b class="r3"></b><b class="r2"></b><b class="r1"></b></b>
-                                     </div>
+                                     <h2 class="cartouche">Available Packages for %s</h2>
                                      <table class="pkglist">''') % (arch, arch), file=index)
 
             for p in sorted(packages.keys(), key=package.sort_key):
