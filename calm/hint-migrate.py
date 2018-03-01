@@ -50,6 +50,7 @@ def hint_migrate(args):
             setup_hint_fn = os.path.join(dirpath, 'setup.hint')
 
             migrate = set()
+            vr = set()
             for f in files:
                 match = re.match(r'^(.*?)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
 
@@ -58,6 +59,7 @@ def hint_migrate(args):
                     continue
 
                 pvr = match.group(1)
+                vr.add(pvr)
 
                 # pvr.hint already exists?
                 if os.path.exists(os.path.join(dirpath, pvr + '.hint')):
@@ -67,13 +69,26 @@ def hint_migrate(args):
 
             # nothing to migrate
             if not migrate:
+                # that's ok if all vr already have a pvr.hint, but if we didn't
+                # find any vr, something is wrong
+                if not vr:
+                    print("can't migrate %s as it has no versions" % (setup_hint_fn))
                 continue
 
-            # does the setup.hint parse as a pvr.hint
-            # (i.e. does it not contain version keys)
+            # does the setup.hint parse as a pvr.hint?
             hints = hint.hint_file_parse(setup_hint_fn, hint.pvr)
             if 'parse-errors' in hints:
-                print("can't migrate %s as it contains version keys" % (setup_hint_fn))
+                reason = "is invalid as a pvr.hint"
+
+                # specifically mention if it doesn't parse as a pvr.hint because
+                # it contains version keys
+                for e in hints['parse-errors']:
+                    if (e.startswith('unknown key prev') or
+                        e.startswith('unknown key curr') or
+                        e.startswith('test has non-empty value')):
+                        reason = "contains version keys"
+
+                print("can't migrate %s as it %s" % (setup_hint_fn, reason))
                 continue
 
             for pvr in migrate:
