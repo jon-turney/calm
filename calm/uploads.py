@@ -197,9 +197,6 @@ def scan(m, all_packages, arch, args):
                 elif os.path.getsize(fn) != 0:
                     logging.error("remove file %s is not empty" % fn)
                     error = True
-                elif f == '-setup.hint':
-                    logging.error("remove file %s is not permitted" % fn)
-                    error = True
                 else:
                     vault[relpath].append(f[1:])
                     remove_success.append(fn)
@@ -260,8 +257,7 @@ def scan(m, all_packages, arch, args):
 
         # read and validate package
         if files:
-            # strict means we consider warnings as fatal for upload
-            if package.read_package(packages, m.homedir(), dirpath, files, remove=removed_files, upload=True):
+            if package.read_package(packages, m.homedir(), dirpath, files, remove=removed_files):
                 error = True
 
     # always consider timestamp as checked during a dry-run, so it is never

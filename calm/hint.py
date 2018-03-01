@@ -29,15 +29,6 @@ from collections import OrderedDict
 import re
 import argparse
 
-
-# helper function to merge dicts
-def merge_dicts(x, *y):
-    z = x.copy()
-    for i in y:
-        z.update(i)
-    return z
-
-
 # types of key:
 # 'multilineval' - always have a value, which may be multiline
 # 'val'          - always have a value
@@ -46,38 +37,17 @@ def merge_dicts(x, *y):
 keytypes = ['multilineval', 'val', 'optval', 'noval']
 
 # kinds of hint file, and their allowed keys
-setup, pvr, override = range(3)
+pvr, override = range(2)
 
-commonkeys = {
+hintkeys = {}
+
+hintkeys[pvr] = {
     'ldesc': 'multilineval',
     'message': 'multilineval',
     'category': 'val',
     'external-source': 'val',
     'sdesc': 'val',
     'skip': 'noval',
-}
-
-versionkeys = {
-    'curr': 'val',
-    'prev': 'val',
-    'test': 'val',
-}
-
-overridekeys = {
-    'keep': 'val',
-    'keep-count': 'val',
-    'keep-days': 'val',
-    'disable-check': 'val',
-    'replace-versions': 'val',
-}
-
-hintkeys = {}
-
-hintkeys[setup] = merge_dicts(commonkeys, versionkeys, {
-    'requires': 'optval',
-})
-
-hintkeys[pvr] = merge_dicts(commonkeys, {
     'requires': 'optval',
     'depends': 'optval',
     'build-depends': 'optval',
@@ -87,9 +57,18 @@ hintkeys[pvr] = merge_dicts(commonkeys, {
     'disable-check': 'val',
     'provides': 'val',
     'conflicts': 'val',
-})
+}
 
-hintkeys[override] = merge_dicts(versionkeys, overridekeys)
+hintkeys[override] = {
+    'curr': 'val',
+    'prev': 'val',
+    'test': 'val',
+    'keep': 'val',
+    'keep-count': 'val',
+    'keep-days': 'val',
+    'disable-check': 'val',
+    'replace-versions': 'val',
+}
 
 # valid categories
 categories = ['accessibility',
@@ -291,10 +270,10 @@ def hint_file_parse(fn, kind):
                 else:
                     errors.append("unknown construct '%s' at line %d" % (item, i))
 
-            # for setup and pvr kinds, if 'skip' isn't present, 'category' and
+            # for the pvr kind, if 'skip' isn't present, 'category' and
             # 'sdesc' must be
             # XXX: genini also requires 'requires' but that seems wrong
-            if 'skip' not in hints and kind != override:
+            if 'skip' not in hints and kind == pvr:
                 mandatory = ['category', 'sdesc']
                 for k in mandatory:
                     if k not in hints:

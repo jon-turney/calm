@@ -162,7 +162,7 @@ def clean_hints(p, hints, warnings):
 #
 # read a single package
 #
-def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
+def read_package(packages, basedir, dirpath, files, remove=[]):
     relpath = os.path.relpath(dirpath, basedir)
     warnings = False
 
@@ -180,21 +180,8 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
                           (dirpath, packages[p].path))
             return True
 
-        # read setup.hint
-        legacy = 'setup.hint' in files
-        legacy_used = False
-        if legacy:
-            hints = read_hints(p, os.path.join(dirpath, 'setup.hint'), hint.setup)
-            if not hints:
-                logging.error("error parsing %s" % (os.path.join(dirpath, 'setup.hint')))
-                return True
-            warnings = clean_hints(p, hints, warnings)
-            files.remove('setup.hint')
-        else:
-            hints = {}
-
         # determine version overrides
-        note_absent = ('override.hint' in remove) or ('override.hint' in files) or legacy
+        note_absent = ('override.hint' in remove) or ('override.hint' in files)
 
         if 'override.hint' in files:
             # read override.hint
@@ -206,24 +193,12 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
         else:
             override_hints = {}
 
-            # if we didn't have a version override hint, extract any version
-            # override from legacy hints
-            for level in ['test', 'curr', 'prev']:
-                if level in hints:
-                    override_hints[level] = hints[level]
-
         # if override.hint exists or is being removed, explicitly note absent
         # stability level hints
         if note_absent:
             for level in ['test', 'curr', 'prev']:
                 if level not in override_hints:
                     override_hints[level] = None
-
-        # after we have migrated them to override hints, remove stability
-        # level hints from legacy hints
-        for level in ['test', 'curr', 'prev']:
-            if level in hints:
-                del hints[level]
 
         # read sha512.sum
         sha512 = {}
@@ -318,14 +293,9 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
                     return True
                 warnings = clean_hints(p, pvr_hint, warnings)
                 files.remove(hint_fn)
-            elif legacy:
-                # otherwise, use setup.hint
-                pvr_hint = hints.copy()
-                legacy_used = True
-                hint_fn = None
             else:
-                # it's an error to not have either a setup.hint or a pvr.hint
-                logging.error("package %s has packages for version %s, but no %s or setup.hint" % (p, vr, hint_fn))
+                # it's an error to not have a pvr.hint
+                logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
                 return True
 
             # apply a version override
@@ -335,8 +305,7 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
                 ovr = vr
 
             version_hints[ovr] = pvr_hint
-            if hint_fn:
-                hint_files[ovr] = hint_fn
+            hint_files[ovr] = hint_fn
             actual_tars[ovr] = tars[vr]
 
         # ignore dotfiles
@@ -350,13 +319,8 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
             logging.error("unexpected files in %s: %s" % (p, ', '.join(files)))
             warnings = True
 
-        if not upload and legacy and not legacy_used:
-            logging.warning("package '%s' has a setup.hint which no version uses, removing it" % (p))
-            os.unlink(os.path.join(dirpath, 'setup.hint'))
-
         packages[p].version_hints = version_hints
         packages[p].override_hints = override_hints
-        packages[p].legacy_hints = hints
         packages[p].tars = actual_tars
         packages[p].hint_files = hint_files
         packages[p].path = relpath
@@ -1128,16 +1092,6 @@ def merge(a, *l):
                                     pprint.pformat(b[p].version_hints[vr]).splitlines()))
 
                                 logging.warning("package '%s' version '%s' hints changed\n%s" % (p, vr, diff))
-
-                    # XXX: we should really do something complex here, like
-                    # assign the legacy hints from b to all vr in a which didn't
-                    # have a pvr.hint.  Instead, just report if it's going to
-                    # change and let things get sorted out later on...
-                    if a[p].legacy_hints and b[p].legacy_hints and a[p].legacy_hints != b[p].legacy_hints:
-                        diff = '\n'.join(difflib.ndiff(
-                            pprint.pformat(a[p].legacy_hints).splitlines(),
-                            pprint.pformat(b[p].legacy_hints).splitlines()))
-                        logging.warning("package '%s' hints changed\n%s" % (p, diff))
 
                     # overrides from b take precedence
                     c[p].override_hints.update(b[p].override_hints)
