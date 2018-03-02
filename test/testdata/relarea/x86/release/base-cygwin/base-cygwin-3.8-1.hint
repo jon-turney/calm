@@ -1,0 +1,4 @@
+sdesc: "Initial base installation helper script."
+ldesc: "Initial base installation helper script."
+category: Base
+requires: 

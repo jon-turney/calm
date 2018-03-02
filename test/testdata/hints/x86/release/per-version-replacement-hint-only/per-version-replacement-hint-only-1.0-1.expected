@@ -1,0 +1,4 @@
+{'sdesc': '"Per-version hint test package"',
+ 'ldesc': '"Per-version hint test package"',
+ 'category': 'Base',
+ 'requires': 'cygwin'}

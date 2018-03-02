@@ -130,17 +130,25 @@ class CalmTest(unittest.TestCase):
         basedir = 'testdata/relarea'
         for (dirpath, subdirs, files) in os.walk(basedir):
             relpath = os.path.relpath(dirpath, basedir)
-            if 'setup.hint' in files:
-                with self.subTest(package=os.path.basename(dirpath)):
-                    logging.info('Reading %s' % os.path.join(dirpath, 'setup.hint'))
-                    results = hint.hint_file_parse(os.path.join(dirpath, 'setup.hint'), hint.setup)
-                    with pprint_patch():
-                        compare_with_expected_file(self, os.path.join('testdata/hints', relpath), results)
+            for f in files:
+                expected = os.path.join('testdata/hints', relpath)
+                if f.endswith('.hint'):
+                    if f == 'override.hint':
+                        kind = hint.override
+                        name = 'override'
+                    else:
+                        kind = hint.pvr
+                        name = f[:-5]
+                    with self.subTest(package=os.path.basename(dirpath)):
+                        logging.info('Reading %s' % os.path.join(dirpath, f))
+                        results = hint.hint_file_parse(os.path.join(dirpath, f), kind)
+                        with pprint_patch():
+                            compare_with_expected_file(self, expected, results, name)
 
 #
 # something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
 # expected' \;" can be used to update the expected output (after you have
-# checking it to make sure it is really correct, of course :) )
+# checked it to make sure it is really correct, of course :) )
 #
 
     def test_html_writer(self):

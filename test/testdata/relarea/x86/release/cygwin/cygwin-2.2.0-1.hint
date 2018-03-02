@@ -2,6 +2,3 @@ sdesc: "The UNIX emulation engine"
 ldesc: "The UNIX emulation engine"
 category: Base
 requires: base-cygwin
-prev: 2.2.0-1
-curr: 2.2.1-1
-test: 2.3.0-0.3
