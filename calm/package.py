@@ -647,14 +647,19 @@ def validate_packages(args, packages):
             packages[p].best_version = None
             error = True
 
-        # warn if replace-versions lists a version which is less than the
-        # current version (which is pointless as the current version will
-        # replace it anyhow)
         if 'replace-versions' in packages[p].override_hints:
-            if packages[p].best_version:
-                for rv in packages[p].override_hints['replace-versions'].split():
+            for rv in packages[p].override_hints['replace-versions'].split():
+                # warn if replace-versions lists a version which is less than
+                # the current version (which is pointless as the current version
+                # will replace it anyhow)
+                if packages[p].best_version:
                     if SetupVersion(rv) <= SetupVersion(packages[p].best_version):
                         logging.warning("package '%s' replace-versions: uselessly lists version '%s', which is <= current version" % (p, rv))
+
+                # warn if replace-versions lists a version which is also
+                # available to install (as this doesn't work as expected)
+                if rv in packages[p].version_hints:
+                    logging.warning("package '%s' replace-versions: lists version '%s', which is also available to install" % (p, rv))
 
         # If the install tarball is empty and there is no source tarball, we
         # should probably be marked obsolete
