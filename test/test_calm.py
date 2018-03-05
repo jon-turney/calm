@@ -290,10 +290,17 @@ class CalmTest(unittest.TestCase):
     def test_scan_uploads(self):
         self.maxDiff = None
 
+        test_root = tempfile.mktemp()
+        logging.info('test_root = %s', test_root)
+
         args = types.SimpleNamespace()
         setattr(args, 'arch', 'x86')
         setattr(args, 'rel_area', 'testdata/relarea')
         setattr(args, 'dryrun', False)
+
+        shutil.copytree('testdata/homes', os.path.join(test_root, 'testdata/homes'))
+        oldcwd = os.getcwd()
+        os.chdir(test_root)
 
         pkglist = ['after-ready', 'not-ready', 'testpackage', 'testpackage2']
 
@@ -310,6 +317,9 @@ class CalmTest(unittest.TestCase):
             os.system('touch %s "%s"' % (t, f))
 
         scan_result = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args.arch, args)
+
+        os.chdir(oldcwd)
+        shutil.rmtree(test_root)
 
         self.assertEqual(scan_result.error, False)
         compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.to_relarea), 'move')
