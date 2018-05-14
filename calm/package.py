@@ -598,12 +598,25 @@ def validate_packages(args, packages):
                     packages[p].version_hints[v][l] = ''
                     break
 
+        # identify a 'best' version to take certain information from: this is
+        # the curr version, if we have one, otherwise, the highest version.
+        if ('curr' in packages[p].stability) and (packages[p].stability['curr'] in packages[p].vermap):
+            packages[p].best_version = packages[p].stability['curr']
+        elif len(packages[p].vermap):
+            packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
+        else:
+            logging.error("package '%s' doesn't have any versions" % (p))
+            packages[p].best_version = None
+            error = True
+
         # the package must have some versions
         if not packages[p].stability:
             logging.error("no versions at any stability level for package '%s'" % (p))
             error = True
         # it's also probably a really good idea if a curr version exists
-        elif 'curr' not in packages[p].stability and 'missing-curr' not in getattr(args, 'disable_check', []):
+        elif (('curr' not in packages[p].stability) and
+              ('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
+              ('missing-curr' not in getattr(args, 'disable_check', []))):
             logging.warning("package '%s' doesn't have a curr version" % (p))
 
         # error if the curr: version isn't the most recent non-test: version
@@ -632,17 +645,6 @@ def validate_packages(args, packages):
 
             break
 
-        # identify a 'best' version to take certain information from: this is
-        # the curr version, if we have one, otherwise, the highest version.
-        if ('curr' in packages[p].stability) and (packages[p].stability['curr'] in packages[p].vermap):
-            packages[p].best_version = packages[p].stability['curr']
-        elif len(packages[p].vermap):
-            packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
-        else:
-            logging.error("package '%s' doesn't have any versions" % (p))
-            packages[p].best_version = None
-            error = True
-
         if 'replace-versions' in packages[p].override_hints:
             for rv in packages[p].override_hints['replace-versions'].split():
                 # warn if replace-versions lists a version which is less than
@@ -666,7 +668,7 @@ def validate_packages(args, packages):
                         if 'install' in packages[p].vermap[vr]:
                             if packages[p].tar(vr, 'install').is_empty:
                                 if ((p in past_mistakes.empty_but_not_obsolete) or
-                                    ('empty-obsolete' in packages[p].version_hints.get('disable-check', ''))):
+                                    ('empty-obsolete' in packages[p].version_hints[vr].get('disable-check', ''))):
                                     lvl = logging.DEBUG
                                 else:
                                     lvl = logging.ERROR
