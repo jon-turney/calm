@@ -1075,8 +1075,11 @@ def delete(packages, path, fn):
                 for t in packages[p].tars[vr]:
                     if t == fn:
                         del packages[p].tars[vr][t]
-                    # XXX: should also remove from vermap
                         break
+
+                # if no packages remain for this vr, also remove from vermap
+                if not packages[p].tars[vr]:
+                    packages[p].vermap.pop(vr, None)
 
             for h in packages[p].hint_files:
                 if packages[p].hint_files[h] == fn:
