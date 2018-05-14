@@ -1,4 +1,3 @@
 #!/bin/sh
 set -e
-grep -s -l '^#!/usr/bin/env python' * calm/* test/* | xargs python3 -m pycodestyle --count --show-source --max-line-length=240 --ignore=E129,E741
-flake8 --ignore E129,E501,E741,F841
+grep -s -l '^#!/usr/bin/env python' * calm/* test/* | xargs python3 -m pycodestyle --count --show-source --max-line-length=240 --ignore=E129,E741,W504

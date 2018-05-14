@@ -259,7 +259,7 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
             #
             # P must match the package name, V can contain anything, R must
             # start with a number
-            match = re.match(r'^' + re.escape(p) + '-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.' + match.group(1) + '$', f)
+            match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.' + match.group(1) + '$', f)
             if not match:
                 logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 return True
