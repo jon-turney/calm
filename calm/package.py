@@ -756,6 +756,11 @@ def validate_packages(args, packages):
             if re.match(r'^lib.*\d', install_p):
                 continue
 
+            # ignore packages which don't have a current version (i.e. are test
+            # only)
+            if 'curr' not in packages[install_p].stability:
+                continue
+
             # ignore specific packages we disable this check for
             if ((install_p in past_mistakes.nonunique_versions) or
                 ('unique-version' in packages[install_p].version_hints[packages[install_p].best_version].get('disable-check', ''))):
