@@ -1,0 +1,5 @@
+sdesc: "The UNIX emulation engine"
+ldesc: "The UNIX emulation engine"
+category: Base
+requires: base-cygwin
+provides: cygwin-api0_291

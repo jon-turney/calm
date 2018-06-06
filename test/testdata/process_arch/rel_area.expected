@@ -24,6 +24,7 @@
                         'cygwin-2.2.1-1-src.tar.xz',
                         'cygwin-2.2.1-1.tar.xz',
                         'cygwin-2.3.0-0.3-src.tar.xz',
+                        'cygwin-2.3.0-0.3.hint',
                         'cygwin-2.3.0-0.3.tar.xz',
                         'setup.hint',
                         'sha512.sum'],
