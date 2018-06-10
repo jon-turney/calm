@@ -845,7 +845,16 @@ def write_setup_ini(args, packages, arch):
             print("release: %s" % args.release, file=f)
         print("arch: %s" % arch, file=f)
         print("setup-timestamp: %d" % tz, file=f)
+
         if args.setup_version:
+            # not implemented until 2.890, ignored by earlier versions
+            #
+            # (versions prior to 2.844 only supported x86 installs, since x86_64
+            # wasn't available yet, and setup.ini was located at a different URL
+            # path)
+            print("setup-minimum-version: 2.844", file=f)
+
+            # for setup to check if a setup upgrade is possible
             print("setup-version: %s" % args.setup_version, file=f)
 
         # for each package

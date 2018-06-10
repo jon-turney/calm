@@ -8,6 +8,7 @@
  'release: trial\n'
  'arch: x86\n'
  'setup-timestamp: 1473797080\n'
+ 'setup-minimum-version: 2.844\n'
  'setup-version: 3.1415\n'
  '\n'
  '@ arc\n'

@@ -8,6 +8,7 @@
  'release: testing\n'
  'arch: x86\n'
  'setup-timestamp: 1458221800\n'
+ 'setup-minimum-version: 2.844\n'
  'setup-version: 4.321\n'
  '\n'
  '@ arc\n'
