@@ -73,6 +73,7 @@
  'e675b0ac4bc2c3e1c4971bc56d77b0cd53a9bdf5632873a235d7582e29dfd3e8a7bb04b28f6cdee3e6b3d14c25ed39392538e3f628a9bfda6c905646ebc3c225\n'
  'depends2: base-cygwin\n'
  'provides: cygwin-api0_291\n'
+ 'conflicts: fruit-juice\n'
  '\n'
  '@ cygwin-debuginfo\n'
  'sdesc: "Debug info for cygwin"\n'

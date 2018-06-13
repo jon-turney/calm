@@ -86,6 +86,7 @@ hintkeys[pvr] = merge_dicts(commonkeys, {
     'version': 'val',  # version override
     'disable-check': 'val',
     'provides': 'val',
+    'conflicts': 'val',
 })
 
 hintkeys[override] = merge_dicts(versionkeys, overridekeys)

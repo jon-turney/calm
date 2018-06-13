@@ -984,6 +984,9 @@ def write_setup_ini(args, packages, arch):
                 if packages[p].version_hints[version].get('provides', ''):
                     print("provides: %s" % packages[p].version_hints[version]['provides'], file=f)
 
+                if packages[p].version_hints[version].get('conflicts', ''):
+                    print("conflicts: %s" % packages[p].version_hints[version]['conflicts'], file=f)
+
 
 # helper function to output details for a particular tar file
 def tar_line(p, category, v, f):
