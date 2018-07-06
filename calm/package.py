@@ -967,12 +967,13 @@ def write_setup_ini(args, packages, arch):
         print("setup-timestamp: %d" % tz, file=f)
 
         if args.setup_version:
+            # this token exists in the lexer, but not in the grammar up until
+            # 2.878 (when it was removed), so will cause a parse error with
+            # versions prior to that.
+            print("include-setup: setup <2.878 not supported", file=f)
+
             # not implemented until 2.890, ignored by earlier versions
-            #
-            # (versions prior to 2.844 only supported x86 installs, since x86_64
-            # wasn't available yet, and setup.ini was located at a different URL
-            # path)
-            print("setup-minimum-version: 2.844", file=f)
+            print("setup-minimum-version: 2.878", file=f)
 
             # for setup to check if a setup upgrade is possible
             print("setup-version: %s" % args.setup_version, file=f)
