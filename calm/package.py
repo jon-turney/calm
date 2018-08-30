@@ -185,6 +185,7 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
         if legacy:
             hints = read_hints(p, os.path.join(dirpath, 'setup.hint'), hint.setup)
             if not hints:
+                logging.error("error parsing %s" % (os.path.join(dirpath, 'setup.hint')))
                 return True
             warnings = clean_hints(p, hints, warnings)
             files.remove('setup.hint')
@@ -198,6 +199,7 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
             # read override.hint
             override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
             if not override_hints:
+                logging.error("error parsing %s" % (os.path.join(dirpath, 'override.hint')))
                 return True
             files.remove('override.hint')
         else:
@@ -311,6 +313,7 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
                 # is there a PVR.hint file?
                 pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
                 if not pvr_hint:
+                    logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
                     return True
                 warnings = clean_hints(p, pvr_hint, warnings)
                 files.remove(hint_fn)
