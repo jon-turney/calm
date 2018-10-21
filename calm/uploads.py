@@ -34,6 +34,7 @@ import shutil
 import tarfile
 import time
 
+from . import common_constants
 from . import package
 
 # reminders will be issued daily
@@ -202,12 +203,13 @@ def scan(m, all_packages, arch, args):
                 continue
 
             # verify compressed archive files are valid
-            if re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f):
+            match = re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f)
+            if match:
                 valid = True
 
-                # accept a compressed empty file, even though it isn't a valid
-                # compressed archive
-                if os.path.getsize(fn) > 32:
+                size = os.path.getsize(fn)
+                minsize = common_constants.COMPRESSION_MINSIZE[match.group(1)]
+                if size > minsize:
                     try:
                         # we need to extract all of an archive contents to validate
                         # it
@@ -217,6 +219,13 @@ def scan(m, all_packages, arch, args):
                         valid = False
                         logging.error("exception %s while reading %s" % (type(e).__name__, fn))
                         logging.debug('', exc_info=True)
+                elif size == minsize:
+                    # accept a compressed empty file, even though it isn't a
+                    # valid compressed archive
+                    logging.warning("%s is a compressed empty file, not a compressed archive, please update to cygport >= 0.23.1" % f)
+                else:
+                    logging.error("compressed archive %s is too small to be valid (%d bytes)" % (f, size))
+                    valid = False
 
                 if not valid:
                     files.remove(f)

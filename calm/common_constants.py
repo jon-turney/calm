@@ -70,3 +70,11 @@ if os.uname()[1] == 'tambora':
     EMAILS = 'jon.turney@dronecode.org.uk'
     ALWAYS_BCC = ''
     MAILHOST = 'allegra'
+
+# size of a 0-byte file compressed
+COMPRESSION_MINSIZE = {
+    'bz2': 14,
+    'gz': 24,
+    'lzma': 23,
+    'xz': 32,
+}
