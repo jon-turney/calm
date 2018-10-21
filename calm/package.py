@@ -377,15 +377,23 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
 # utility to determine if a tar file is empty
 #
 def tarfile_is_empty(tf):
+    size = os.path.getsize(tf)
+
+    # report invalid files (smaller than the smallest possible compressed file
+    # for any of the compressions we support)
+    if size < 14:
+        logging.error("tar archive %s is too small (%d bytes)" % (tf, size))
+        return True
+
     # sometimes compressed empty files are used rather than a compressed empty
     # tar archive
-    if os.path.getsize(tf) <= 32:
+    if size <= 32:
         return True
 
     # parsing the tar archive just to determine if it contains at least one
     # archive member is relatively expensive, so we just assume it contains
     # something if it's over a certain size threshold
-    if os.path.getsize(tf) > 1024:
+    if size > 1024:
         return False
 
     # if it's really a tar file, does it contain zero files?
