@@ -107,6 +107,29 @@ def scan(m, all_packages, arch, args):
                 else:
                     mtimes.pop()
 
+        # only process files newer than !ready
+        for f in sorted(files):
+            fn = os.path.join(dirpath, f)
+            file_mtime = os.path.getmtime(fn)
+            if file_mtime > mtime:
+                if mtime == 0:
+                    m.reminders_timestamp_checked = True
+
+                    logging.debug("ignoring %s as there is no !ready" % fn)
+                    ignored += 1
+
+                    # don't warn until file is at least REMINDER_GRACE old
+                    if (file_mtime < (time.time() - REMINDER_GRACE)):
+                        if not args.dryrun:
+                            m.reminders_issued = True
+                else:
+                    logging.warning("ignoring %s as it is newer than !ready" % fn)
+                files.remove(f)
+
+        # any file remaining?
+        if not files:
+            continue
+
         # package doesn't appear in package list at all
         if not package.is_in_package_list(relpath, all_packages):
             logging.error("package '%s' is not in the package list" % dirpath)
@@ -163,24 +186,6 @@ def scan(m, all_packages, arch, args):
             # temporary upload filenames ending with '.SftpXFR.<pid>'
             if re.search(r'\.SftpXFR\.\d*$', f):
                 logging.debug("ignoring temporary upload file %s" % fn)
-                files.remove(f)
-                continue
-
-            # only process files newer than !ready
-            file_mtime = os.path.getmtime(fn)
-            if file_mtime > mtime:
-                if mtime == 0:
-                    m.reminders_timestamp_checked = True
-
-                    logging.debug("ignoring %s as there is no !ready" % fn)
-                    ignored += 1
-
-                    # don't warn until file is at least REMINDER_GRACE old
-                    if (file_mtime < (time.time() - REMINDER_GRACE)):
-                        if not args.dryrun:
-                            m.reminders_issued = True
-                else:
-                    logging.warning("ignoring %s as it is newer than !ready" % fn)
                 files.remove(f)
                 continue
 
