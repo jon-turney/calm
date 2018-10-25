@@ -54,7 +54,7 @@ def do_main(args):
     mlist = maintainers.Maintainer.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
 
     # make the list of all packages
-    all_packages = maintainers.Maintainer.all_packages(mlist)
+    maintainers.Maintainer.all_packages(mlist)
 
     # invert to a per-package list of maintainers
     pkgs = defaultdict(list)
@@ -94,6 +94,8 @@ def main():
     (args) = parser.parse_args()
 
     do_main(args)
+
+    return 0
 
 
 #

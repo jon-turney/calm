@@ -105,10 +105,10 @@ def spellcheck_hints(args, packages):
             for w1 in [w, re.sub(r'^lib', '', w)]:
                 # add the package name unless it exists in the list above, which
                 # will give a canonical capitalization
-                if w.lower() not in wordlist:
-                    spelldict.add(w.lower())
-                    spelldict.add(w)
-                    spelldict.add(w.capitalize())
+                if wl.lower() not in wordlist:
+                    spelldict.add(wl.lower())
+                    spelldict.add(wl)
+                    spelldict.add(wl.capitalize())
 
     # for each package
     for p in sorted(packages.keys()):
