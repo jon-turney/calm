@@ -254,7 +254,7 @@ def process_uploads(args, state):
                     added.append('%d (%s)' % (len(scan_result[arch].packages), arch))
                 msg = "added %s packages from maintainer %s" % (' + '.join(added), name)
                 logging.debug(msg)
-                irk.irk(msg)
+                irk.irk("calm %s" % msg)
 
         # record updated reminder times for maintainers
         maintainers.Maintainer.update_reminder_times(mlist)
@@ -428,6 +428,7 @@ def do_output(args, state):
                     # replace setup.ini
                     logging.info("moving %s to %s" % (tmpfile.name, inifile))
                     shutil.move(tmpfile.name, inifile)
+                    irk.irk("calm updated setup.ini for arch '%s'" % (arch))
 
                     # compress and re-sign
                     for ext in ['.ini', '.bz2', '.xz']:
@@ -470,20 +471,27 @@ def do_daemon(args, state):
     running = True
     read_relarea = True
     read_uploads = True
+    last_signal = None
 
     # signals! the first, and best, interprocess communications mechanism! :)
     def sigusr1(signum, frame):
         logging.debug("SIGUSR1")
+        nonlocal last_signal
+        last_signal = signum
         nonlocal read_uploads
         read_uploads = True
 
     def sigusr2(signum, frame):
         logging.debug("SIGUSR2")
+        nonlocal last_signal
+        last_signal = signum
         nonlocal read_relarea
         read_relarea = True
 
     def sigalrm(signum, frame):
         logging.debug("SIGALRM")
+        nonlocal last_signal
+        last_signal = signum
         nonlocal read_relarea
         read_relarea = True
         nonlocal read_uploads
@@ -513,6 +521,8 @@ def do_daemon(args, state):
                 with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
                     # re-read relarea on SIGALRM or SIGUSR2
                     if read_relarea:
+                        if last_signal != signal.SIGALRM:
+                            irk.irk("calm processing release area")
                         read_relarea = False
                         state.packages = process_relarea(args)
 
@@ -520,6 +530,7 @@ def do_daemon(args, state):
                         logging.error("not processing uploads or writing setup.ini")
                     else:
                         if read_uploads:
+                            irk.irk("calm processing uploads")
                             # read uploads on SIGUSR1
                             read_uploads = False
                             state.packages = process_uploads(args, state)
@@ -544,6 +555,8 @@ def do_daemon(args, state):
                 signal.alarm(int(delay))
 
                 # wait until interrupted by a signal
+                if last_signal != signal.SIGALRM:
+                    irk.irk("calm processing done")
                 logging.info("sleeping for %d seconds" % (delay))
                 signal.pause()
                 logging.info("woken")
