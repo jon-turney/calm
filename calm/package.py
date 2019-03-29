@@ -198,7 +198,7 @@ def read_package(packages, basedir, dirpath, files, remove=[], upload=False):
         if 'override.hint' in files:
             # read override.hint
             override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
-            if not override_hints:
+            if override_hints is None:
                 logging.error("error parsing %s" % (os.path.join(dirpath, 'override.hint')))
                 return True
             files.remove('override.hint')
