@@ -530,7 +530,8 @@ def do_daemon(args, state):
                         logging.error("not processing uploads or writing setup.ini")
                     else:
                         if read_uploads:
-                            irk.irk("calm processing uploads")
+                            if last_signal != signal.SIGALRM:
+                                irk.irk("calm processing uploads")
                             # read uploads on SIGUSR1
                             read_uploads = False
                             state.packages = process_uploads(args, state)
