@@ -464,6 +464,27 @@ def validate_packages(args, packages):
                     logging.error("package '%s' version '%s' refers to nonexistent or errored external-source '%s'" % (p, v, e))
                     error = True
 
+        # If package A is obsoleted by package B, B should appear in the
+        # requires: for A (so the upgrade occurs with pre-depends: aware
+        # versions of setup), but not in the depends: for A (as that creates an
+        # unsatisfiable dependency when explicitly installing A with lisolv
+        # versions of setup, which should just install B).  This condition can
+        # occur since we might have synthesized the depends: from the requires:
+        # in read_hints(), so fix that up here.
+        for (v, hints) in packages[p].version_hints.items():
+            obsoletes = hints.get('obsoletes', '')
+            if obsoletes:
+                for o in obsoletes.split(','):
+                    o = o.strip()
+                    o = re.sub(r'(.*) +\(.*\)', r'\1', o)
+
+                    for (ov, ohints) in packages[o].version_hints.items():
+                        if 'depends' in ohints:
+                            depends = ohints['depends'].split(',')
+                            depends = [d for d in depends if d != p]
+                            packages[o].version_hints[ov]['depends'] = ','.join(depends)
+                            logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
+
         packages[p].vermap = defaultdict(defaultdict)
         is_empty = {}
         has_install = False
