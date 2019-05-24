@@ -193,10 +193,10 @@ class Maintainer(object):
 
     # create maintainer list
     @staticmethod
-    def read(args):
+    def read(args, orphanmaint=None):
         mlist = {}
         mlist = Maintainer.add_directories(mlist, args.homedir)
-        mlist = Maintainer.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
+        mlist = Maintainer.add_packages(mlist, args.pkglist, orphanmaint)
 
         return mlist
 

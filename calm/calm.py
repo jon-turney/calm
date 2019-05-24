@@ -129,7 +129,7 @@ def process_relarea(args):
 
 def process_uploads(args, state):
     # read maintainer list
-    mlist = maintainers.Maintainer.read(args)
+    mlist = maintainers.Maintainer.read(args, getattr(args, 'orphanmaint', None))
 
     # make the list of all packages
     all_packages = maintainers.Maintainer.all_packages(mlist)

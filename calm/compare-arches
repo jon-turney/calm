@@ -91,7 +91,7 @@ def main(args):
         print("%s is only in arch %s" % (p, [a for a in exists if exists[a]]))
 
     # are there any packages which have a maintainer, but don't exist?
-    mlist = maintainers.Maintainer.read(args)
+    mlist = maintainers.Maintainer.read(args, getattr(args, 'orphanmaint', None))
     all_packages = maintainers.Maintainer.all_packages(mlist)
 
     for p in sorted(all_packages):
