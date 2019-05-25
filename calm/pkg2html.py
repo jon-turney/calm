@@ -187,7 +187,11 @@ def update_package_listings(args, packages):
                         print('<span class="detail">binaries</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(arch_packages[p].is_used_by)]), file=f)
                         es = p
 
-                    print('<span class="detail">maintainer(s)</span>: %s ' % ', '.join(sorted(pkg_maintainers[es])), file=f)
+                    if 'ORPHANED' in pkg_maintainers[es]:
+                        m = 'ORPHANED'
+                    else:
+                        m = ', '.join(sorted(pkg_maintainers[es]))
+                    print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)
                     print(textwrap.dedent('''\
                     <span class="smaller">(Use <a href="https://cygwin.com/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
                     <a href="https://cygwin.com/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
