@@ -1,3 +1,2 @@
-Options Indexes
-IndexOptions -FancyIndexing
-AddType text/html 1 2 3 4 5 6 7 8 9
+RedirectMatch temp /packages/x86/testpackage/$ /packages/summary/testpackage.html
+ForceType text/html

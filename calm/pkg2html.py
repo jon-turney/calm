@@ -306,15 +306,16 @@ def write_arch_listing(args, packages, arch):
             logging.debug('writing %s' % htaccess)
             if not args.dryrun or args.force:
                 with open(htaccess, 'w') as f:
-
-                    print(textwrap.dedent('''\
-                                             Options Indexes
-                                             IndexOptions -FancyIndexing
-                                             AddType text/html 1 2 3 4 5 6 7 8 9'''),
+                    # We used to allow access to the directory listing as a
+                    # crude way of listing the versions of the package available
+                    # for which file lists were available. Redirect that index
+                    # page to the summary page, which now has that information
+                    # (and more).
+                    print('RedirectMatch temp /packages/%s/%s/$ /packages/summary/%s.html' % (arch, p, p),
                           file=f)
-                    # XXX: omitting 0 here doesn't make much sense.  and this
-                    # doesn't help for src packages, so is it actually having
-                    # any effect?
+
+                    # listing files don't have the extension, but are html
+                    print('ForceType text/html', file=f)
 
         # this file should exist, so remove from the toremove list
         if htaccess in toremove:
