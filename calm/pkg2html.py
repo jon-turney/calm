@@ -242,10 +242,11 @@ def update_package_listings(args, packages):
         with open(packages_inc, 'w') as index:
             os.fchmod(index.fileno(), 0o755)
             print(textwrap.dedent('''\
-                                     <h2 class="cartouche">Available Packages</h2>
                                      <table class="pkglist">'''), file=index)
 
             for p in sorted(package_list, key=package.sort_key):
+                if p.endswith('-debuginfo'):
+                    continue
 
                 arch_packages = None
                 for arch in common_constants.ARCHES:

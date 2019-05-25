@@ -1,10 +1,8 @@
-<h2 class="cartouche">Available Packages</h2>
 <table class="pkglist">
 <tr><td><a href="summary/arc.html">arc</a></td><td>The ARC archive utility</td></tr>
 <tr><td><a href="summary/base-cygwin.html">base-cygwin</a></td><td>Initial base installation helper script</td></tr>
 <tr><td><a href="summary/corrupt.html">corrupt</a></td><td>A corrupt package</td></tr>
 <tr><td><a href="summary/cygwin.html">cygwin</a></td><td>The UNIX emulation engine</td></tr>
-<tr><td><a href="summary/cygwin-debuginfo.html">cygwin-debuginfo</a></td><td>Debug info for cygwin</td></tr>
 <tr><td><a href="summary/cygwin-devel.html">cygwin-devel</a></td><td>Core development files</td></tr>
 <tr><td><a href="summary/keychain.html">keychain</a></td><td>Key manager for OpenSSH</td></tr>
 <tr><td><a href="summary/libdns_sd-devel.html">libdns_sd-devel</a></td><td>Bonjour Zeroconf implementation</td></tr>
