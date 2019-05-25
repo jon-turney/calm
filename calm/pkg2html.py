@@ -143,6 +143,7 @@ def update_package_listings(args, packages):
             logging.debug('writing %s' % summary)
             if not args.dryrun:
                 with open(summary, 'w') as f:
+                    os.fchmod(f.fileno(), 0o755)
 
                     arch_packages = None
                     for arch in common_constants.ARCHES:
@@ -165,7 +166,9 @@ def update_package_listings(args, packages):
                     <title>%s</title>
                     </head>
                     <body>
+                    <!--#include virtual="/navbar.html" -->
                     <div id="main">
+                    <!--#include virtual="/top.html" -->
                     <h1>Package: %s</h1>''' % (title, p)), file=f)
 
                     print('<span class="detail">sdesc</span>: %s<br><br>' % sdesc(arch_packages, p, bv), file=f)
