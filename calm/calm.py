@@ -56,6 +56,7 @@ from collections import defaultdict
 from contextlib import ExitStack
 import argparse
 import logging
+import lzma
 import os
 import shutil
 import signal
@@ -451,6 +452,21 @@ def do_output(args, state):
             else:
                 logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
                 os.remove(tmpfile.name)
+
+    # write packages.json
+    jsonfile = os.path.join(args.htdocs, 'packages.json.xz')
+    with tempfile.NamedTemporaryFile(mode='wb', delete=False) as tmpfile:
+        logging.debug('writing %s' % (tmpfile.name))
+        with lzma.open(tmpfile, 'wt') as lzf:
+            package.write_repo_json(args, state.packages, lzf)
+    logging.info("moving %s to %s" % (tmpfile.name, jsonfile))
+    shutil.move(tmpfile.name, jsonfile)
+
+    # make it world-readable, if we can
+    try:
+        os.chmod(jsonfile, 0o644)
+    except (OSError):
+        pass
 
 
 #

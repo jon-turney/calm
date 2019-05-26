@@ -29,6 +29,7 @@ from collections import defaultdict
 import copy
 import difflib
 import hashlib
+import json
 import logging
 import os
 import pprint
@@ -1021,6 +1022,59 @@ def tar_line(p, category, v, f):
 # without altering the rest
 def upper_first_character(s):
     return s[:1].upper() + s[1:]
+
+
+#
+# write a json summary of packages
+#
+def write_repo_json(args, packages, f):
+    package_list = set()
+    for arch in packages:
+        package_list.update(packages[arch])
+
+    mlist = maintainers.Maintainer.read(args, None)
+    pkg_maintainers = maintainers.Maintainer.invert(mlist)
+
+    pl = []
+    for pn in sorted(package_list):
+        po = None
+        arches = []
+        for arch in common_constants.ARCHES:
+            if pn in packages[arch]:
+                po = packages[arch][pn]
+                arches.append(arch)
+
+        bv = po.best_version
+
+        if po.version_hints[bv].get('external-source', None):
+            continue
+
+        versions = {}
+        for vr in sorted(po.version_hints.keys(), key=lambda v: SetupVersion(v)):
+            key = 'test' if 'test' in po.version_hints[vr] else 'stable'
+            versions[key] = versions.get(key, []) + [vr]
+
+        d = {
+            'name': pn,
+            'versions': versions,
+            'summary': po.version_hints[bv].get('sdesc', '').strip('"'),
+            'categories': po.version_hints[bv].get('category', '').split(),
+            'subpackages': [{'name': sp} for sp in po.is_used_by],
+            'arches': arches,
+        }
+
+        if pkg_maintainers[pn] and ('ORPHANED' not in pkg_maintainers[pn]):
+            d['maintainers'] = pkg_maintainers[pn]
+
+        pl.append(d)
+
+    j = {
+        'repository_name': args.release,
+        'timestamp': int(time.time()),
+        'num_packages': len(pl),
+        'packages': pl,
+    }
+    json.dump(j, f)
 
 
 #
