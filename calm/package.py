@@ -49,7 +49,7 @@ from . import past_mistakes
 # information we keep about a package
 class Package(object):
     def __init__(self):
-        self.path = ''  # path to package, relative to release area
+        self.pkgpath = ''  # path to package, relative to arch
         self.tars = {}
         self.hints = {}
         self.is_used_by = set()
@@ -60,7 +60,7 @@ class Package(object):
 
     def __repr__(self):
         return "Package('%s', %s, %s, %s, %s)" % (
-            self.path,
+            self.pkgpath,
             pprint.pformat(self.tars),
             pprint.pformat(self.version_hints),
             pprint.pformat(self.override_hints),
@@ -186,9 +186,10 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
             return True
 
         # check for duplicate package names at different paths
+        (_, _, pkgpath) = relpath.split(os.sep, 2)
         if p in packages:
             logging.error("duplicate package name at paths %s and %s" %
-                          (dirpath, packages[p].path))
+                          (relpath, packages[p].pkgpath))
             return True
 
         # determine version overrides
@@ -341,7 +342,7 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
         packages[p].override_hints = override_hints
         packages[p].tars = actual_tars
         packages[p].hints = hints
-        packages[p].path = relpath
+        packages[p].pkgpath = pkgpath
         packages[p].skip = any(['skip' in version_hints[vr] for vr in version_hints])
 
     elif (relpath.count(os.path.sep) > 1):
@@ -807,7 +808,7 @@ def validate_package_maintainers(args, packages):
         # ignore obsolete packages
         if any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints]):
             continue
-        if not is_in_package_list(packages[p].path, all_packages):
+        if not is_in_package_list(packages[p].pkgpath, all_packages):
             logging.error("package '%s' is not in the package list" % (p))
             error = True
 
@@ -1088,7 +1089,7 @@ def merge(a, *l):
             # else, if the package is both in a and b, we have to do a merge
             else:
                 # package must exist at same relative path
-                if a[p].path != b[p].path:
+                if a[p].pkgpath != b[p].pkgpath:
                     logging.error("package '%s' is at paths %s and %s" % (p, a[p].path, b[p].path))
                     return None
                 else:
@@ -1133,8 +1134,9 @@ def merge(a, *l):
 #
 
 def delete(packages, path, fn):
+    (_, _, pkgpath) = path.split(os.sep, 2)
     for p in packages:
-        if packages[p].path == path:
+        if packages[p].pkgpath == pkgpath:
             for vr in packages[p].tars:
                 for t in packages[p].tars[vr]:
                     if t == fn:
@@ -1152,7 +1154,7 @@ def delete(packages, path, fn):
 
 
 #
-# verify that the package ppath is in the list of packages plist
+# verify that the package path starts with a package in the list of packages
 #
 # (This means that a maintainer can upload a package with any name, provided the
 # path contains one allowed for that maintainer)
@@ -1165,20 +1167,10 @@ def delete(packages, path, fn):
 # arbitrary package upload.
 #
 
-def package_list_re(plist):
-    if getattr(package_list_re, "_plist", []) != plist:
-        pattern = '|'.join(map(lambda p: r'/' + re.escape(p) + r'(?:/|$)', plist))
-        package_list_re._regex = re.compile(pattern, re.IGNORECASE)
-        package_list_re._plist = plist
-
-    return package_list_re._regex
-
 
 def is_in_package_list(ppath, plist):
-    if package_list_re(plist).search(ppath):
-        return True
-
-    return False
+    superpackage = ppath.split(os.sep, 1)[0]
+    return superpackage in plist
 
 
 #

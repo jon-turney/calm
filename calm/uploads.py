@@ -130,12 +130,13 @@ def scan(m, all_packages, arch, args):
             continue
 
         # package doesn't appear in package list at all
-        if not package.is_in_package_list(relpath, all_packages):
+        (_, _, pkgpath) = relpath.split(os.sep, 2)
+        if not package.is_in_package_list(pkgpath, all_packages):
             logging.error("package '%s' is not in the package list" % dirpath)
             continue
 
         # only process packages for which we are listed as a maintainer
-        if not package.is_in_package_list(relpath, m.pkgs):
+        if not package.is_in_package_list(pkgpath, m.pkgs):
             logging.warning("package '%s' is not in the package list for maintainer %s" % (dirpath, m.name))
             continue
 
