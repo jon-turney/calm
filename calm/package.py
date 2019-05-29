@@ -39,6 +39,7 @@ import textwrap
 import time
 
 from .version import SetupVersion
+from .movelist import MoveList
 from . import common_constants
 from . import hint
 from . import maintainers
@@ -1231,14 +1232,14 @@ def stale_packages(packages):
                 mark_package_fresh(packages, pn, v)
 
     # build a move list of stale versions
-    stale = defaultdict(list)
+    stale = MoveList()
     for pn, po in packages.items():
         for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
             all_stale = True
             for category in ['source', 'install']:
                 if category in po.vermap[v]:
                     if not getattr(po.tar(v, category), 'fresh', False):
-                        stale[po.path].append(po.vermap[v][category])
+                        stale.add(po.path, po.vermap[v][category])
                         logging.debug("package '%s' version '%s' %s is stale" % (pn, v, category))
                     else:
                         all_stale = False
@@ -1247,7 +1248,7 @@ def stale_packages(packages):
             # same version, move it as well
             if all_stale:
                 if v in po.hint_files:
-                    stale[po.path].append(po.hint_files[v])
+                    stale.add(po.path, po.hint_files[v])
                     logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 
         # clean up freshness mark

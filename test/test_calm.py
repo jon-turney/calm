@@ -333,8 +333,8 @@ class CalmTest(unittest.TestCase):
         shutil.rmtree(test_root)
 
         self.assertEqual(scan_result.error, False)
-        compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.to_relarea), 'move')
-        self.assertCountEqual(scan_result.to_vault, {'x86/release/testpackage': ['x86/release/testpackage/testpackage-0.1-1.tar.bz2']})
+        compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.to_relarea.movelist), 'move')
+        self.assertCountEqual(scan_result.to_vault.movelist, {'x86/release/testpackage': ['x86/release/testpackage/testpackage-0.1-1.tar.bz2']})
         self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
         self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
         with pprint_patch():

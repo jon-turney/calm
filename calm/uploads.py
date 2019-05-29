@@ -34,6 +34,7 @@ import shutil
 import tarfile
 import time
 
+from .movelist import MoveList
 from . import common_constants
 from . import package
 
@@ -54,8 +55,8 @@ def scan(m, all_packages, arch, args):
     basedir = os.path.join(m.homedir(), arch)
 
     packages = defaultdict(package.Package)
-    move = defaultdict(list)
-    vault = defaultdict(list)
+    move = MoveList()
+    vault = MoveList()
     remove = []
     remove_success = []
     error = False
@@ -196,7 +197,7 @@ def scan(m, all_packages, arch, args):
                     logging.error("remove file %s is not empty" % fn)
                     error = True
                 else:
-                    vault[relpath].append(f[1:])
+                    vault.add(relpath, f[1:])
                     remove_success.append(fn)
                     removed_files.append(f[1:])
                 files.remove(f)
@@ -249,9 +250,9 @@ def scan(m, all_packages, arch, args):
                         logging.debug("different %s is already in release area" % fn)
                     # we always consider .hint files as needing to be moved, as
                     # we currently can't have a valid package without one
-                    move[relpath].append(f)
+                    move.add(relpath, f)
             else:
-                move[relpath].append(f)
+                move.add(relpath, f)
 
         # read and validate package
         if files:
@@ -286,72 +287,3 @@ def remove(args, remove):
                 os.unlink(f)
             except FileNotFoundError:
                 logging.error("%s can't be deleted as it doesn't exist" % (f))
-
-
-#
-#
-#
-
-def move(args, movelist, fromdir, todir):
-    for p in sorted(movelist):
-        logging.debug("mkdir %s" % os.path.join(todir, p))
-        if not args.dryrun:
-            try:
-                os.makedirs(os.path.join(todir, p), exist_ok=True)
-            except FileExistsError:
-                pass
-        logging.debug("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
-        for f in sorted(movelist[p]):
-            if os.path.exists(os.path.join(fromdir, p, f)):
-                logging.info("%s" % os.path.join(p, f))
-                if not args.dryrun:
-                    os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
-            else:
-                logging.error("%s can't be moved as it doesn't exist" % (f))
-
-
-def move_to_relarea(m, args, movelist):
-    if movelist:
-        logging.info("move from %s's upload area to release area:" % (m.name))
-    move(args, movelist, m.homedir(), args.rel_area)
-    # XXX: Note that there seems to be a separate process, not run from
-    # cygwin-admin's crontab, which changes the ownership of files in the
-    # release area to cyguser:cygwin
-
-
-def move_to_vault(args, movelist):
-    if movelist:
-        logging.info("move from release area to vault:")
-    move(args, movelist, args.rel_area, args.vault)
-
-
-# compute the intersection of a pair of movelists
-def movelist_intersect(a, b):
-    i = defaultdict(list)
-    for p in a.keys() & b.keys():
-        pi = set(a[p]) & set(b[p])
-        if pi:
-            i[p] = pi
-    return i
-
-
-#
-#
-#
-
-def copy(args, movelist, fromdir, todir):
-    for p in sorted(movelist):
-        logging.debug("mkdir %s" % os.path.join(todir, p))
-        if not args.dryrun:
-            try:
-                os.makedirs(os.path.join(todir, p), exist_ok=True)
-            except FileExistsError:
-                pass
-        logging.debug("copy from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
-        for f in sorted(movelist[p]):
-            if os.path.exists(os.path.join(fromdir, p, f)):
-                logging.debug("%s" % (f))
-                if not args.dryrun:
-                    shutil.copy2(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
-            else:
-                logging.error("%s can't be copied as it doesn't exist" % (f))

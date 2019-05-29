@@ -66,6 +66,7 @@ import time
 
 from .abeyance_handler import AbeyanceHandler
 from .buffering_smtp_handler import BufferingSMTPHandler
+from .movelist import MoveList
 from . import common_constants
 from . import irk
 from . import maintainers
@@ -116,7 +117,7 @@ def process_relarea(args):
         if stale_to_vault:
             for arch in common_constants.ARCHES + ['noarch', 'src']:
                 logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
-                uploads.move_to_vault(args, stale_to_vault[arch])
+                stale_to_vault[arch].move_to_vault(args)
         else:
             logging.error("error while evaluating stale packages")
             return None
@@ -185,9 +186,7 @@ def process_uploads(args, state):
                     break
 
                 # remove files which are to be removed
-                for p in scan_result[arch].to_vault:
-                    for f in scan_result[arch].to_vault[p]:
-                        package.delete(merged_packages[arch], p, f)
+                scan_result[arch].to_vault.map(lambda p, f: package.delete(merged_packages[arch], p, f))
 
                 # validate the package set
                 logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
@@ -231,18 +230,21 @@ def process_uploads(args, state):
                 # process the move lists
                 if scan_result[arch].to_vault:
                     logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
-                uploads.move_to_vault(args, scan_result[arch].to_vault)
+                scan_result[arch].to_vault.move_to_vault(args)
                 uploads.remove(args, scan_result[arch].remove_success)
                 if scan_result[arch].to_relarea:
                     logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
-                uploads.move_to_relarea(m, args, scan_result[arch].to_relarea)
+                scan_result[arch].to_relarea.move_to_relarea(m, args)
+                # XXX: Note that there seems to be a separate process, not run
+                # from cygwin-admin's crontab, which changes the ownership of
+                # files in the release area to cyguser:cygwin
 
             # for each arch
             if args.stale:
                 for arch in common_constants.ARCHES + ['noarch', 'src']:
                     if stale_to_vault[arch]:
                         logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
-                        uploads.move_to_vault(args, stale_to_vault[arch])
+                        stale_to_vault[arch].move_to_vault(args)
 
             # for each arch
             for arch in common_constants.ARCHES:
@@ -288,8 +290,8 @@ def process(args, state):
 
 def remove_stale_packages(args, packages):
     to_vault = {}
-    to_vault['noarch'] = defaultdict(list)
-    to_vault['src'] = defaultdict(list)
+    to_vault['noarch'] = MoveList()
+    to_vault['src'] = MoveList()
 
     for arch in common_constants.ARCHES:
         logging.debug("checking for stale packages for arch %s" % (arch))
@@ -298,9 +300,7 @@ def remove_stale_packages(args, packages):
         to_vault[arch] = package.stale_packages(packages[arch])
 
         # remove stale packages from package set
-        for p in to_vault[arch]:
-            for f in to_vault[arch][p]:
-                package.delete(packages[arch], p, f)
+        to_vault[arch].map(lambda p, f: package.delete(packages[arch], p, f))
 
     # if there are no stale packages, we don't have anything to do
     if not any([to_vault[a] for a in to_vault]):
@@ -323,12 +323,19 @@ def remove_stale_packages(args, packages):
     # for each arch.
     #
     # de-duplicate these package moves, as rather awkward workaround for that
-    for path in list(to_vault[common_constants.ARCHES[0]]):
+    moved_list = []
+
+    def dedup(path, f):
         for prefix in ['noarch', 'src']:
             if path.startswith(prefix):
-                to_vault[prefix][path] = to_vault[common_constants.ARCHES[0]][path]
-                for arch in common_constants.ARCHES:
-                    del to_vault[arch][path]
+                to_vault[prefix].add(path, f)
+                moved_list.append(path)
+
+    to_vault[common_constants.ARCHES[0]].map(dedup)
+
+    for path in moved_list:
+        for arch in common_constants.ARCHES:
+            to_vault[arch].remove(path)
 
     return to_vault
 
@@ -340,11 +347,12 @@ def remove_stale_packages(args, packages):
 def report_movelist_conflicts(a, b, reason):
     conflicts = False
 
-    n = uploads.movelist_intersect(a, b)
+    n = MoveList.intersect(a, b)
     if n:
-        for p in n:
-            for f in n[p]:
-                logging.error("%s/%s is both uploaded and %s vaulted" % (p, f, reason))
+        def report_conflict(p, f):
+            logging.error("%s/%s is both uploaded and %s vaulted" % (p, f, reason))
+
+        n.map(report_conflict)
         conflicts = True
 
     return conflicts
