@@ -70,7 +70,7 @@ def sdesc(packages, p, bv):
     else:
         header = p
 
-    return header.replace('"', '')
+    return header.strip('"')
 
 
 # ditto for ldesc
@@ -81,7 +81,12 @@ def ldesc(packages, p, bv):
     else:
         header = p
 
-    return header.replace('"', '')
+    header = header.strip('"')
+    header = header.replace('\n\n', '\n<br>\n')
+    # try to recognize things which look like bullet points
+    header = re.sub(r'\n(\s*[*-]\s)', r'<br>\n\1', header)
+
+    return header
 
 
 # ensure a directory exists
