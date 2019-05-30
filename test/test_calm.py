@@ -173,14 +173,15 @@ class CalmTest(unittest.TestCase):
         for (dirpath, subdirs, files) in os.walk(htdocs):
             relpath = os.path.relpath(dirpath, htdocs)
             for f in files:
-                results = os.path.join(htdocs, relpath, f)
-                expected = os.path.join('testdata/htdocs.expected', relpath, f)
-                if not filecmp.cmp(results, expected, shallow=False):
-                    logging.info("%s different", os.path.join(relpath, f))
-                    with open(results) as r, open(expected) as e:
-                        self.assertMultiLineEqual(e.read(), r.read())
-                else:
-                    logging.info("%s identical", os.path.join(relpath, f))
+                with self.subTest(file=os.path.join(relpath, f)):
+                    results = os.path.join(htdocs, relpath, f)
+                    expected = os.path.join('testdata/htdocs.expected', relpath, f)
+                    if not filecmp.cmp(results, expected, shallow=False):
+                        logging.info("%s different", os.path.join(relpath, f))
+                        with open(results) as r, open(expected) as e:
+                            self.assertMultiLineEqual(e.read(), r.read())
+                    else:
+                        logging.info("%s identical", os.path.join(relpath, f))
 
     def test_version_sort(self):
         test_data = [
