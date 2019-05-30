@@ -1,0 +1,12 @@
+{'.': [],
+ 'x86': [],
+ 'x86/release': [],
+ 'x86/release/staleversion': ['staleversion-240-1-src.tar.xz',
+                              'staleversion-240-1.hint',
+                              'staleversion-240-1.tar.xz',
+                              'staleversion-242-0-src.tar.xz',
+                              'staleversion-242-0.hint',
+                              'staleversion-242-0.tar.xz',
+                              'staleversion-251-0-src.tar.xz',
+                              'staleversion-251-0.hint',
+                              'staleversion-251-0.tar.xz']}

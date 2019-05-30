@@ -366,6 +366,37 @@ class CalmTest(unittest.TestCase):
 
         # XXX: delete a needed package, and check validate fails
 
+    def test_process_uploads_conflict(self):
+        args = types.SimpleNamespace()
+
+        for d in ['rel_area', 'homedir', 'vault']:
+            setattr(args, d, tempfile.mktemp())
+            logging.info('%s = %s', d, getattr(args, d))
+
+        shutil.copytree('testdata/relarea', getattr(args, 'rel_area'))
+        shutil.copytree('testdata/homes.conflict', getattr(args, 'homedir'))
+
+        setattr(args, 'dryrun', False)
+        setattr(args, 'email', None)
+        setattr(args, 'force', False)
+        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
+        setattr(args, 'stale', True)
+
+        # set appropriate !ready
+        m_homedir = os.path.join(getattr(args, 'homedir'), 'Blooey McFooey')
+        os.system('touch "%s"' % (os.path.join(m_homedir, 'x86', 'release', 'staleversion', '!ready')))
+
+        state = calm.calm.CalmState()
+        state.packages = calm.calm.process_relarea(args)
+        state.packages = calm.calm.process_uploads(args, state)
+        self.assertTrue(state.packages)
+
+        for d in ['rel_area', 'homedir', 'vault']:
+            with self.subTest(directory=d):
+                dirlist = capture_dirtree(getattr(args, d))
+                compare_with_expected_file(self, 'testdata/conflict', dirlist, d)
+                shutil.rmtree(getattr(args, d))
+
     def test_process(self):
         self.maxDiff = None
 
@@ -436,6 +467,7 @@ class CalmTest(unittest.TestCase):
         # (git doesn't store timestamps, so they will all be dated the time of checkout)
         relarea_x86 = os.path.join('testdata', 'relarea', 'x86', 'release')
         relarea_noarch = os.path.join('testdata', 'relarea', 'noarch', 'release')
+        home_conflict = os.path.join('testdata', 'homes.conflict', 'Blooey McFooey', 'x86', 'release')
         touches = [(os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.0-1.tar.xz'), '2016-11-01'),
                    (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.0-1-src.tar.xz'), '2016-11-01'),
                    (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.1-1.tar.xz'), '2016-11-02'),
@@ -464,9 +496,12 @@ class CalmTest(unittest.TestCase):
                    (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1-src.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1.tar.xz'), '2016-11-01'),
-                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1-src.tar.xz'), '2016-11-01')]
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1-src.tar.xz'), '2016-11-01'),
+                   (os.path.join(home_conflict, 'staleversion', 'staleversion-230-1.hint'), '2017-04-06'),
+                   (os.path.join(home_conflict, 'staleversion', 'staleversion-230-1.tar.xz'), '2017-04-06'),
+                   (os.path.join(home_conflict, 'staleversion', 'staleversion-230-1-src.tar.xz'), '2017-04-06')]
         for (f, t) in touches:
-            os.system('touch %s -d %s' % (f, t))
+            os.system('touch "%s" -d %s' % (f, t))
 
         # ensure !reminder-timestamp is created for uploads
         home = os.path.join('testdata', 'homes', 'Blooey McFooey')
