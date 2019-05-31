@@ -1008,6 +1008,12 @@ def write_repo_json(args, packages, f):
                 po = packages[arch][pn]
                 arches.append(arch)
 
+        def package(p):
+            for arch in common_constants.ARCHES:
+                if p in packages[arch]:
+                    return packages[arch][p]
+            return None
+
         bv = po.best_version
 
         if po.version_hints[bv].get('external-source', None):
@@ -1022,8 +1028,8 @@ def write_repo_json(args, packages, f):
             'name': pn,
             'versions': versions,
             'summary': po.version_hints[bv].get('sdesc', '').strip('"'),
-            'categories': po.version_hints[bv].get('category', '').split(),
-            'subpackages': [{'name': sp} for sp in po.is_used_by],
+            'categories': po.version_hints[bv].get('category', '').split(),  # to be removed
+            'subpackages': [{'name': sp, 'categories': package(sp).version_hints[package(sp).best_version].get('category', '').split()} for sp in po.is_used_by],
             'arches': arches,
         }
 
