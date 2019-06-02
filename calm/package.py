@@ -249,11 +249,11 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
                 # we already know P to split unambiguously), but this is a bad
                 # idea.
                 if '-' in v:
-                    if p not in past_mistakes.hyphen_in_version:
+                    if v in past_mistakes.hyphen_in_version.get(p, []):
+                        lvl = logging.INFO
+                    else:
                         lvl = logging.ERROR
                         warnings = True
-                    else:
-                        lvl = logging.INFO
                     logging.log(lvl, "file '%s' in package '%s' contains '-' in version" % (f, p))
 
                 if not v[0].isdigit():
