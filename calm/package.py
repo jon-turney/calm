@@ -51,7 +51,7 @@ class Package(object):
     def __init__(self):
         self.path = ''  # path to package, relative to release area
         self.tars = {}
-        self.hint_files = {}
+        self.hints = {}
         self.is_used_by = set()
         self.version_hints = {}
         self.override_hints = {}
@@ -80,6 +80,14 @@ class Tar(object):
 
     def __repr__(self):
         return "Tar('%s', %d, %s)" % (self.sha512, self.size, self.is_empty)
+
+
+# information we keep about a hint file
+class Hint(object):
+    def __init__(self):
+        self.path = None  # path to hint, relative to release area
+        self.fn = None    # filename of hint
+        self.hints = {}   # XXX: duplicates version_hints, for the moment
 
 
 #
@@ -282,7 +290,7 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
 
         # determine hints for each version we've encountered
         version_hints = {}
-        hint_files = {}
+        hints = {}
         actual_tars = {}
         for vr in vr_list:
             hint_fn = '%s-%s.hint' % (p, vr)
@@ -305,8 +313,13 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
             else:
                 ovr = vr
 
+            hintobj = Hint()
+            hintobj.path = relpath
+            hintobj.fn = hint_fn
+            hintobj.hints = pvr_hint
+
             version_hints[ovr] = pvr_hint
-            hint_files[ovr] = hint_fn
+            hints[ovr] = hintobj
             actual_tars[ovr] = tars[vr]
 
         # ignore dotfiles
@@ -323,7 +336,7 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
         packages[p].version_hints = version_hints
         packages[p].override_hints = override_hints
         packages[p].tars = actual_tars
-        packages[p].hint_files = hint_files
+        packages[p].hints = hints
         packages[p].path = relpath
         packages[p].skip = any(['skip' in version_hints[vr] for vr in version_hints])
 
@@ -1103,7 +1116,7 @@ def merge(a, *l):
                     c[p].override_hints.update(b[p].override_hints)
 
                     # merge hint file lists
-                    c[p].hint_files.update(b[p].hint_files)
+                    c[p].hints.update(b[p].hints)
 
                     # skip if both a and b are skip
                     c[p].skip = a[p].skip and b[p].skip
@@ -1128,9 +1141,9 @@ def delete(packages, path, fn):
                 if not packages[p].tars[vr]:
                     packages[p].vermap.pop(vr, None)
 
-            for h in packages[p].hint_files:
-                if packages[p].hint_files[h] == fn:
-                    del packages[p].hint_files[h]
+            for h in packages[p].hints:
+                if packages[p].hints[h].fn == fn:
+                    del packages[p].hints[h]
                     break
 
 
@@ -1247,8 +1260,8 @@ def stale_packages(packages):
             # if there's a pvr.hint without a fresh source or install of the
             # same version, move it as well
             if all_stale:
-                if v in po.hint_files:
-                    stale.add(po.path, po.hint_files[v])
+                if v in po.hints:
+                    stale.add(po.hints[v].path, po.hints[v].fn)
                     logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 
         # clean up freshness mark
