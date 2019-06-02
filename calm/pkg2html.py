@@ -333,8 +333,8 @@ def write_arch_listing(args, packages, arch):
         listings = os.listdir(dir)
         listings.remove('.htaccess')
 
-        for t in itertools.chain.from_iterable([packages[p].tars[vr] for vr in packages[p].tars]):
-            fver = re.sub(r'\.tar.*$', '', t)
+        for tn, to in itertools.chain.from_iterable([packages[p].tars[vr].items() for vr in packages[p].tars]):
+            fver = re.sub(r'\.tar.*$', '', tn)
             listing = os.path.join(dir, fver)
 
             # ... if it doesn't already exist, or force
@@ -365,7 +365,7 @@ def write_arch_listing(args, packages, arch):
                                                  <h1>%s</h1>
                                                  <pre>''' % (header, header)), file=f)
 
-                        tf = os.path.join(args.rel_area, packages[p].path, t)
+                        tf = os.path.join(args.rel_area, to.path, to.fn)
                         if not os.path.exists(tf):
                             # this shouldn't happen with a full mirror
                             logging.error("tarfile %s not found" % (tf))

@@ -73,13 +73,15 @@ class Package(object):
 # information we keep about a tar file
 class Tar(object):
     def __init__(self):
+        self.path = None  # path to tar, relative to release area
+        self.fn = None    # filename
         self.sha512 = ''
         self.size = 0
         self.is_empty = False
         self.is_used = False
 
     def __repr__(self):
-        return "Tar('%s', %d, %s)" % (self.sha512, self.size, self.is_empty)
+        return "Tar('%s', '%s', '%s', %d, %s)" % (self.fn, self.path, self.sha512, self.size, self.is_empty)
 
 
 # information we keep about a hint file
@@ -276,6 +278,8 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
             if not f.endswith('.hint'):
                 # collect the attributes for each tar file
                 t = Tar()
+                t.path = relpath
+                t.fn = f
                 t.size = os.path.getsize(os.path.join(dirpath, f))
                 t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
                 t.mtime = os.path.getmtime(os.path.join(dirpath, f))
@@ -989,10 +993,10 @@ def write_setup_ini(args, packages, arch):
 
 # helper function to output details for a particular tar file
 def tar_line(p, category, v, f):
-    t = p.vermap[v][category]
-    fn = os.path.join(p.path, t)
-    sha512 = p.tar(v, category).sha512
-    size = p.tar(v, category).size
+    to = p.tar(v, category)
+    fn = os.path.join(to.path, to.fn)
+    sha512 = to.sha512
+    size = to.size
     print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
 
 
@@ -1252,7 +1256,8 @@ def stale_packages(packages):
             for category in ['source', 'install']:
                 if category in po.vermap[v]:
                     if not getattr(po.tar(v, category), 'fresh', False):
-                        stale.add(po.path, po.vermap[v][category])
+                        to = po.tar(v, category)
+                        stale.add(to.path, to.fn)
                         logging.debug("package '%s' version '%s' %s is stale" % (pn, v, category))
                     else:
                         all_stale = False
