@@ -38,8 +38,6 @@ hyphen_in_version = [
     'fftw3-doc',
     'gendef',
     'gendef-debuginfo',
-    'gtk3-engines-unico',
-    'gtk3-engines-unico-debuginfo',
     'hidapi',
     'hidapi-debuginfo',
     'libfftw3_3',
@@ -109,7 +107,6 @@ self_source = [
 nonunique_versions = [
     'bzr-debuginfo',              # debuginfo from NMU needs to age out
     'cgdb-debuginfo',             # debuginfo from NMU needs to age out
-    'dolphin',                    # split out from kde-baseapps
     'dolphin4',                   # dropped from kde-baseapps
     'gcc-java',                   # dropped from gcc 6
     'girepository-AppStream1.0',  # moved from appstream-glib to appstream
@@ -118,33 +115,20 @@ nonunique_versions = [
     'gtk2.0-engines-svg',
     'guile-doc',
     'kdepasswd',                  # dropped from split kde-baseapps
-    'kdialog',                    # split out from kde-baseapps
-    'keditbookmarks',             # split out from kde-baseapps
     'kexi',                       # split out from calligra
-    'kfind',                      # split out from kde-baseapps
     'kfilereplace',               # split out from kdewebdev
-    'kimagemapeditor',            # split out from kdewebdev
-    'klinkstatus',                # split out from kdewebdev
-    'konqueror',                  # split out from kde-baseapps
-    'libatomic_ops-devel',        # separated out from libgc
     'libcaca-doc',                # dropped pending fix for current doxygen
     'libflint',                   # no number means it isn't considered an old soversion
     'libfltk-doc',
     'libgcj-common',              # dropped from gcc 6
     'libical_cxx-devel',
-    'libpoppler-qt4_4',           # dropped since 0.62.0
-    'libpoppler-qt4-devel',       # dropped since 0.62.0
     'libquota-devel',             # no longer provided by e2fsprogs
     'libturbojpeg',               # no number means it isn't considered an old soversion
     'libtxc_dxtn',                # split out from s2tc
     'libtxc_dxtn-devel',          # split out from s2tc
     'mingw64-i686-poppler-qt4',   # dropped since 0.62.0
-    'mingw64-i686-qt5-declarative-debuginfo',    # dropped in 5.9
-    'mingw64-i686-qt5-tools-debuginfo',          # dropped in 5.9
     'mingw64-i686-spice-gtk2.0',  # gtk2 dropped from spice-gtk
     'mingw64-x86_64-poppler-qt4',  # dropped since 0.62.0
-    'mingw64-x86_64-qt5-declarative-debuginfo',  # dropped in 5.9
-    'mingw64-x86_64-qt5-tools-debuginfo',        # dropped in 5.9
     'mingw64-x86_64-spice-gtk2.0',  # gtk2 dropped from spice-gtk
     'minizip',
     'mutter-doc',
@@ -152,7 +136,6 @@ nonunique_versions = [
     'okular4-part',               # changed to okular5-part in 17.04
     'python-spiceclientgtk',      # gtk2 dropped from spice-gtk
     'sng-debuginfo',
-    'socat-debuginfo',            # debuginfo for test version when curr has no debuginfo
     'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
     'transfig-debuginfo',         # after transfig 3.2.6 source is included in xfig
     'w3m-img',
@@ -172,14 +155,10 @@ empty_but_not_obsolete = [
 mtime_anomalies = [
     'gcc-java',
     'gcc-tools-epoch2-autoconf',
-    'glproto',
     'gv-debuginfo',
     'libgcj-common',
     'libgcj16',
     'python-gtk2.0',
-    'python-gtk2.0-demo',
-    'python-gtk2.0-devel',
-    'python-wx',  # timestamps reset when split out from wxWidgets
     'subversion',  # 1.8 and 1.9 might be built in either order...
     'subversion-debuginfo',
     'subversion-devel',
@@ -189,5 +168,4 @@ mtime_anomalies = [
     'subversion-python',
     'subversion-ruby',
     'subversion-tools',
-    'xextproto',
 ]
