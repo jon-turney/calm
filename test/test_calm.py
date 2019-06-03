@@ -468,6 +468,10 @@ class CalmTest(unittest.TestCase):
         for (f, t) in touches:
             os.system('touch %s -d %s' % (f, t))
 
+        # ensure !reminder-timestamp is created for uploads
+        home = os.path.join('testdata', 'homes', 'Blooey McFooey')
+        os.system('find "%s" -type f -exec touch -d "12 hours ago" {} +' % (home))
+
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)

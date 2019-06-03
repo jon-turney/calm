@@ -1,5 +1,5 @@
 {'.': ['an_unexpected_file'],
- 'Blooey McFooey': [],
+ 'Blooey McFooey': ['!reminder-timestamp'],
  'Blooey McFooey/noarch': [],
  'Blooey McFooey/noarch/release': [],
  'Blooey McFooey/noarch/release/perl-Net-SMTP-SSL': [],
