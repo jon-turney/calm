@@ -96,19 +96,21 @@ class Hint(object):
 # read a packages from a directory hierarchy
 #
 def read_packages(rel_area, arch):
-    packages = defaultdict(Package)
+    packages = {}
 
     # <arch>/ noarch/ and src/ directories are considered
     for root in ['noarch', 'src', arch]:
+        packages[root] = defaultdict(Package)
+
         releasedir = os.path.join(rel_area, root)
         logging.debug('reading packages from %s' % releasedir)
 
         for (dirpath, subdirs, files) in os.walk(releasedir, followlinks=True):
-            read_package(packages, rel_area, dirpath, files)
+            read_package(packages[root], rel_area, dirpath, files)
 
-        logging.debug("%d packages read" % len(packages))
+        logging.debug("%d packages read" % len(packages[root]))
 
-    return packages
+    return merge({}, *packages.values())
 
 
 # helper function to compute sha512 for a particular file
@@ -409,6 +411,9 @@ def sort_key(k):
 #
 def validate_packages(args, packages):
     error = False
+
+    if not packages:
+        return False
 
     for p in sorted(packages.keys()):
         logging.log(5, "validating package '%s'" % (p))
@@ -1073,10 +1078,6 @@ def write_repo_json(args, packages, f):
 # - we combine the list of tarfiles, duplicates are not permitted
 # - we use the hints from b, and warn if they are different to the hints for a
 #
-# (XXX: this implementation possibly assumes that a package is at most in a and
-# one of b, which is currently true, but it could be written with more
-# generality)
-#
 def merge(a, *l):
     # start with a copy of a
     c = copy.deepcopy(a)
@@ -1084,13 +1085,13 @@ def merge(a, *l):
     for b in l:
         for p in b:
             # if the package is in b but not in a, add it to the copy
-            if p not in a:
+            if p not in c:
                 c[p] = b[p]
             # else, if the package is both in a and b, we have to do a merge
             else:
                 # package must exist at same relative path
-                if a[p].pkgpath != b[p].pkgpath:
-                    logging.error("package '%s' is at paths %s and %s" % (p, a[p].path, b[p].path))
+                if c[p].pkgpath != b[p].pkgpath:
+                    logging.error("package '%s' is at paths %s and %s" % (p, c[p].path, b[p].path))
                     return None
                 else:
                     for vr in b[p].tars:
@@ -1106,13 +1107,12 @@ def merge(a, *l):
 
                     # hints from b override hints from a, but warn if they have
                     # changed
-                    c[p].version_hints = a[p].version_hints
                     for vr in b[p].version_hints:
                         c[p].version_hints[vr] = b[p].version_hints[vr]
-                        if vr in a[p].version_hints:
-                            if a[p].version_hints[vr] != b[p].version_hints[vr]:
+                        if vr in c[p].version_hints:
+                            if c[p].version_hints[vr] != b[p].version_hints[vr]:
                                 diff = '\n'.join(difflib.ndiff(
-                                    pprint.pformat(a[p].version_hints[vr]).splitlines(),
+                                    pprint.pformat(c[p].version_hints[vr]).splitlines(),
                                     pprint.pformat(b[p].version_hints[vr]).splitlines()))
 
                                 logging.warning("package '%s' version '%s' hints changed\n%s" % (p, vr, diff))
@@ -1124,7 +1124,7 @@ def merge(a, *l):
                     c[p].hints.update(b[p].hints)
 
                     # skip if both a and b are skip
-                    c[p].skip = a[p].skip and b[p].skip
+                    c[p].skip = c[p].skip and b[p].skip
 
     return c
 
