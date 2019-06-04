@@ -378,6 +378,8 @@ def do_output(args, state):
     # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
     pkg2html.update_package_listings(args, state.packages)
 
+    update_json = False
+
     # for each arch
     for arch in common_constants.ARCHES:
         logging.debug("writing setup.ini for arch %s" % (arch))
@@ -417,6 +419,8 @@ def do_output(args, state):
 
             # then update setup.ini
             if changed:
+                update_json = True
+
                 if args.dryrun:
                     logging.warning("not moving %s to %s, due to --dry-run" % (tmpfile.name, inifile))
                     os.remove(tmpfile.name)
@@ -455,18 +459,19 @@ def do_output(args, state):
 
     # write packages.json
     jsonfile = os.path.join(args.htdocs, 'packages.json.xz')
-    with tempfile.NamedTemporaryFile(mode='wb', delete=False) as tmpfile:
-        logging.debug('writing %s' % (tmpfile.name))
-        with lzma.open(tmpfile, 'wt') as lzf:
-            package.write_repo_json(args, state.packages, lzf)
-    logging.info("moving %s to %s" % (tmpfile.name, jsonfile))
-    shutil.move(tmpfile.name, jsonfile)
+    if update_json or not os.path.exists(jsonfile):
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as tmpfile:
+            logging.debug('writing %s' % (tmpfile.name))
+            with lzma.open(tmpfile, 'wt') as lzf:
+                package.write_repo_json(args, state.packages, lzf)
+        logging.info("moving %s to %s" % (tmpfile.name, jsonfile))
+        shutil.move(tmpfile.name, jsonfile)
 
-    # make it world-readable, if we can
-    try:
-        os.chmod(jsonfile, 0o644)
-    except (OSError):
-        pass
+        # make it world-readable, if we can
+        try:
+            os.chmod(jsonfile, 0o644)
+        except (OSError):
+            pass
 
 
 #

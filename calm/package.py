@@ -1028,7 +1028,6 @@ def write_repo_json(args, packages, f):
             'name': pn,
             'versions': versions,
             'summary': po.version_hints[bv].get('sdesc', '').strip('"'),
-            'categories': po.version_hints[bv].get('category', '').split(),  # to be removed
             'subpackages': [{'name': sp, 'categories': package(sp).version_hints[package(sp).best_version].get('category', '').split()} for sp in po.is_used_by],
             'arches': arches,
         }
