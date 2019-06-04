@@ -235,11 +235,16 @@ def hint_file_parse(fn, kind):
                             if c.lower() not in categories:
                                 errors.append("unknown category '%s'" % (c))
 
-                    # verify that value for ldesc or sdesc is quoted
-                    # (genini forces this)
                     if key in ['sdesc', 'ldesc']:
+                        # verify that value for ldesc or sdesc is quoted (genini
+                        # forces this)
                         if not (value.startswith('"') and value.endswith('"')):
                             errors.append("%s value '%s' should be quoted" % (key, value))
+
+                        # warn about and fix common typos in ldesc/sdesc
+                        value, msg = typofix(value)
+                        if msg:
+                            warnings.append("%s in %s" % (','.join(msg), key))
 
                     # if sdesc ends with a '.', warn and fix it
                     if key == 'sdesc':
@@ -247,10 +252,11 @@ def hint_file_parse(fn, kind):
                             warnings.append("sdesc ends with '.'")
                             value = re.sub(r'\."$', '"', value)
 
-                    # warn if sdesc contains '  '
+                    # if sdesc contains '  ', warn and fix it
                     if key == 'sdesc':
                         if '  ' in value:
                             warnings.append("sdesc contains '  '")
+                            value = value.replace('  ', ' ')
 
                     # only 'ldesc' and 'message' are allowed a multi-line value
                     if (type != 'multilineval') and (len(value.splitlines()) > 1):
@@ -318,6 +324,33 @@ def hint_file_parse(fn, kind):
         hints['parse-warnings'] = warnings
 
     return hints
+
+
+#
+# words that Cygwin package maintainers apparently can't spell correctly
+#
+
+words = [
+    (' accomodates ', ' accommodates '),
+    (' consistant ', ' consistent '),
+    (' examing ', ' examining '),
+    (' extremly ', ' extremely '),
+    (' interm ', ' interim '),
+    (' procesors ', ' processors '),
+    (' utilitzed ', ' utilized '),
+    (' utilties ', ' utilities '),
+]
+
+
+def typofix(v):
+    msg = []
+
+    for (wrong, right) in words:
+        if wrong in v:
+            v = v.replace(wrong, right)
+            msg.append('%s -> %s' % (wrong.strip(), right.strip()))
+
+    return v, msg
 
 
 #
