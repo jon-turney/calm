@@ -37,8 +37,8 @@ import time
 from . import common_constants
 from . import package
 
-# reminders will be issued daily
-REMINDER_INTERVAL = 60 * 60 * 24
+# reminders will be issued weekly
+REMINDER_INTERVAL = 60 * 60 * 24 * 7
 # reminders don't start to be issued until an hour after upload
 REMINDER_GRACE = 60 * 60
 
@@ -116,12 +116,10 @@ def scan(m, all_packages, arch, args):
                     m.reminders_timestamp_checked = True
 
                     logging.debug("ignoring %s as there is no !ready" % fn)
-                    ignored += 1
 
                     # don't warn until file is at least REMINDER_GRACE old
                     if (file_mtime < (time.time() - REMINDER_GRACE)):
-                        if not args.dryrun:
-                            m.reminders_issued = True
+                        ignored += 1
                 else:
                     logging.warning("ignoring %s as it is newer than !ready" % fn)
                 files.remove(f)
@@ -267,9 +265,11 @@ def scan(m, all_packages, arch, args):
 
     # if files are being ignored, and more than REMINDER_INTERVAL has elapsed
     # since we warned about files being ignored, warn again
-    if ignored > 0 and m.reminders_issued:
+    if ignored > 0:
         if (time.time() > (m.reminder_time + REMINDER_INTERVAL)):
             logging.warning("ignored %d files in %s as there is no !ready" % (ignored, arch))
+            if not args.dryrun:
+                m.reminders_issued = True
 
     return ScanResult(error, packages, move, vault, remove, remove_success)
 
