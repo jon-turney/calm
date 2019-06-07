@@ -26,6 +26,7 @@
 #
 
 from collections import defaultdict
+from enum import Enum, unique
 import copy
 import difflib
 import hashlib
@@ -44,6 +45,12 @@ from . import common_constants
 from . import hint
 from . import maintainers
 from . import past_mistakes
+
+
+# kinds of packages @unique
+class Kind(Enum):
+    binary = 1  # aka 'install'
+    source = 2
 
 
 # information we keep about a package
@@ -106,7 +113,7 @@ def read_packages(rel_area, arch):
         logging.debug('reading packages from %s' % releasedir)
 
         for (dirpath, subdirs, files) in os.walk(releasedir, followlinks=True):
-            read_package(packages[root], rel_area, dirpath, files)
+            read_package_dir(packages[root], rel_area, dirpath, files)
 
         logging.debug("%d packages read from %s" % (len(packages[root]), releasedir))
 
@@ -173,23 +180,100 @@ def clean_hints(p, hints, warnings):
 
 
 #
+# read a single package directory
+#
+# (may contain at most one source package and one binary package)
+# (return True if problems, False otherwise)
+#
+
+def read_package_dir(packages, basedir, dirpath, files, remove=[], upload=False):
+    relpath = os.path.relpath(dirpath, basedir)
+
+    # the package name is always the directory name
+    p = os.path.basename(dirpath)
+
+    # no .hint files
+    if not any([f.endswith('.hint') for f in files]):
+        if (relpath.count(os.path.sep) > 1):
+            for s in ['md5.sum', 'sha512.sum']:
+                if s in files:
+                    files.remove(s)
+
+            if len(files) > 0:
+                logging.error("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
+                return True
+
+        return False
+
+    # discard obsolete md5.sum
+    if 'md5.sum' in files:
+        files.remove('md5.sum')
+
+    # ignore dotfiles and backup files
+    for f in files[:]:
+        if f.startswith('.') or f.endswith('.bak'):
+            files.remove(f)
+
+    # classify files for which kind of package they belong to
+    fl = {}
+    for kind in list(Kind) + ['all']:
+        fl[kind] = []
+
+    for f in files[:]:
+        if f == 'sha512.sum' or f == 'override.hint':
+            fl['all'].append(f)
+            files.remove(f)
+        elif re.match(r'^' + re.escape(p) + r'.*\.hint$', f):
+            fl['all'].append(f)
+            files.remove(f)
+        elif re.match(r'^' + re.escape(p) + r'.*\.tar\.(bz2|gz|lzma|xz)$', f):
+            if '-src.tar' in f:
+                fl[Kind.source].append(f)
+            else:
+                fl[Kind.binary].append(f)
+            files.remove(f)
+
+    # read package
+    result = False
+    for kind in Kind:
+        # always create binary packages when uploading to allow replacement
+        # hints, otherwise, only create a package if there's archives for it to
+        # contain
+        if fl[kind] or (upload and kind == Kind.binary):
+            result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], remove, kind) or result
+
+    # warn about unexpected files, including tarfiles which don't match the
+    # package name
+    if files:
+        logging.error("unexpected files in %s: %s" % (p, ', '.join(files)))
+        result = True
+
+    return result
+
+
+#
 # read a single package
 #
-def read_package(packages, basedir, dirpath, files, remove=[]):
-    relpath = os.path.relpath(dirpath, basedir)
-    warnings = False
-
-    if any([f.endswith('.hint') for f in files]):
-        # the package name is always the directory name
-        p = os.path.basename(dirpath)
+def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
+        warnings = False
 
         if not re.match(r'^[\w\-._+]*$', p):
             logging.error("package '%s' name contains illegal characters" % p)
             return True
 
+        # assumption: no real package names end with '-src'
+        #
+        # enforce this, because source and install package names exist in a
+        # single namespace currently, and otherwise there could be a collision
+        if p.endswith('-src'):
+            logging.error("package '%s' name ends with '-src'" % p)
+            return True
+
         # check for duplicate package names at different paths
         (_, _, pkgpath) = relpath.split(os.sep, 2)
-        if p in packages:
+        pn = p + ('-src' if kind == Kind.source else '')
+
+        if pn in packages:
             logging.error("duplicate package name at paths %s and %s" %
                           (relpath, packages[p].pkgpath))
             return True
@@ -229,10 +313,6 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
                     else:
                         logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l.strip(), p))
 
-        # discard obsolete md5.sum
-        if 'md5.sum' in files:
-            files.remove('md5.sum')
-
         # build a list of version-releases (since replacement pvr.hint files are
         # allowed to be uploaded, we must consider both .tar and .hint files for
         # that), and collect the attributes for each tar file
@@ -240,18 +320,11 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
         vr_list = set()
 
         for f in list(files):
-            match = re.match(r'^' + re.escape(p) + r'.*\.(tar\.(bz2|gz|lzma|xz)|hint)$', f)
-            if not match:
-                continue
-
-            if not f.endswith('.hint'):
-                files.remove(f)
-
             # warn if filename doesn't follow P-V-R naming convention
             #
             # P must match the package name, V can contain anything, R must
             # start with a number
-            match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.' + match.group(1) + '$', f)
+            match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.(tar\.(bz2|gz|lzma|xz)|hint)$', f)
             if not match:
                 logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
                 return True
@@ -308,7 +381,6 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
                     logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
                     return True
                 warnings = clean_hints(p, pvr_hint, warnings)
-                files.remove(hint_fn)
             else:
                 # it's an error to not have a pvr.hint
                 logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
@@ -320,6 +392,10 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
             else:
                 ovr = vr
 
+            # external source will always point to a source package
+            if 'external-source' in pvr_hint:
+                pvr_hint['external-source'] += '-src'
+
             hintobj = Hint()
             hintobj.path = relpath
             hintobj.fn = hint_fn
@@ -329,34 +405,18 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
             hints[ovr] = hintobj
             actual_tars[ovr] = tars[vr]
 
-        # ignore dotfiles and backup files
-        for f in files[:]:
-            if f.startswith('.') or f.endswith('.bak'):
-                files.remove(f)
+        packages[pn].version_hints = version_hints
+        packages[pn].override_hints = override_hints
+        packages[pn].tars = actual_tars
+        packages[pn].hints = hints
+        packages[pn].pkgpath = pkgpath
+        packages[pn].skip = any(['skip' in version_hints[vr] for vr in version_hints])
+        packages[pn].kind = kind
+        # since we are kind of inventing the source package names, and don't
+        # want to report them, keep track of the real name
+        packages[pn].orig_name = p
 
-        # warn about unexpected files, including tarfiles which don't match the
-        # package name
-        if files:
-            logging.error("unexpected files in %s: %s" % (p, ', '.join(files)))
-            warnings = True
-
-        packages[p].version_hints = version_hints
-        packages[p].override_hints = override_hints
-        packages[p].tars = actual_tars
-        packages[p].hints = hints
-        packages[p].pkgpath = pkgpath
-        packages[p].skip = any(['skip' in version_hints[vr] for vr in version_hints])
-
-    elif (relpath.count(os.path.sep) > 1):
-        for s in ['md5.sum', 'sha512.sum']:
-            if s in files:
-                files.remove(s)
-
-        if len(files) > 0:
-            logging.error("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
-            warnings = True
-
-    return warnings
+        return warnings
 
 
 #
@@ -487,6 +547,7 @@ def validate_packages(args, packages):
 
         packages[p].vermap = {}
         is_empty = {}
+        has_source = False
         has_install = False
         has_nonempty_install = False
 
@@ -495,6 +556,7 @@ def validate_packages(args, packages):
                 # categorize each tarfile as either 'source' or 'install'
                 if re.search(r'-src.*\.tar', t):
                     category = 'source'
+                    has_source = True
                 else:
                     category = 'install'
                     has_install = True
@@ -515,6 +577,16 @@ def validate_packages(args, packages):
                 # store tarfile corresponding to this version and category
                 packages[p].vermap[vr][category] = t
                 packages[p].vermap[vr]['mtime'] = tar.mtime
+
+        # check that package only contains tar archives of the appropriate type
+        if packages[p].kind == Kind.source:
+            if has_install:
+                logging.error("source package '%s' has install archives" % (p))
+                error = True
+        elif packages[p].kind == Kind.binary:
+            if has_source:
+                logging.error("package '%s' has source archives" % (p))
+                error = True
 
         obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
 
@@ -695,15 +767,21 @@ def validate_packages(args, packages):
                                     ('empty-obsolete' in packages[p].version_hints[vr].get('disable-check', ''))):
                                     lvl = logging.DEBUG
                                 else:
-                                    lvl = logging.ERROR
-                                    error = True
-                                logging.log(lvl, "package '%s' version '%s' has empty install tar file and no source, but it's not in the _obsolete category" % (p, vr))
+                                    if 'external-source' in packages[p].version_hints[vr]:
+                                        lvl = logging.ERROR
+                                        error = True
+                                    else:
+                                        lvl = logging.WARNING
+                                logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in the _obsolete category" % (p, vr))
 
-        for vr in packages[p].version_hints:
-            if 'build-depends' in packages[p].version_hints[vr]:
-                if 'source' not in packages[p].vermap[vr]:
-                    logging.error("package '%s' version '%s' has build-depends but no source" % (p, vr))
-                    error = True
+        # the presence of build-depends only makes sense if this is a source
+        # package, or it has a sibling source package, with which is shares hints
+        if packages[p].kind != Kind.source:
+            for vr in packages[p].version_hints:
+                if 'build-depends' in packages[p].version_hints[vr]:
+                    if 'external-source' in packages[p].version_hints[vr]:
+                        logging.error("package '%s' version '%s' has build-depends but isn't a source package" % (p, vr))
+                        error = True
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
@@ -712,43 +790,39 @@ def validate_packages(args, packages):
             if 'install' not in packages[p].vermap[v]:
                 continue
 
-            # unless the install tarfile is empty
-            if packages[p].tar(v, 'install').is_empty:
-                continue
+            sourceless = False
+            missing_source = True
 
-            # source tarfile may be either in this package or in the
-            # external-source package
-            #
-            # mark the source tarfile as being used by an install tarfile
-            if 'source' in packages[p].vermap[v]:
-                packages[p].tar(v, 'source').is_used = True
-                packages[p].is_used_by.add(p)
-                continue
-
+            # source tarfile is in the external-source package, if specified,
+            # otherwise it's in the sibling source package
             if 'external-source' in packages[p].version_hints[v]:
                 es_p = packages[p].version_hints[v]['external-source']
-                if es_p in packages:
-                    if v in packages[es_p].vermap and 'source' in packages[es_p].vermap[v]:
-                        packages[es_p].tar(v, 'source').is_used = True
-                        packages[es_p].is_used_by.add(p)
-                        continue
+            else:
+                es_p = p + '-src'
 
-                # this is a bodge to follow external-source: which hasn't been
-                # updated following a source package de-duplication
-                es_p = es_p + '-src'
-                if es_p in packages:
-                    if 'source' in packages[es_p].vermap[v]:
-                        logging.warning("package '%s' version '%s' external-source: should be %s" % (p, v, es_p))
-                        packages[es_p].tar(v, 'source').is_used = True
-                        packages[es_p].is_used_by.add(p)
-                        continue
+            # mark the source tarfile as being used by an install tarfile
+            if es_p in packages:
+                if v in packages[es_p].vermap and 'source' in packages[es_p].vermap[v]:
+                    packages[es_p].tar(v, 'source').is_used = True
+                    packages[es_p].is_used_by.add(p)
+                    missing_source = False
 
-            # unless this package is marked as 'self-source'
-            if p in past_mistakes.self_source:
-                continue
+            if missing_source:
+                # unless the install tarfile is empty
+                if packages[p].tar(v, 'install').is_empty:
+                    sourceless = True
+                    missing_source = False
 
-            logging.error("package '%s' version '%s' is missing source" % (p, v))
-            error = True
+                # unless this package is marked as 'self-source'
+                if p in past_mistakes.self_source:
+                    sourceless = True
+                    missing_source = False
+
+            # ... it's an error for this package to be missing source
+            packages[p].tar(v, 'install').sourceless = sourceless
+            if missing_source:
+                logging.error("package '%s' version '%s' is missing source" % (p, v))
+                error = True
 
     # make another pass to verify that each non-empty source tarfile version has
     # at least one corresponding non-empty install tarfile, in some package.
@@ -808,7 +882,7 @@ def validate_packages(args, packages):
                 most_common = False
 
             error = True
-            logging.error("install packages from source package '%s' have non-unique current versions %s" % (source_p, ', '.join(reversed(out))))
+            logging.error("install packages from source package '%s' have non-unique current versions %s" % (packages[source_p].orig_name, ', '.join(reversed(out))))
 
     # validate that all packages are in the package maintainers list
     error = validate_package_maintainers(args, packages) or error
@@ -838,13 +912,19 @@ def validate_package_maintainers(args, packages):
         if not is_in_package_list(packages[p].pkgpath, all_packages):
             logging.error("package '%s' on path '%s', which doesn't start with a package in the package list" % (p, packages[p].pkgpath))
             error = True
+        # source which is superseded by a different package, but retained due to
+        # old install versions can be unmaintained and non-obsolete
+        if packages[p].kind == Kind.source:
+            continue
         # validate that the source package has a maintainer
         bv = packages[p].best_version
-        es = packages[p].version_hints[bv].get('external-source', p)
-        if es not in all_packages and p not in all_packages:
-            if bv not in past_mistakes.maint_anomalies.get(p, []):
-                logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
-                error = True
+        if bv:
+            es = packages[p].version_hints[bv].get('external-source', p)
+            es_pn = packages[es].orig_name
+            if es_pn not in all_packages and p not in all_packages:
+                if bv not in past_mistakes.maint_anomalies.get(p, []):
+                    logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
+                    error = True
 
     return error
 
@@ -889,7 +969,7 @@ def write_setup_ini(args, packages, arch):
         # for each package
         for p in sorted(packages.keys(), key=sort_key):
             # do nothing if 'skip'
-            if packages[p].skip and not p.endswith('-src'):
+            if packages[p].skip:
                 continue
 
             # write package data
@@ -977,26 +1057,33 @@ def write_setup_ini(args, packages, arch):
                     print("[%s]" % tag, file=f)
                 print("version: %s" % version, file=f)
 
+                is_empty = False
                 if 'install' in packages[p].vermap.get(version, {}):
                     tar_line(packages[p], 'install', version, f)
+                    is_empty = packages[p].tar(version, 'install').is_empty
 
                 hints = packages[p].version_hints[version]
 
-                # look for corresponding source in this package first
-                if 'source' in packages[p].vermap[version]:
-                    tar_line(packages[p], 'source', version, f)
-                # if that doesn't exist, follow external-source
-                elif 'external-source' in hints:
+                # follow external-source
+                if 'external-source' in hints:
                     s = hints['external-source']
-                    # external-source points to a real source package (-src)
-                    if s.endswith('-src'):
-                        print("Source: %s" % (s), file=f)
-                    # external-source points to a source file in another package
+                else:
+                    s = p + '-src'
+                    if s not in packages:
+                        s = None
+
+                # external-source points to a source file in another package
+                if s:
+                    if 'source' in packages[s].vermap.get(version, {}):
+                        tar_line(packages[s], 'source', version, f)
                     else:
-                        if 'source' in packages[s].vermap.get(version, {}):
-                            tar_line(packages[s], 'source', version, f)
-                        else:
-                            logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
+                        if not (is_empty or packages[s].orig_name in past_mistakes.self_source):
+                            logging.warning("package '%s' version '%s' has no source in '%s'" % (p, version, packages[s].orig_name))
+
+                # external-source should also be capable of pointing to a 'real'
+                # source package (if cygport could generate such a thing), in
+                # which case we should emit a 'Source:' line, and the package is
+                # also itself emitted.
 
                 if hints.get('depends', '') or requires:
                     print("depends2: %s" % hints.get('depends', ''), file=f)
@@ -1066,7 +1153,7 @@ def write_repo_json(args, packages, f):
 
         bv = po.best_version
 
-        if po.version_hints[bv].get('external-source', None):
+        if po.kind != Kind.source:
             continue
 
         versions = {}
@@ -1284,8 +1371,26 @@ def stale_packages(packages):
 
         for v in po.hints:
             # if there's a pvr.hint without a fresh source or install of the
-            # same version, move it as well
-            if all_stale.get(v, True):
+            # same version, move it as well (this is complicated as the hint may
+            # be used by both a binary and source package; give the source
+            # package ownership, if it exists)
+
+            if po.kind == Kind.source:
+                if ((po.orig_name in packages) and
+                    (v in packages[po.orig_name].vermap) and
+                    ('install' in packages[po.orig_name].vermap[v])):
+                    sourceless = packages[po.orig_name].tar(v, 'install').sourceless
+                else:
+                    sourceless = False
+            else:
+                if 'install' in po.vermap.get(v, {}):
+                    sourceless = po.tar(v, 'install').sourceless
+                else:
+                    sourceless = False
+
+            binary_owns_hint = ('external-source' in po.hints[v].hints) or sourceless
+
+            if all_stale.get(v, True) and ((po.kind == Kind.binary) == binary_owns_hint):
                 stale.add(po.hints[v].path, po.hints[v].fn)
                 logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 

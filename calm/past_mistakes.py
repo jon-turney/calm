@@ -155,6 +155,7 @@ empty_but_not_obsolete = [
 mtime_anomalies = [
     'gcc-java',
     'gcc-tools-epoch2-autoconf',
+    'gcc-tools-epoch2-autoconf-src',
     'gv-debuginfo',
     'libgcj-common',
     'libgcj16',
@@ -167,10 +168,13 @@ mtime_anomalies = [
     'subversion-perl',
     'subversion-python',
     'subversion-ruby',
+    'subversion-src',
     'subversion-tools',
 ]
 
 # packages with maintainer anomalies
+#
+# don't add to this list, fix the package (e.g. by obsoleting it)
 maint_anomalies = {
     'libelf0': ['0.8.13-2'],  # libelf is called libelf0 in x86 arch
     'libelf0-devel': ['0.8.13-2'],

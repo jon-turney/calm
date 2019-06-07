@@ -129,7 +129,8 @@ def update_package_listings(args, packages):
 
     def linkify_package(p):
         if p in package_list:
-            return '<a href="%s.html">%s</a>' % (p, p)
+            pn = arch_package(packages, p).orig_name
+            return '<a href="%s.html">%s</a>' % (p, pn)
         logging.debug('package linkification failed for %s' % p)
         return p
 
@@ -159,7 +160,15 @@ def update_package_listings(args, packages):
                         continue
 
                     bv = po.best_version
-                    title = "Cygwin Package Summary for %s" % p
+
+                    if po.kind == package.Kind.source:
+                        pn = po.orig_name
+                        title = "Cygwin Package Summary for %s (source)" % pn
+                        kind = "Source Package"
+                    else:
+                        pn = p
+                        title = "Cygwin Package Summary for %s" % p
+                        kind = "Package"
 
                     print(textwrap.dedent('''\
                     <!DOCTYPE html>
@@ -173,31 +182,41 @@ def update_package_listings(args, packages):
                     <!--#include virtual="/navbar.html" -->
                     <div id="main">
                     <!--#include virtual="/top.html" -->
-                    <h1>Package: %s</h1>''' % (title, p)), file=f)
+                    <h1>%s: %s</h1>''' % (title, kind, pn)), file=f)
 
                     print('<span class="detail">summary</span>: %s<br><br>' % sdesc(po, bv), file=f)
                     print('<span class="detail">description</span>: %s<br><br>' % ldesc(po, bv), file=f)
                     print('<span class="detail">categories</span>: %s<br><br>' % po.version_hints[bv].get('category', ''), file=f)
 
-                    for key in ['depends', 'obsoletes', 'provides', 'conflicts', 'build-depends']:
+                    if po.kind == package.Kind.source:
+                        details = ['build-depends']
+                    else:
+                        details = ['depends', 'obsoletes', 'provides', 'conflicts']
+
+                    for key in details:
                         value = po.version_hints[bv].get(key, None)
                         if value:
                             print('<span class="detail">%s</span>: %s<br><br>' % (key, ', '.join([linkify_package(p) for p in value.split(', ')])), file=f)
 
-                    es = po.version_hints[bv].get('external-source', None)
-                    if es:
-                        print('<span class="detail">source</span>: %s<br><br>' % linkify_package(es), file=f)
-                    else:
-                        print('<span class="detail">binaries</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(po.is_used_by)]), file=f)
+                    if po.kind == package.Kind.source:
                         es = p
+                        print('<span class="detail">install package(s)</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(po.is_used_by)]), file=f)
+                    else:
+                        es = po.version_hints[bv].get('external-source', p + '-src')
+                        print('<span class="detail">source package</span>: %s<br><br>' % linkify_package(es), file=f)
 
-                    if 'ORPHANED' in pkg_maintainers[es]:
+                    es_po = arch_package(packages, es)
+                    if not es_po:
+                        es_po = po
+                    m_pn = es_po.orig_name
+                    if 'ORPHANED' in pkg_maintainers[m_pn]:
                         m = 'ORPHANED'
                     else:
-                        m = ', '.join(sorted(pkg_maintainers[es]))
+                        m = ', '.join(sorted(pkg_maintainers[m_pn]))
 
                     if m:
                         print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)
+
                         print(textwrap.dedent('''\
                         <span class="smaller">(Use <a href="/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
                         <a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
@@ -218,7 +237,7 @@ def update_package_listings(args, packages):
                                 t = p.vermap[v][category]
                                 size = int(math.ceil(p.tar(v, category).size / 1024))
                                 name = v if category == 'install' else v + ' (source)'
-                                target = "%s-%s" % (pn, v) + ('' if category == 'install' else '-src')
+                                target = "%s-%s" % (p.orig_name, v) + ('' if category == 'install' else '-src')
                                 test = 'test' if 'test' in p.version_hints[v] else 'stable'
                                 print('<tr><td>%s</td><td class="right">%d kB</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, arch, pn, target, test), file=f)
 
@@ -261,9 +280,27 @@ def update_package_listings(args, packages):
 
             print('<table class="pkglist">', file=index)
 
+            # This list contains all packages in any arch, but in the interests
+            # of keeping the size down, we only list (i) all install packages,
+            # and (ii) source package where there isn't an install package of
+            # the same name. Source packages sort by their original package
+            # name.
+            package_list = {}
+            for arch in packages:
+                for p in packages[arch]:
+                    if packages[arch][p].kind == package.Kind.binary:
+                        package_list[p] = p
+
+            for arch in packages:
+                for p in packages[arch]:
+                    if packages[arch][p].kind == package.Kind.source and packages[arch][p].orig_name not in package_list:
+                        package_list[packages[arch][p].orig_name] = p
+
             first = ' class="pkgname"'
             jump = ''
-            for p in sorted(package_list, key=package.sort_key):
+            for k in sorted(package_list, key=package.sort_key):
+                p = package_list[k]
+
                 if p.endswith('-debuginfo'):
                     continue
 
@@ -274,6 +311,13 @@ def update_package_listings(args, packages):
                 bv = po.best_version
                 header = sdesc(po, bv)
 
+                if po.kind == package.Kind.source:
+                    pn = po.orig_name
+                    if 'source' not in header:
+                        header += ' (source)'
+                else:
+                    pn = p
+
                 anchor = ''
                 if jump != p[0].lower():
                     jump = p[0].lower()
@@ -281,7 +325,7 @@ def update_package_listings(args, packages):
                         anchor = ' id="%s"' % (jump)
 
                 print('<tr%s><td%s><a href="summary/%s.html">%s</a></td><td>%s</td></tr>' %
-                      (anchor, first, p, p, header),
+                      (anchor, first, p, pn, header),
                       file=index)
                 first = ''
 
@@ -371,7 +415,7 @@ def write_arch_listing(args, packages, arch):
                         header = p + ": " + sdesc(packages[p], bv)
 
                         if fver.endswith('-src'):
-                            header = header + " (source code)"
+                            header = header + " (source)"
 
                         print(textwrap.dedent('''\
                                                  <!DOCTYPE html>

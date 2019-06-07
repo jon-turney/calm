@@ -39,6 +39,7 @@ import unittest
 
 from calm.version import SetupVersion
 import calm.calm
+import calm.common_constants as common_constants
 import calm.hint as hint
 import calm.maintainers as maintainers
 import calm.package as package
@@ -165,6 +166,8 @@ class CalmTest(unittest.TestCase):
         setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
 
         packages = {}
+        for arch in common_constants.ARCHES:
+            packages[arch] = {}
         packages[args.arch] = package.read_packages(args.rel_area, args.arch)
         package.validate_packages(args, packages[args.arch])
         pkg2html.update_package_listings(args, packages)
