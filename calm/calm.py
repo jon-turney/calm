@@ -323,13 +323,13 @@ def remove_stale_packages(args, packages):
     # for each arch.
     #
     # de-duplicate these package moves, as rather awkward workaround for that
-    moved_list = []
+    moved_list = set()
 
     def dedup(path, f):
         for prefix in ['noarch', 'src']:
             if path.startswith(prefix):
                 to_vault[prefix].add(path, f)
-                moved_list.append(path)
+                moved_list.add(path)
 
     to_vault[common_constants.ARCHES[0]].map(dedup)
 
