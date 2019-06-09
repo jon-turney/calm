@@ -63,8 +63,8 @@ from . import utils
 #
 # get sdesc for a package
 #
-def sdesc(packages, p, bv):
-    header = packages[p].version_hints[bv]['sdesc']
+def sdesc(po, bv):
+    header = po.version_hints[bv]['sdesc']
     header = header.strip('"')
     return html.escape(header, quote=False)
 
@@ -72,11 +72,11 @@ def sdesc(packages, p, bv):
 #
 # ditto for ldesc
 #
-def ldesc(packages, p, bv):
-    if 'ldesc' in packages[p].version_hints[bv]:
-        header = packages[p].version_hints[bv]['ldesc']
+def ldesc(po, bv):
+    if 'ldesc' in po.version_hints[bv]:
+        header = po.version_hints[bv]['ldesc']
     else:
-        return sdesc(packages, p, bv)
+        return sdesc(po, bv)
 
     header = header.strip('"')
     # escape html entities
@@ -88,6 +88,14 @@ def ldesc(packages, p, bv):
     header = re.sub(r'http(s|)://[^\s\)]*', r'<a href="\g<0>">\g<0></a>', header)
 
     return header
+
+
+# try hard to find a package object for package p
+def arch_package(packages, p):
+    for arch in common_constants.ARCHES:
+        if p in packages[arch]:
+            return packages[arch][p]
+    return None
 
 
 #
@@ -146,16 +154,11 @@ def update_package_listings(args, packages):
                 with open(summary, 'w') as f:
                     os.fchmod(f.fileno(), 0o755)
 
-                    arch_packages = None
-                    for arch in common_constants.ARCHES:
-                        if p in packages[arch]:
-                            arch_packages = packages[arch]
-                            break
-
-                    if not arch_packages:
+                    po = arch_package(packages, p)
+                    if not po:
                         continue
 
-                    bv = arch_packages[p].best_version
+                    bv = po.best_version
                     title = "Cygwin Package Summary for %s" % p
 
                     print(textwrap.dedent('''\
@@ -172,20 +175,20 @@ def update_package_listings(args, packages):
                     <!--#include virtual="/top.html" -->
                     <h1>Package: %s</h1>''' % (title, p)), file=f)
 
-                    print('<span class="detail">summary</span>: %s<br><br>' % sdesc(arch_packages, p, bv), file=f)
-                    print('<span class="detail">description</span>: %s<br><br>' % ldesc(arch_packages, p, bv), file=f)
-                    print('<span class="detail">categories</span>: %s<br><br>' % arch_packages[p].version_hints[bv].get('category', ''), file=f)
+                    print('<span class="detail">summary</span>: %s<br><br>' % sdesc(po, bv), file=f)
+                    print('<span class="detail">description</span>: %s<br><br>' % ldesc(po, bv), file=f)
+                    print('<span class="detail">categories</span>: %s<br><br>' % po.version_hints[bv].get('category', ''), file=f)
 
                     for key in ['depends', 'obsoletes', 'provides', 'conflicts', 'build-depends']:
-                        value = arch_packages[p].version_hints[bv].get(key, None)
+                        value = po.version_hints[bv].get(key, None)
                         if value:
                             print('<span class="detail">%s</span>: %s<br><br>' % (key, ', '.join([linkify_package(p) for p in value.split(', ')])), file=f)
 
-                    es = arch_packages[p].version_hints[bv].get('external-source', None)
+                    es = po.version_hints[bv].get('external-source', None)
                     if es:
                         print('<span class="detail">source</span>: %s<br><br>' % linkify_package(es), file=f)
                     else:
-                        print('<span class="detail">binaries</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(arch_packages[p].is_used_by)]), file=f)
+                        print('<span class="detail">binaries</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(po.is_used_by)]), file=f)
                         es = p
 
                     if 'ORPHANED' in pkg_maintainers[es]:
@@ -264,17 +267,12 @@ def update_package_listings(args, packages):
                 if p.endswith('-debuginfo'):
                     continue
 
-                arch_packages = None
-                for arch in common_constants.ARCHES:
-                    if p in packages[arch]:
-                        arch_packages = packages[arch]
-                        break
-
-                if not arch_packages:
+                po = arch_package(packages, p)
+                if not po:
                     continue
 
-                bv = arch_packages[p].best_version
-                header = sdesc(arch_packages, p, bv)
+                bv = po.best_version
+                header = sdesc(po, bv)
 
                 anchor = ''
                 if jump != p[0].lower():
@@ -370,7 +368,7 @@ def write_arch_listing(args, packages, arch):
 
                     with open(listing, 'w') as f:
                         bv = packages[p].best_version
-                        header = p + ": " + sdesc(packages, p, bv)
+                        header = p + ": " + sdesc(packages[p], bv)
 
                         if fver.endswith('-src'):
                             header = header + " (source code)"
