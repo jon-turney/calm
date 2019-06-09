@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>perl-Net-SMTP-SSL: Perl distribution Net-SMTP-SSL</title>
+</head>
+<body>
+<h1>perl-Net-SMTP-SSL: Perl distribution Net-SMTP-SSL</h1>
+<pre>
+    2015-06-26 19:10           0 usr/
+    2015-06-26 19:10           0 usr/lib/
+    2015-06-26 19:10           0 usr/lib/perl5/
+    2015-06-26 19:10           0 usr/lib/perl5/vendor_perl/
+    2015-06-26 19:10           0 usr/lib/perl5/vendor_perl/5.22/
+    2015-06-26 19:10           0 usr/lib/perl5/vendor_perl/5.22/Net/
+    2015-06-26 19:10           0 usr/lib/perl5/vendor_perl/5.22/Net/SMTP/
+    2015-06-21 01:58        1462 usr/lib/perl5/vendor_perl/5.22/Net/SMTP/SSL.pm
+    2015-06-26 19:10           0 usr/share/
+    2015-06-26 19:10           0 usr/share/doc/
+    2015-06-26 19:10           0 usr/share/doc/perl-Net-SMTP-SSL/
+    2015-06-26 19:10         199 usr/share/doc/perl-Net-SMTP-SSL/Changes
+    2015-06-26 19:10         867 usr/share/doc/perl-Net-SMTP-SSL/README
+    2015-06-26 19:10           0 usr/share/man/
+    2015-06-26 19:10           0 usr/share/man/man3/
+    2015-06-26 19:10        1619 usr/share/man/man3/Net.SMTP.SSL.3pm.gz
+</pre>
+</body>
+</html>

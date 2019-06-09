@@ -367,6 +367,8 @@ class CalmTest(unittest.TestCase):
         # XXX: delete a needed package, and check validate fails
 
     def test_process_uploads_conflict(self):
+        self.maxDiff = None
+
         args = types.SimpleNamespace()
 
         for d in ['rel_area', 'homedir', 'vault']:
@@ -495,6 +497,10 @@ class CalmTest(unittest.TestCase):
                    (os.path.join(relarea_x86, 'staleversion', 'staleversion-260-0-src.tar.xz'), '2017-04-12'),
                    (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1-src.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.01-1.tar.xz'), '2016-09-01'),
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.01-1-src.tar.xz'), '2016-09-01'),
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.02-1.tar.xz'), '2016-10-01'),
+                   (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.02-1-src.tar.xz'), '2016-10-01'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1.tar.xz'), '2016-11-01'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.03-1-src.tar.xz'), '2016-11-01'),
                    (os.path.join(home_conflict, 'staleversion', 'staleversion-230-1.hint'), '2017-04-06'),
