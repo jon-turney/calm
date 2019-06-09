@@ -276,10 +276,12 @@ def hint_file_parse(fn, kind):
                 else:
                     errors.append("unknown construct '%s' at line %d" % (item, i))
 
-            # for the pvr kind, if 'skip' isn't present, 'category' and
-            # 'sdesc' must be
+            if ('skip' in hints) and (len(hints) == 1):
+                errors.append("hint only contains skip: key, please update to cygport >= 0.22.0")
+
+            # for the pvr kind, 'category' and 'sdesc' must be present
             # XXX: genini also requires 'requires' but that seems wrong
-            if 'skip' not in hints and kind == pvr:
+            if kind == pvr:
                 mandatory = ['category', 'sdesc']
                 for k in mandatory:
                     if k not in hints:
