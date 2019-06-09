@@ -247,9 +247,9 @@ def update_package_listings(args, packages):
     if not args.dryrun:
         with open(packages_inc, 'w') as index:
             os.fchmod(index.fileno(), 0o755)
-            print(textwrap.dedent('''\
-                                     <table class="pkglist">'''), file=index)
+            print('<table class="pkglist">', file=index)
 
+            first = ' class="pkgname"'
             for p in sorted(package_list, key=package.sort_key):
                 if p.endswith('-debuginfo'):
                     continue
@@ -266,11 +266,12 @@ def update_package_listings(args, packages):
                 bv = arch_packages[p].best_version
                 header = sdesc(arch_packages, p, bv)
 
-                print('<tr><td><a href="summary' + '/' + p + '.html">' + p + '</a></td><td>' + html.escape(header, quote=False) + '</td></tr>', file=index)
+                print('<tr><td%s><a href="summary/%s.html">%s</a></td><td>%s</td></tr>' %
+                      (first, p, p, html.escape(header, quote=False)),
+                      file=index)
+                first = ''
 
-            print(textwrap.dedent('''\
-                                     </table>
-                                     '''), file=index)
+            print('</table>', file=index)
 
 
 def write_arch_listing(args, packages, arch):

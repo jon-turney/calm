@@ -1,5 +1,5 @@
 <table class="pkglist">
-<tr><td><a href="summary/arc.html">arc</a></td><td>The ARC archive utility</td></tr>
+<tr><td class="pkgname"><a href="summary/arc.html">arc</a></td><td>The ARC archive utility</td></tr>
 <tr><td><a href="summary/base-cygwin.html">base-cygwin</a></td><td>Initial base installation helper script</td></tr>
 <tr><td><a href="summary/corrupt.html">corrupt</a></td><td>A corrupt package</td></tr>
 <tr><td><a href="summary/cygwin.html">cygwin</a></td><td>The UNIX emulation engine</td></tr>
@@ -21,4 +21,3 @@
 <tr><td><a href="summary/test-e.html">test-e</a></td><td>test package E</td></tr>
 <tr><td><a href="summary/testpackage.html">testpackage</a></td><td>A test package (stuff &amp; other stuff)</td></tr>
 </table>
-
