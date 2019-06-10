@@ -1051,7 +1051,7 @@ def write_repo_json(args, packages, f):
         d = {
             'name': pn,
             'versions': versions,
-            'summary': po.version_hints[bv].get('sdesc', '').strip('"'),
+            'summary': po.version_hints[bv]['sdesc'].strip('"'),
             'subpackages': [{'name': sp, 'categories': package(sp).version_hints[package(sp).best_version].get('category', '').split()} for sp in po.is_used_by],
             'arches': arches,
         }

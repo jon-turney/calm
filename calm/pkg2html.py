@@ -61,26 +61,19 @@ from . import utils
 #
 # get sdesc for a package
 #
-# some source-only packages don't have an sdesc, since they consist of just
-# 'skip':', in which case we try to make a reasonable one
-#
-
 def sdesc(packages, p, bv):
-    if 'sdesc' in packages[p].version_hints[bv]:
-        header = packages[p].version_hints[bv]['sdesc']
-    else:
-        header = p
-
+    header = packages[p].version_hints[bv]['sdesc']
     return header.strip('"')
 
 
+#
 # ditto for ldesc
-
+#
 def ldesc(packages, p, bv):
     if 'ldesc' in packages[p].version_hints[bv]:
         header = packages[p].version_hints[bv]['ldesc']
     else:
-        header = p
+        header = sdesc(packages, p, bv)
 
     header = header.strip('"')
     header = header.replace('\n\n', '\n<br>\n')
