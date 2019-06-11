@@ -176,8 +176,8 @@ def update_package_listings(args, packages):
                     <!--#include virtual="/top.html" -->
                     <h1>Package: %s</h1>''' % (title, p)), file=f)
 
-                    print('<span class="detail">sdesc</span>: %s<br><br>' % sdesc(arch_packages, p, bv), file=f)
-                    print('<span class="detail">ldesc</span>: %s<br><br>' % ldesc(arch_packages, p, bv), file=f)
+                    print('<span class="detail">summary</span>: %s<br><br>' % html.escape(sdesc(arch_packages, p, bv), quote=False), file=f)
+                    print('<span class="detail">description</span>: %s<br><br>' % html.escape(ldesc(arch_packages, p, bv), quote=False), file=f)
                     print('<span class="detail">categories</span>: %s<br><br>' % arch_packages[p].version_hints[bv].get('category', ''), file=f)
 
                     for key in ['depends', 'obsoletes', 'provides', 'conflicts', 'build-depends']:
