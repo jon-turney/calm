@@ -242,7 +242,7 @@ def update_package_listings(args, packages):
     logging.debug('writing %s' % packages_inc)
     if not args.dryrun:
         with open(packages_inc, 'w') as index:
-            os.fchmod(index.fileno(), 0o755)
+            os.fchmod(index.fileno(), 0o644)
             print('<table class="pkglist">', file=index)
 
             first = ' class="pkgname"'
