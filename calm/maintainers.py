@@ -46,14 +46,7 @@ import logging
 import os
 import re
 
-#
-#
-#
-
-
-def touch(fn, times=None):
-    with open(fn, 'a'):
-        os.utime(fn, times)
+from . import utils
 
 #
 #
@@ -94,7 +87,7 @@ class Maintainer(object):
         if self.reminders_issued:
             # if reminders were issued, update the timestamp
             logging.debug("updating reminder time for %s" % self.name)
-            touch(reminder_file)
+            utils.touch(reminder_file)
         elif (not self.reminders_timestamp_checked) and (self.reminder_time != 0):
             # if we didn't need to check the reminder timestamp, it can be
             # reset

@@ -55,6 +55,7 @@ from .version import SetupVersion
 from . import common_constants
 from . import maintainers
 from . import package
+from . import utils
 
 
 #
@@ -272,6 +273,11 @@ def update_package_listings(args, packages):
                 first = ''
 
             print('</table>', file=index)
+
+        # touch the including file for the benefit of 'XBitHack full'
+        package_list = os.path.join(args.htdocs, 'package_list.html')
+        if os.path.exists(package_list):
+            utils.touch(package_list)
 
 
 def write_arch_listing(args, packages, arch):
