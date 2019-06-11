@@ -38,3 +38,16 @@ def touch(fn, times=None):
             os.utime(fn, times)
     except PermissionError:
         logging.error("couldn't update mtime for %s" % (fn))
+
+
+#
+# ensure a directory exists
+#
+# for some versions of python, os.makedirs() can still raise FileExistsError
+# even when exists_ok=True, if the directory mode is not as expected.
+#
+def makedirs(name):
+    try:
+        os.makedirs(name, exist_ok=True)
+    except FileExistsError:
+        pass

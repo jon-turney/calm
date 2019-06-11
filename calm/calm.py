@@ -75,6 +75,7 @@ from . import pkg2html
 from . import queue
 from . import setup_exe
 from . import uploads
+from . import utils
 
 
 #
@@ -619,10 +620,7 @@ def mail_logs(enabled, toaddrs, subject, thresholdLevel, retainLevel=None):
 
 def logging_setup(args):
     # set up logging to a file
-    try:
-        os.makedirs(args.logdir, exist_ok=True)
-    except FileExistsError:
-        pass
+    utils.makedirs(args.logdir)
     rfh = logging.handlers.TimedRotatingFileHandler(os.path.join(args.logdir, 'calm.log'), backupCount=48, when='midnight')
     rfh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)-8s - %(message)s'))
     rfh.setLevel(logging.DEBUG)

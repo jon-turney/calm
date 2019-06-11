@@ -25,6 +25,7 @@ import logging
 import os
 
 from collections import defaultdict
+from . import utils
 
 
 #
@@ -54,10 +55,7 @@ class MoveList(object):
         for p in sorted(self.movelist):
             logging.debug("mkdir %s" % os.path.join(todir, p))
             if not args.dryrun:
-                try:
-                    os.makedirs(os.path.join(todir, p), exist_ok=True)
-                except FileExistsError:
-                    pass
+                utils.makedirs(os.path.join(todir, p))
             logging.debug("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
             for f in sorted(self.movelist[p]):
                 if os.path.exists(os.path.join(fromdir, p, f)):
@@ -98,10 +96,7 @@ class MoveList(object):
         for p in sorted(self.movelist):
             logging.debug("mkdir %s" % os.path.join(todir, p))
             if not args.dryrun:
-                try:
-                    os.makedirs(os.path.join(todir, p), exist_ok=True)
-                except FileExistsError:
-                    pass
+                utils.makedirs(os.path.join(todir, p))
             logging.debug("copy from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
             for f in sorted(self.movelist[p]):
                 if os.path.exists(os.path.join(fromdir, p, f)):

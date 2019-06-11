@@ -90,17 +90,12 @@ def ldesc(packages, p, bv):
     return header
 
 
+#
 # ensure a directory exists
 #
-# for some versions of python, os.makedirs() can still raise FileExistsError
-# even when exists_ok=True, if the directory mode is not as expected.
-
 def ensure_dir_exists(args, path):
     if not args.dryrun:
-        try:
-            os.makedirs(path, exist_ok=True)
-        except FileExistsError:
-            pass
+        utils.makedirs(path)
         os.chmod(path, 0o755)
 
 

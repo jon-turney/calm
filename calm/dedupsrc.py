@@ -35,6 +35,7 @@ import sys
 
 from . import common_constants
 from . import hint
+from . import utils
 
 binary_only_hints = ['requires', 'depends', 'obsoletes', 'external-source']
 
@@ -142,10 +143,7 @@ def dedup(archive, relarea):
         return 1
 
     # ensure target directory exists
-    try:
-        os.makedirs(os.path.join(relarea, 'src', path, p + '-src'))
-    except FileExistsError:
-        pass
+    utils.makedirs(os.path.join(relarea, 'src', path, p + '-src'))
 
     # write .hint file for new -src package
     src_hints = copy.copy(hints['x86'])
