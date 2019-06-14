@@ -329,9 +329,9 @@ def read_package(packages, basedir, dirpath, files, remove=[]):
             hints[ovr] = hintobj
             actual_tars[ovr] = tars[vr]
 
-        # ignore dotfiles
-        for f in files:
-            if f.startswith('.'):
+        # ignore dotfiles and backup files
+        for f in files[:]:
+            if f.startswith('.') or f.endswith('.bak'):
                 files.remove(f)
 
         # warn about unexpected files, including tarfiles which don't match the

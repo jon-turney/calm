@@ -30,6 +30,7 @@
 import argparse
 import os
 import re
+import shutil
 import sys
 
 from . import common_constants
@@ -169,6 +170,7 @@ def fix_one_hint(dirpath, hintfile, vr, later_vrs):
         hints['sdesc'] = '"' + sdesc + '"'
 
     print('writing invented hints for %s' % (hintfile))
+    shutil.copy2(os.path.join(dirpath, hintfile), os.path.join(dirpath, hintfile + '.bak'))
     hint_file_write(os.path.join(dirpath, hintfile), hints)
 
     return (1, 1)
