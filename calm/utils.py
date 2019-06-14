@@ -25,6 +25,7 @@
 # utility functions
 #
 
+import logging
 import os
 
 
@@ -32,5 +33,8 @@ import os
 # touch a file
 #
 def touch(fn, times=None):
-    with open(fn, 'a'):
-        os.utime(fn, times)
+    try:
+        with open(fn, 'a'):  # ensure fn exists
+            os.utime(fn, times)
+    except PermissionError:
+        logging.error("couldn't update mtime for %s" % (fn))
