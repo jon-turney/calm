@@ -44,6 +44,7 @@ import glob
 import html
 import itertools
 import logging
+import math
 import os
 import re
 import string
@@ -205,7 +206,7 @@ def update_package_listings(args, packages):
                                 if category not in p.vermap[v]:
                                     return
                                 t = p.vermap[v][category]
-                                size = round(p.tar(v, category).size / 1024)
+                                size = int(math.ceil(p.tar(v, category).size / 1024))
                                 name = v if category == 'install' else v + ' (source)'
                                 target = "%s-%s" % (pn, v) + ('' if category == 'install' else '-src')
                                 test = 'test' if 'test' in p.version_hints[v] else 'stable'
