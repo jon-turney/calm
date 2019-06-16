@@ -46,6 +46,7 @@ import itertools
 import logging
 import os
 import re
+import string
 import sys
 import tarfile
 import textwrap
@@ -236,9 +237,21 @@ def update_package_listings(args, packages):
     if not args.dryrun:
         with open(packages_inc, 'w') as index:
             os.fchmod(index.fileno(), 0o644)
+
+            jumplist = set()
+            for p in package_list:
+                c = p[0].lower()
+                if c in string.ascii_lowercase:
+                    jumplist.add(c)
+
+            print('<p class="center">', file=index)
+            print(' - \n'.join(['<a href="#%s">%s</a>' % (c, c) for c in sorted(jumplist)]), file=index)
+            print('</p>', file=index)
+
             print('<table class="pkglist">', file=index)
 
             first = ' class="pkgname"'
+            jump = ''
             for p in sorted(package_list, key=package.sort_key):
                 if p.endswith('-debuginfo'):
                     continue
@@ -255,8 +268,14 @@ def update_package_listings(args, packages):
                 bv = arch_packages[p].best_version
                 header = sdesc(arch_packages, p, bv)
 
-                print('<tr><td%s><a href="summary/%s.html">%s</a></td><td>%s</td></tr>' %
-                      (first, p, p, html.escape(header, quote=False)),
+                anchor = ''
+                if jump != p[0].lower():
+                    jump = p[0].lower()
+                    if jump in jumplist:
+                        anchor = ' id="%s"' % (jump)
+
+                print('<tr%s><td%s><a href="summary/%s.html">%s</a></td><td>%s</td></tr>' %
+                      (anchor, first, p, p, html.escape(header, quote=False)),
                       file=index)
                 first = ''
 
