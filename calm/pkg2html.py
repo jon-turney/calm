@@ -65,7 +65,8 @@ from . import utils
 #
 def sdesc(packages, p, bv):
     header = packages[p].version_hints[bv]['sdesc']
-    return header.strip('"')
+    header = header.strip('"')
+    return html.escape(header, quote=False)
 
 
 #
@@ -75,12 +76,16 @@ def ldesc(packages, p, bv):
     if 'ldesc' in packages[p].version_hints[bv]:
         header = packages[p].version_hints[bv]['ldesc']
     else:
-        header = sdesc(packages, p, bv)
+        return sdesc(packages, p, bv)
 
     header = header.strip('"')
+    # escape html entities
+    header = html.escape(header, quote=False)
     header = header.replace('\n\n', '\n<br>\n')
     # try to recognize things which look like bullet points
     header = re.sub(r'\n(\s*[*-]\s)', r'<br>\n\1', header)
+    # linkify things which look like hyperlinks
+    header = re.sub(r'http(s|)://[^\s\)]*', r'<a href="\g<0>">\g<0></a>', header)
 
     return header
 
@@ -167,8 +172,8 @@ def update_package_listings(args, packages):
                     <!--#include virtual="/top.html" -->
                     <h1>Package: %s</h1>''' % (title, p)), file=f)
 
-                    print('<span class="detail">summary</span>: %s<br><br>' % html.escape(sdesc(arch_packages, p, bv), quote=False), file=f)
-                    print('<span class="detail">description</span>: %s<br><br>' % html.escape(ldesc(arch_packages, p, bv), quote=False), file=f)
+                    print('<span class="detail">summary</span>: %s<br><br>' % sdesc(arch_packages, p, bv), file=f)
+                    print('<span class="detail">description</span>: %s<br><br>' % ldesc(arch_packages, p, bv), file=f)
                     print('<span class="detail">categories</span>: %s<br><br>' % arch_packages[p].version_hints[bv].get('category', ''), file=f)
 
                     for key in ['depends', 'obsoletes', 'provides', 'conflicts', 'build-depends']:
@@ -276,7 +281,7 @@ def update_package_listings(args, packages):
                         anchor = ' id="%s"' % (jump)
 
                 print('<tr%s><td%s><a href="summary/%s.html">%s</a></td><td>%s</td></tr>' %
-                      (anchor, first, p, p, html.escape(header, quote=False)),
+                      (anchor, first, p, p, header),
                       file=index)
                 first = ''
 
@@ -367,8 +372,6 @@ def write_arch_listing(args, packages, arch):
 
                         if fver.endswith('-src'):
                             header = header + " (source code)"
-
-                        header = html.escape(header, quote=False)
 
                         print(textwrap.dedent('''\
                                                  <!DOCTYPE html>
