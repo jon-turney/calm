@@ -448,7 +448,7 @@ def validate_packages(args, packages):
                         # disable-check option says that's ok)
                         if r not in packages:
                             if okmissing not in getattr(args, 'disable_check', []):
-                                logging.error("package '%s' version '%s' %s nonexistent package '%s'" % (p, v, c, r))
+                                logging.error("package '%s' version '%s' %s nonexistent or errored package '%s'" % (p, v, c, r))
                                 error = True
                             continue
 
@@ -461,7 +461,7 @@ def validate_packages(args, packages):
             if 'external-source' in hints:
                 e = hints['external-source']
                 if e not in packages:
-                    logging.error("package '%s' version '%s' refers to nonexistent external-source '%s'" % (p, v, e))
+                    logging.error("package '%s' version '%s' refers to nonexistent or errored external-source '%s'" % (p, v, e))
                     error = True
 
         packages[p].vermap = defaultdict(defaultdict)
