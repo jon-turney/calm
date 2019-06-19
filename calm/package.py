@@ -807,15 +807,20 @@ def validate_package_maintainers(args, packages):
 
     # validate that all packages are in the package list
     for p in sorted(packages):
-        # ignore skip packages
-        if packages[p].skip:
-            continue
         # ignore obsolete packages
         if any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints]):
             continue
+        # validate that the package is in a path which starts with something in the package list
         if not is_in_package_list(packages[p].pkgpath, all_packages):
-            logging.error("package '%s' is not in the package list" % (p))
+            logging.error("package '%s' on path '%s', which doesn't start with a package in the package list" % (p, packages[p].pkgpath))
             error = True
+        # validate that the source package has a maintainer
+        bv = packages[p].best_version
+        es = packages[p].version_hints[bv].get('external-source', p)
+        if es not in all_packages and p not in all_packages:
+            if bv not in past_mistakes.maint_anomalies.get(p, []):
+                logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
+                error = True
 
     return error
 

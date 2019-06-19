@@ -192,11 +192,13 @@ def update_package_listings(args, packages):
                         m = 'ORPHANED'
                     else:
                         m = ', '.join(sorted(pkg_maintainers[es]))
-                    print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)
-                    print(textwrap.dedent('''\
-                    <span class="smaller">(Use <a href="https://cygwin.com/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
-                    <a href="https://cygwin.com/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
-                    print('<br><br>', file=f)
+
+                    if m:
+                        print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)
+                        print(textwrap.dedent('''\
+                        <span class="smaller">(Use <a href="/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
+                        <a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
+                        print('<br><br>', file=f)
 
                     print('<ul>', file=f)
                     for arch in sorted(packages):

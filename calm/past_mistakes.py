@@ -169,3 +169,14 @@ mtime_anomalies = [
     'subversion-ruby',
     'subversion-tools',
 ]
+
+# packages with maintainer anomalies
+maint_anomalies = {
+    'libelf0': ['0.8.13-2'],  # libelf is called libelf0 in x86 arch
+    'libelf0-devel': ['0.8.13-2'],
+    'ksnapshot-debuginfo': ['15.04.3-1'],  # should be obsoleted by spectacle(-debuginfo)
+    'man-debuginfo': ['1.6g-2'],  # should be obsoleted by man-db(-debuginfo)
+    'procps-debuginfo': ['3.2.8-5'],  # should be obsoleted by procps-ng(-debuginfo)
+    'python-debuginfo': ['2.7.12-1'],  # should be obsoleted by python2(-debuginfo)
+    'transfig-debuginfo': ['3.2.5e-2'],  # should be obsoleted by xfig(-debuginfo)
+}
