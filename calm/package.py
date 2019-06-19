@@ -980,12 +980,14 @@ def write_setup_ini(args, packages, arch):
                 if 'install' in packages[p].vermap.get(version, {}):
                     tar_line(packages[p], 'install', version, f)
 
+                hints = packages[p].version_hints[version]
+
                 # look for corresponding source in this package first
                 if 'source' in packages[p].vermap[version]:
                     tar_line(packages[p], 'source', version, f)
                 # if that doesn't exist, follow external-source
-                elif 'external-source' in packages[p].version_hints[version]:
-                    s = packages[p].version_hints[version]['external-source']
+                elif 'external-source' in hints:
+                    s = hints['external-source']
                     # external-source points to a real source package (-src)
                     if s.endswith('-src'):
                         print("Source: %s" % (s), file=f)
@@ -996,14 +998,14 @@ def write_setup_ini(args, packages, arch):
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
 
-                if packages[p].version_hints[version].get('depends', '') or requires:
-                    print("depends2: %s" % packages[p].version_hints[version].get('depends', ''), file=f)
+                if hints.get('depends', '') or requires:
+                    print("depends2: %s" % hints.get('depends', ''), file=f)
 
-                if packages[p].version_hints[version].get('obsoletes', ''):
-                    print("obsoletes: %s" % packages[p].version_hints[version]['obsoletes'], file=f)
+                if hints.get('obsoletes', ''):
+                    print("obsoletes: %s" % hints['obsoletes'], file=f)
 
-                if packages[p].version_hints[version].get('build-depends', ''):
-                    bd = packages[p].version_hints[version]['build-depends']
+                if hints.get('build-depends', ''):
+                    bd = hints['build-depends']
 
                     # Ideally, we'd transform dependency atoms which aren't
                     # cygwin package names into package names. For the moment,
@@ -1014,11 +1016,11 @@ def write_setup_ini(args, packages, arch):
                     if bd:
                         print("build-depends: %s" % ', '.join(bd), file=f)
 
-                if packages[p].version_hints[version].get('provides', ''):
-                    print("provides: %s" % packages[p].version_hints[version]['provides'], file=f)
+                if hints.get('provides', ''):
+                    print("provides: %s" % hints['provides'], file=f)
 
-                if packages[p].version_hints[version].get('conflicts', ''):
-                    print("conflicts: %s" % packages[p].version_hints[version]['conflicts'], file=f)
+                if hints.get('conflicts', ''):
+                    print("conflicts: %s" % hints['conflicts'], file=f)
 
 
 # helper function to output details for a particular tar file
