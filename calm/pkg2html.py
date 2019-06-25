@@ -90,12 +90,25 @@ def ldesc(po, bv):
     return header
 
 
+#
 # try hard to find a package object for package p
+#
 def arch_package(packages, p):
     for arch in common_constants.ARCHES:
         if p in packages[arch]:
             return packages[arch][p]
     return None
+
+
+#
+# build a dict of the arches which contain package p
+#
+def arch_packages(packages, p):
+    result = {}
+    for arch in common_constants.ARCHES:
+        if p in packages[arch]:
+            result[arch] = packages[arch][p]
+    return result
 
 
 #
@@ -155,10 +168,11 @@ def update_package_listings(args, packages):
                 with open(summary, 'w') as f:
                     os.fchmod(f.fileno(), 0o755)
 
-                    po = arch_package(packages, p)
-                    if not po:
+                    pos = arch_packages(packages, p)
+                    if not pos:
                         continue
 
+                    po = next(iter(pos.values()))
                     bv = po.best_version
 
                     if po.kind == package.Kind.source:
@@ -194,9 +208,28 @@ def update_package_listings(args, packages):
                         details = ['depends', 'obsoletes', 'provides', 'conflicts']
 
                     for key in details:
-                        value = po.version_hints[bv].get(key, None)
-                        if value:
-                            print('<span class="detail">%s</span>: %s<br><br>' % (key, ', '.join([linkify_package(p) for p in value.split(', ')])), file=f)
+                        # make the union of the package list for this detail
+                        # across arches, and then annotate any items which don't
+                        # appear for all arches
+                        value = {}
+                        values = set()
+                        for arch in pos:
+                            t = pos[arch].version_hints[pos[arch].best_version].get(key, None)
+                            if t:
+                                value[arch] = set(t.split(', '))
+                            else:
+                                value[arch] = set()
+                            values.update(value[arch])
+
+                        if values:
+                            detail = []
+                            for detail_pkg in sorted(values):
+                                if all(detail_pkg in value[arch] for arch in pos):
+                                    detail.append(linkify_package(detail_pkg))
+                                else:
+                                    detail.append(linkify_package(detail_pkg) + ' (%s)' % (','.join([arch for arch in pos if detail_pkg in value[arch]])))
+
+                            print('<span class="detail">%s</span>: %s<br><br>' % (key, ', '.join(detail)), file=f)
 
                     if po.kind == package.Kind.source:
                         es = p
