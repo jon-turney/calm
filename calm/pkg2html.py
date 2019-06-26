@@ -291,51 +291,53 @@ def update_package_listings(args, packages):
         if not args.dryrun:
             os.unlink(r)
 
-    #
-    # write packages.inc
-    #
+    write_packages_inc(args, packages, 'packages.inc', package.Kind.binary, 'package_list.html')
+    write_packages_inc(args, packages, 'src_packages.inc', package.Kind.source, 'src_package_list.html')
 
-    packages_inc = os.path.join(args.htdocs, 'packages.inc')
+
+#
+# write package index page fragment for inclusion
+#
+def write_packages_inc(args, packages, name, kind, includer):
+    packages_inc = os.path.join(args.htdocs, name)
     logging.debug('writing %s' % packages_inc)
     if not args.dryrun:
         with open(packages_inc, 'w') as index:
             os.fchmod(index.fileno(), 0o644)
 
+            # This list contains all packages in any arch. Source packages
+            # appear under their original package name.
+            package_list = {}
+            for arch in packages:
+                for p in packages[arch]:
+                    if p.endswith('-debuginfo'):
+                        continue
+
+                    if packages[arch][p].kind == package.Kind.binary:
+                        if packages[arch][p].skip:
+                            continue
+
+                    if packages[arch][p].kind == kind:
+                        package_list[packages[arch][p].orig_name] = p
+
             jumplist = set()
-            for p in package_list:
+            for k in package_list:
+                p = package_list[k]
                 c = p[0].lower()
                 if c in string.ascii_lowercase:
                     jumplist.add(c)
 
             print('<p class="center">', file=index)
+            print('%d packages : ' % len(package_list), file=index)
             print(' - \n'.join(['<a href="#%s">%s</a>' % (c, c) for c in sorted(jumplist)]), file=index)
             print('</p>', file=index)
 
             print('<table class="pkglist">', file=index)
 
-            # This list contains all packages in any arch, but in the interests
-            # of keeping the size down, we only list (i) all install packages,
-            # and (ii) source package where there isn't an install package of
-            # the same name. Source packages sort by their original package
-            # name.
-            package_list = {}
-            for arch in packages:
-                for p in packages[arch]:
-                    if packages[arch][p].kind == package.Kind.binary:
-                        package_list[p] = p
-
-            for arch in packages:
-                for p in packages[arch]:
-                    if packages[arch][p].kind == package.Kind.source and packages[arch][p].orig_name not in package_list:
-                        package_list[packages[arch][p].orig_name] = p
-
             first = ' class="pkgname"'
             jump = ''
             for k in sorted(package_list, key=package.sort_key):
                 p = package_list[k]
-
-                if p.endswith('-debuginfo'):
-                    continue
 
                 po = arch_package(packages, p)
                 if not po:
@@ -365,7 +367,7 @@ def update_package_listings(args, packages):
             print('</table>', file=index)
 
         # touch the including file for the benefit of 'XBitHack full'
-        package_list = os.path.join(args.htdocs, 'package_list.html')
+        package_list = os.path.join(args.htdocs, includer)
         if os.path.exists(package_list):
             utils.touch(package_list)
 

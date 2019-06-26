@@ -1,4 +1,4 @@
-{'.': ['packages.inc'],
+{'.': ['packages.inc', 'src_packages.inc'],
  'summary': ['arc-src.html',
              'arc.html',
              'base-cygwin.html',
