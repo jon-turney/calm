@@ -169,6 +169,11 @@ class CalmTest(unittest.TestCase):
         package.validate_packages(args, packages[args.arch])
         pkg2html.update_package_listings(args, packages)
 
+        # compare the output dirtree with expected
+        with self.subTest('dirtree'):
+            dirlist = capture_dirtree(htdocs)
+            compare_with_expected_file(self, 'testdata/htdocs.expected', dirlist, 'dirtree')
+
         # compare the output files with expected
         for (dirpath, subdirs, files) in os.walk(htdocs):
             relpath = os.path.relpath(dirpath, htdocs)
