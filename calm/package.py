@@ -1019,7 +1019,16 @@ def write_setup_ini(args, packages, arch):
             # next put any other versions
             #
             # these [prev] or [test] sections are superseded by the final ones.
-            for version in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            #
+            # (to maintain historical behaviour, include versions which only
+            # exist as a source package)
+            #
+            versions = set(packages[p].vermap.keys())
+            sibling_src = p + '-src'
+            if sibling_src in packages:
+                versions.update(packages[sibling_src].vermap.keys())
+
+            for version in sorted(versions, key=lambda v: SetupVersion(v), reverse=True):
                 # skip over versions assigned to stability level: 'curr' has
                 # already be done, and 'prev' and 'test' will be done later
                 skip = False
@@ -1033,7 +1042,7 @@ def write_setup_ini(args, packages, arch):
                     continue
 
                 # test versions receive the test label
-                if 'test' in packages[p].version_hints[version]:
+                if 'test' in packages[p].version_hints.get(version, {}):
                     level = "test"
                 else:
                     level = "prev"
@@ -1062,13 +1071,13 @@ def write_setup_ini(args, packages, arch):
                     tar_line(packages[p], 'install', version, f)
                     is_empty = packages[p].tar(version, 'install').is_empty
 
-                hints = packages[p].version_hints[version]
+                hints = packages[p].version_hints.get(version, {})
 
                 # follow external-source
                 if 'external-source' in hints:
                     s = hints['external-source']
                 else:
-                    s = p + '-src'
+                    s = sibling_src
                     if s not in packages:
                         s = None
 
