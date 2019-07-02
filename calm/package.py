@@ -56,7 +56,7 @@ class Package(object):
         self.version_hints = {}
         self.override_hints = {}
         self.skip = False
-        self.vermap = defaultdict(defaultdict)
+        self.vermap = {}
 
     def __repr__(self):
         return "Package('%s', %s, %s, %s, %s)" % (
@@ -485,7 +485,7 @@ def validate_packages(args, packages):
                             packages[o].version_hints[ov]['depends'] = ','.join(depends)
                             logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
 
-        packages[p].vermap = defaultdict(defaultdict)
+        packages[p].vermap = {}
         is_empty = {}
         has_install = False
         has_nonempty_install = False
@@ -501,6 +501,9 @@ def validate_packages(args, packages):
                     is_empty[t] = packages[p].tars[vr][t].is_empty
                     if not is_empty[t]:
                         has_nonempty_install = True
+
+                if vr not in packages[p].vermap:
+                    packages[p].vermap[vr] = {}
 
                 # for each version, a package can contain at most one source tar
                 # file and at most one install tar file.  warn if we have too many
@@ -684,7 +687,7 @@ def validate_packages(args, packages):
         # should probably be marked obsolete
         if not packages[p].skip:
             for vr in packages[p].version_hints:
-                if '_obsolete' not in packages[p].version_hints[vr].get('category', ''):
+                if '_obsolete' not in packages[p].version_hints[vr].get('category', '') and vr in packages[p].vermap:
                     if ('source' not in packages[p].vermap[vr]) and ('external-source' not in packages[p].version_hints[vr]):
                         if 'install' in packages[p].vermap[vr]:
                             if packages[p].tar(vr, 'install').is_empty:
@@ -725,7 +728,7 @@ def validate_packages(args, packages):
             if 'external-source' in packages[p].version_hints[v]:
                 es_p = packages[p].version_hints[v]['external-source']
                 if es_p in packages:
-                    if 'source' in packages[es_p].vermap[v]:
+                    if v in packages[es_p].vermap and 'source' in packages[es_p].vermap[v]:
                         packages[es_p].tar(v, 'source').is_used = True
                         packages[es_p].is_used_by.add(p)
                         continue
@@ -937,11 +940,6 @@ def write_setup_ini(args, packages, arch):
             #
             # these [prev] or [test] sections are superseded by the final ones.
             for version in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
-                # ignore versions which should have been removed by stale
-                # package removal
-                if not (set(['install', 'source']) & set(packages[p].vermap[version])):
-                    continue
-
                 # skip over versions assigned to stability level: 'curr' has
                 # already be done, and 'prev' and 'test' will be done later
                 skip = False
@@ -979,7 +977,7 @@ def write_setup_ini(args, packages, arch):
                     print("[%s]" % tag, file=f)
                 print("version: %s" % version, file=f)
 
-                if 'install' in packages[p].vermap[version]:
+                if 'install' in packages[p].vermap.get(version, {}):
                     tar_line(packages[p], 'install', version, f)
 
                 # look for corresponding source in this package first
@@ -993,7 +991,7 @@ def write_setup_ini(args, packages, arch):
                         print("Source: %s" % (s), file=f)
                     # external-source points to a source file in another package
                     else:
-                        if 'source' in packages[s].vermap[version]:
+                        if 'source' in packages[s].vermap.get(version, {}):
                             tar_line(packages[s], 'source', version, f)
                         else:
                             logging.warning("package '%s' version '%s' has no source in external-source '%s'" % (p, version, s))
@@ -1269,8 +1267,10 @@ def stale_packages(packages):
     # build a move list of stale versions
     stale = MoveList()
     for pn, po in packages.items():
+        all_stale = {}
+
         for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
-            all_stale = True
+            all_stale[v] = True
             for category in ['source', 'install']:
                 if category in po.vermap[v]:
                     if not getattr(po.tar(v, category), 'fresh', False):
@@ -1278,14 +1278,14 @@ def stale_packages(packages):
                         stale.add(to.path, to.fn)
                         logging.debug("package '%s' version '%s' %s is stale" % (pn, v, category))
                     else:
-                        all_stale = False
+                        all_stale[v] = False
 
+        for v in po.hints:
             # if there's a pvr.hint without a fresh source or install of the
             # same version, move it as well
-            if all_stale:
-                if v in po.hints:
-                    stale.add(po.hints[v].path, po.hints[v].fn)
-                    logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
+            if all_stale.get(v, True):
+                stale.add(po.hints[v].path, po.hints[v].fn)
+                logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 
         # clean up freshness mark
         for v in po.vermap:
