@@ -21,10 +21,11 @@
 #
 
 
-import logging
-import logging.handlers
 import email.message
 import email.utils
+import logging
+import logging.handlers
+import subprocess
 
 from . import common_constants
 
@@ -84,16 +85,8 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                 print(msg)
                 print('-' * 40)
             elif len(self.toaddrs) > 0:
-                try:
-                    import smtplib
-                    port = self.mailport
-                    if not port:
-                        port = smtplib.SMTP_PORT
-                    smtp = smtplib.SMTP(self.mailhost, port)
-                    smtp.send_message(m)
-                    smtp.quit()
-                except ImportError:
-                    self.handleError(self.buffer[0])  # first record
+                with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi'], stdin=subprocess.PIPE) as p:
+                    p.communicate(m.as_bytes())
 
             self.buffer = []
 
