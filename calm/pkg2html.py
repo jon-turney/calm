@@ -267,7 +267,6 @@ def update_package_listings(args, packages):
                             def tar_line(pn, p, category, v, arch, f):
                                 if category not in p.vermap[v]:
                                     return
-                                t = p.vermap[v][category]
                                 size = int(math.ceil(p.tar(v, category).size / 1024))
                                 name = v if category == 'install' else v + ' (source)'
                                 target = "%s-%s" % (p.orig_name, v) + ('' if category == 'install' else '-src')

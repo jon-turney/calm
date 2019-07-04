@@ -30,7 +30,6 @@ import filecmp
 import os
 import logging
 import re
-import shutil
 import tarfile
 import time
 

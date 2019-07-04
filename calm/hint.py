@@ -363,7 +363,7 @@ def main(args):
     status = 0
 
     for fn in args.files:
-        hints = hint_file_parse(fn, setup)
+        hints = hint_file_parse(fn, pvr)
 
         if args.verbose > 1:
             print(hints)

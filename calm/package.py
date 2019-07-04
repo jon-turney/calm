@@ -47,7 +47,8 @@ from . import maintainers
 from . import past_mistakes
 
 
-# kinds of packages @unique
+# kinds of packages
+@unique
 class Kind(Enum):
     binary = 1  # aka 'install'
     source = 2

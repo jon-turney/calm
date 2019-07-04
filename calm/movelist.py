@@ -23,6 +23,7 @@
 
 import logging
 import os
+import shutil
 
 from collections import defaultdict
 from . import utils
@@ -92,7 +93,7 @@ class MoveList(object):
         return i
 
     # copy the files in a movelist
-    def copy(args, fromdir, todir):
+    def copy(self, args, fromdir, todir):
         for p in sorted(self.movelist):
             logging.debug("mkdir %s" % os.path.join(todir, p))
             if not args.dryrun:

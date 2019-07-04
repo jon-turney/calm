@@ -52,7 +52,6 @@
 # write setup.ini file
 #
 
-from collections import defaultdict
 from contextlib import ExitStack
 import argparse
 import logging
@@ -142,7 +141,7 @@ def process_uploads(args, state):
         m = mlist[name]
 
         # also send a mail to each maintainer about their packages
-        with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (state.subject, name), thresholdLevel=logging.INFO) as maint_email:
+        with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (state.subject, name), thresholdLevel=logging.INFO) as maint_email:  # noqa: F841
 
             # for each arch and noarch
             scan_result = {}
@@ -272,7 +271,7 @@ def process_uploads(args, state):
 
 def process(args, state):
     # send one email per run to leads, if any errors occurred
-    with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
+    with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:  # noqa: F841
         if args.dryrun:
             logging.warning("--dry-run is in effect, nothing will really be done")
 
@@ -593,7 +592,7 @@ def do_daemon(args, state):
                 # cancel any pending alarm
                 signal.alarm(0)
         except Exception as e:
-            with mail_logs(args.email, toaddrs=args.email, subject='calm stopping due to unhandled exception', thresholdLevel=logging.ERROR) as leads_email:
+            with mail_logs(args.email, toaddrs=args.email, subject='calm stopping due to unhandled exception', thresholdLevel=logging.ERROR) as leads_email:  # noqa: F841
                 logging.error("exception %s" % (type(e).__name__), exc_info=True)
             irk.irk("calm daemon stopped due to unhandled exception")
         else:

@@ -102,7 +102,7 @@ def spellcheck_hints(args, packages):
             w = re.sub(r'[\d.]*$', '', w)
 
             # both with and without any lib prefix
-            for w1 in [w, re.sub(r'^lib', '', w)]:
+            for wl in [w, re.sub(r'^lib', '', w)]:
                 # add the package name unless it exists in the list above, which
                 # will give a canonical capitalization
                 if wl.lower() not in wordlist:
