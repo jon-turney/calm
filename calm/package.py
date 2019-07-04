@@ -255,168 +255,168 @@ def read_package_dir(packages, basedir, dirpath, files, remove=[], upload=False)
 # read a single package
 #
 def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
-        warnings = False
+    warnings = False
 
-        if not re.match(r'^[\w\-._+]*$', p):
-            logging.error("package '%s' name contains illegal characters" % p)
+    if not re.match(r'^[\w\-._+]*$', p):
+        logging.error("package '%s' name contains illegal characters" % p)
+        return True
+
+    # assumption: no real package names end with '-src'
+    #
+    # enforce this, because source and install package names exist in a
+    # single namespace currently, and otherwise there could be a collision
+    if p.endswith('-src'):
+        logging.error("package '%s' name ends with '-src'" % p)
+        return True
+
+    # check for duplicate package names at different paths
+    (_, _, pkgpath) = relpath.split(os.sep, 2)
+    pn = p + ('-src' if kind == Kind.source else '')
+
+    if pn in packages:
+        logging.error("duplicate package name at paths %s and %s" %
+                      (relpath, packages[p].pkgpath))
+        return True
+
+    # determine version overrides
+    note_absent = ('override.hint' in remove) or ('override.hint' in files)
+
+    if 'override.hint' in files:
+        # read override.hint
+        override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
+        if override_hints is None:
+            logging.error("error parsing %s" % (os.path.join(dirpath, 'override.hint')))
             return True
+        files.remove('override.hint')
+    else:
+        override_hints = {}
 
-        # assumption: no real package names end with '-src'
-        #
-        # enforce this, because source and install package names exist in a
-        # single namespace currently, and otherwise there could be a collision
-        if p.endswith('-src'):
-            logging.error("package '%s' name ends with '-src'" % p)
-            return True
+    # if override.hint exists or is being removed, explicitly note absent
+    # stability level hints
+    if note_absent:
+        for level in ['test', 'curr', 'prev']:
+            if level not in override_hints:
+                override_hints[level] = None
 
-        # check for duplicate package names at different paths
-        (_, _, pkgpath) = relpath.split(os.sep, 2)
-        pn = p + ('-src' if kind == Kind.source else '')
+    # read sha512.sum
+    sha512 = {}
+    if 'sha512.sum' not in files:
+        logging.debug("no sha512.sum for package '%s'" % p)
+    else:
+        files.remove('sha512.sum')
 
-        if pn in packages:
-            logging.error("duplicate package name at paths %s and %s" %
-                          (relpath, packages[p].pkgpath))
-            return True
-
-        # determine version overrides
-        note_absent = ('override.hint' in remove) or ('override.hint' in files)
-
-        if 'override.hint' in files:
-            # read override.hint
-            override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
-            if override_hints is None:
-                logging.error("error parsing %s" % (os.path.join(dirpath, 'override.hint')))
-                return True
-            files.remove('override.hint')
-        else:
-            override_hints = {}
-
-        # if override.hint exists or is being removed, explicitly note absent
-        # stability level hints
-        if note_absent:
-            for level in ['test', 'curr', 'prev']:
-                if level not in override_hints:
-                    override_hints[level] = None
-
-        # read sha512.sum
-        sha512 = {}
-        if 'sha512.sum' not in files:
-            logging.debug("no sha512.sum for package '%s'" % p)
-        else:
-            files.remove('sha512.sum')
-
-            with open(os.path.join(dirpath, 'sha512.sum')) as fo:
-                for l in fo:
-                    match = re.match(r'^(\S+)\s+(?:\*|)(\S+)$', l)
-                    if match:
-                        sha512[match.group(2)] = match.group(1)
-                    else:
-                        logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l.strip(), p))
-
-        # build a list of version-releases (since replacement pvr.hint files are
-        # allowed to be uploaded, we must consider both .tar and .hint files for
-        # that), and collect the attributes for each tar file
-        tars = defaultdict(dict)
-        vr_list = set()
-
-        for f in list(files):
-            # warn if filename doesn't follow P-V-R naming convention
-            #
-            # P must match the package name, V can contain anything, R must
-            # start with a number
-            match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.(tar\.(bz2|gz|lzma|xz)|hint)$', f)
-            if not match:
-                logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
-                return True
-            else:
-                v = match.group(1)
-                r = match.group(2)
-
-                # historically, V can contain a '-' (since we can use the fact
-                # we already know P to split unambiguously), but this is a bad
-                # idea.
-                if '-' in v:
-                    if v in past_mistakes.hyphen_in_version.get(p, []):
-                        lvl = logging.INFO
-                    else:
-                        lvl = logging.ERROR
-                        warnings = True
-                    logging.log(lvl, "file '%s' in package '%s' contains '-' in version" % (f, p))
-
-                if not v[0].isdigit():
-                    logging.error("file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
-                    warnings = True
-
-                # if not there already, add to version-release list
-                vr = '%s-%s' % (v, r)
-                vr_list.add(vr)
-
-            if not f.endswith('.hint'):
-                # collect the attributes for each tar file
-                t = Tar()
-                t.path = relpath
-                t.fn = f
-                t.size = os.path.getsize(os.path.join(dirpath, f))
-                t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
-                t.mtime = os.path.getmtime(os.path.join(dirpath, f))
-
-                if f in sha512:
-                    t.sha512 = sha512[f]
+        with open(os.path.join(dirpath, 'sha512.sum')) as fo:
+            for l in fo:
+                match = re.match(r'^(\S+)\s+(?:\*|)(\S+)$', l)
+                if match:
+                    sha512[match.group(2)] = match.group(1)
                 else:
-                    t.sha512 = sha512_file(os.path.join(dirpath, f))
-                    logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, t.sha512))
+                    logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l.strip(), p))
 
-                tars[vr][f] = t
+    # build a list of version-releases (since replacement pvr.hint files are
+    # allowed to be uploaded, we must consider both .tar and .hint files for
+    # that), and collect the attributes for each tar file
+    tars = defaultdict(dict)
+    vr_list = set()
 
-        # determine hints for each version we've encountered
-        version_hints = {}
-        hints = {}
-        actual_tars = {}
-        for vr in vr_list:
-            hint_fn = '%s-%s.hint' % (p, vr)
-            if hint_fn in files:
-                # is there a PVR.hint file?
-                pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
-                if not pvr_hint:
-                    logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
-                    return True
-                warnings = clean_hints(p, pvr_hint, warnings)
+    for f in list(files):
+        # warn if filename doesn't follow P-V-R naming convention
+        #
+        # P must match the package name, V can contain anything, R must
+        # start with a number
+        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.(tar\.(bz2|gz|lzma|xz)|hint)$', f)
+        if not match:
+            logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
+            return True
+        else:
+            v = match.group(1)
+            r = match.group(2)
+
+            # historically, V can contain a '-' (since we can use the fact
+            # we already know P to split unambiguously), but this is a bad
+            # idea.
+            if '-' in v:
+                if v in past_mistakes.hyphen_in_version.get(p, []):
+                    lvl = logging.INFO
+                else:
+                    lvl = logging.ERROR
+                    warnings = True
+                logging.log(lvl, "file '%s' in package '%s' contains '-' in version" % (f, p))
+
+            if not v[0].isdigit():
+                logging.error("file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
+                warnings = True
+
+            # if not there already, add to version-release list
+            vr = '%s-%s' % (v, r)
+            vr_list.add(vr)
+
+        if not f.endswith('.hint'):
+            # collect the attributes for each tar file
+            t = Tar()
+            t.path = relpath
+            t.fn = f
+            t.size = os.path.getsize(os.path.join(dirpath, f))
+            t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
+            t.mtime = os.path.getmtime(os.path.join(dirpath, f))
+
+            if f in sha512:
+                t.sha512 = sha512[f]
             else:
-                # it's an error to not have a pvr.hint
-                logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
+                t.sha512 = sha512_file(os.path.join(dirpath, f))
+                logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, t.sha512))
+
+            tars[vr][f] = t
+
+    # determine hints for each version we've encountered
+    version_hints = {}
+    hints = {}
+    actual_tars = {}
+    for vr in vr_list:
+        hint_fn = '%s-%s.hint' % (p, vr)
+        if hint_fn in files:
+            # is there a PVR.hint file?
+            pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
+            if not pvr_hint:
+                logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
                 return True
+            warnings = clean_hints(p, pvr_hint, warnings)
+        else:
+            # it's an error to not have a pvr.hint
+            logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
+            return True
 
-            # apply a version override
-            if 'version' in pvr_hint:
-                ovr = pvr_hint['version']
-            else:
-                ovr = vr
+        # apply a version override
+        if 'version' in pvr_hint:
+            ovr = pvr_hint['version']
+        else:
+            ovr = vr
 
-            # external source will always point to a source package
-            if 'external-source' in pvr_hint:
-                pvr_hint['external-source'] += '-src'
+        # external source will always point to a source package
+        if 'external-source' in pvr_hint:
+            pvr_hint['external-source'] += '-src'
 
-            hintobj = Hint()
-            hintobj.path = relpath
-            hintobj.fn = hint_fn
-            hintobj.hints = pvr_hint
+        hintobj = Hint()
+        hintobj.path = relpath
+        hintobj.fn = hint_fn
+        hintobj.hints = pvr_hint
 
-            version_hints[ovr] = pvr_hint
-            hints[ovr] = hintobj
-            actual_tars[ovr] = tars[vr]
+        version_hints[ovr] = pvr_hint
+        hints[ovr] = hintobj
+        actual_tars[ovr] = tars[vr]
 
-        packages[pn].version_hints = version_hints
-        packages[pn].override_hints = override_hints
-        packages[pn].tars = actual_tars
-        packages[pn].hints = hints
-        packages[pn].pkgpath = pkgpath
-        packages[pn].skip = any(['skip' in version_hints[vr] for vr in version_hints])
-        packages[pn].kind = kind
-        # since we are kind of inventing the source package names, and don't
-        # want to report them, keep track of the real name
-        packages[pn].orig_name = p
+    packages[pn].version_hints = version_hints
+    packages[pn].override_hints = override_hints
+    packages[pn].tars = actual_tars
+    packages[pn].hints = hints
+    packages[pn].pkgpath = pkgpath
+    packages[pn].skip = any(['skip' in version_hints[vr] for vr in version_hints])
+    packages[pn].kind = kind
+    # since we are kind of inventing the source package names, and don't
+    # want to report them, keep track of the real name
+    packages[pn].orig_name = p
 
-        return warnings
+    return warnings
 
 
 #
