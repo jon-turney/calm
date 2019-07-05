@@ -1179,8 +1179,8 @@ def write_repo_json(args, packages, f):
             'arches': arches,
         }
 
-        if pkg_maintainers[pn] and ('ORPHANED' not in pkg_maintainers[pn]):
-            d['maintainers'] = pkg_maintainers[pn]
+        if pkg_maintainers[po.orig_name] and ('ORPHANED' not in pkg_maintainers[po.orig_name]):
+            d['maintainers'] = pkg_maintainers[po.orig_name]
 
         pl.append(d)
 
