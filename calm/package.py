@@ -1172,7 +1172,7 @@ def write_repo_json(args, packages, f):
             versions[key] = versions.get(key, []) + [vr]
 
         d = {
-            'name': pn,
+            'name': po.orig_name,
             'versions': versions,
             'summary': po.version_hints[bv]['sdesc'].strip('"'),
             'subpackages': [{'name': sp, 'categories': package(sp).version_hints[package(sp).best_version].get('category', '').split()} for sp in po.is_used_by],
