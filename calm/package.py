@@ -411,7 +411,10 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
     packages[pn].tars = actual_tars
     packages[pn].hints = hints
     packages[pn].pkgpath = pkgpath
-    packages[pn].skip = any(['skip' in version_hints[vr] for vr in version_hints])
+    if kind == Kind.source:
+        packages[pn].skip = True
+    else:
+        packages[pn].skip = any(['skip' in version_hints[vr] for vr in version_hints])
     packages[pn].kind = kind
     # since we are kind of inventing the source package names, and don't
     # want to report them, keep track of the real name
