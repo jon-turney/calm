@@ -28,6 +28,8 @@
 import collections
 import contextlib
 import filecmp
+import io
+import json
 import logging
 import os
 import pprint
@@ -459,7 +461,15 @@ class CalmTest(unittest.TestCase):
             with self.subTest(directory=d):
                 dirlist = capture_dirtree(getattr(args, d))
                 compare_with_expected_file(self, 'testdata/process_arch', dirlist, d)
-                shutil.rmtree(getattr(args, d))
+
+        with io.StringIO() as jsonfile:
+            package.write_repo_json(args, packages, jsonfile)
+            j = json.loads(jsonfile.getvalue(), object_pairs_hook=collections.OrderedDict)
+            del j['timestamp']
+            compare_with_expected_file(self, 'testdata/process_arch', json.dumps(j, sort_keys=True, indent=4), 'packages.json')
+
+        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+            shutil.rmtree(getattr(args, d))
 
     @classmethod
     def setUpClass(cls):
