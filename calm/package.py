@@ -764,7 +764,7 @@ def validate_packages(args, packages):
                     if ('source' not in packages[p].vermap[vr]) and ('external-source' not in packages[p].version_hints[vr]):
                         if 'install' in packages[p].vermap[vr]:
                             if packages[p].tar(vr, 'install').is_empty:
-                                if ((p in past_mistakes.empty_but_not_obsolete) or
+                                if ((vr in past_mistakes.empty_but_not_obsolete.get(p, [])) or
                                     ('empty-obsolete' in packages[p].version_hints[vr].get('disable-check', ''))):
                                     lvl = logging.DEBUG
                                 else:
