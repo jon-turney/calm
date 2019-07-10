@@ -237,10 +237,8 @@ def read_package_dir(packages, basedir, dirpath, files, remove=[], upload=False)
     # read package
     result = False
     for kind in Kind:
-        # always create binary packages when uploading to allow replacement
-        # hints, otherwise, only create a package if there's archives for it to
-        # contain
-        if fl[kind] or (upload and kind == Kind.binary):
+        # only create a package if there's archives for it to contain
+        if fl[kind]:
             result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], remove, kind) or result
 
     # warn about unexpected files, including tarfiles which don't match the
