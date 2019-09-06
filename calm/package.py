@@ -1215,7 +1215,7 @@ def merge(a, *l):
             else:
                 # package must exist at same relative path
                 if c[p].pkgpath != b[p].pkgpath:
-                    logging.error("package '%s' is at paths %s and %s" % (p, c[p].path, b[p].path))
+                    logging.error("package '%s' is at paths %s and %s" % (p, c[p].pkgpath, b[p].pkgpath))
                     return None
                 else:
                     for vr in b[p].tars:
