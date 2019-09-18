@@ -554,7 +554,7 @@ def do_daemon(args, state):
                         state.packages = process_relarea(args)
 
                     if not state.packages:
-                        logging.error("not processing uploads or writing setup.ini")
+                        logging.error("errors in relarea, not processing uploads or writing setup.ini")
                     else:
                         if read_uploads:
                             if last_signal != signal.SIGALRM:
