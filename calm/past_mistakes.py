@@ -200,10 +200,6 @@ missing_obsolete = {
 }
 
 # provides: which don't exist
-#
-# we need statefullness to remember packages which have been totally expired,
-# rather than having to list them here. (not keeping this list means we can't
-# check for 'obsoletes: typoed-package-name').
 nonexistent_provides = [
     'perl5_026',
     'rdiff-debuginfo',           # not in x86

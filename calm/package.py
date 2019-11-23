@@ -482,14 +482,18 @@ def sort_key(k):
 #
 # validate the package database
 #
-def validate_packages(args, packages):
+def validate_packages(args, packages, valid_requires_extra=None):
     error = False
 
     if packages is None:
         return False
 
-    # build the set of valid things to requires:
+    # build the set of valid things to requires: etc.
     valid_requires = set()
+
+    if valid_requires_extra:
+        valid_requires.update(valid_requires_extra)
+
     for p in packages:
         valid_requires.add(p)
         for hints in packages[p].version_hints.values():

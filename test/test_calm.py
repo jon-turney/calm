@@ -395,7 +395,7 @@ class CalmTest(unittest.TestCase):
 
         args = types.SimpleNamespace()
 
-        for d in ['rel_area', 'homedir', 'vault']:
+        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
             setattr(args, d, tempfile.mktemp())
             logging.info('%s = %s', d, getattr(args, d))
 
@@ -413,11 +413,11 @@ class CalmTest(unittest.TestCase):
         os.system('touch "%s"' % (os.path.join(m_homedir, 'x86', 'release', 'staleversion', '!ready')))
 
         state = calm.calm.CalmState()
-        state.packages = calm.calm.process_relarea(args)
+        state.packages = calm.calm.process_relarea(args, state)
         state.packages = calm.calm.process_uploads(args, state)
         self.assertTrue(state.packages)
 
-        for d in ['rel_area', 'homedir', 'vault']:
+        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
             with self.subTest(directory=d):
                 dirlist = capture_dirtree(getattr(args, d))
                 compare_with_expected_file(self, 'testdata/conflict', dirlist, d)

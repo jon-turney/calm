@@ -67,6 +67,7 @@ from .abeyance_handler import AbeyanceHandler
 from .buffering_smtp_handler import BufferingSMTPHandler
 from .movelist import MoveList
 from . import common_constants
+from . import db
 from . import irk
 from . import maintainers
 from . import package
@@ -86,25 +87,26 @@ class CalmState(object):
     def __init__(self):
         self.subject = ''
         self.packages = {}
+        self.valid_provides = set()
 
 
 #
 #
 #
 
-def process_relarea(args):
+def process_relarea(args, state):
     packages = {}
     error = False
 
-    # for each arch
+    # read the package list for each arch
     for arch in common_constants.ARCHES:
         logging.debug("reading existing packages for arch %s" % (arch))
-
-        # build package list
         packages[arch] = package.read_packages(args.rel_area, arch)
 
-        # validate the package set
-        if not package.validate_packages(args, packages[arch]):
+    # validate the package set for each arch
+    state.valid_provides = db.update_package_names(args, packages)
+    for arch in common_constants.ARCHES:
+        if not package.validate_packages(args, packages[arch], state.valid_provides):
             logging.error("existing %s package set has errors" % (arch))
             error = True
 
@@ -114,7 +116,7 @@ def process_relarea(args):
     # packages can be stale due to changes made directly in the release
     # area, so first check here if there are any stale packages to vault
     if args.stale:
-        stale_to_vault = remove_stale_packages(args, packages)
+        stale_to_vault = remove_stale_packages(args, packages, state)
         if stale_to_vault:
             for arch in common_constants.ARCHES + ['noarch', 'src']:
                 logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
@@ -187,9 +189,11 @@ def process_uploads(args, state):
                 # remove files which are to be removed
                 scan_result[arch].to_vault.map(lambda p, f: package.delete(merged_packages[arch], p, f))
 
-                # validate the package set
+            # validate the package set
+            state.valid_provides = db.update_package_names(args, merged_packages)
+            for arch in common_constants.ARCHES:
                 logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
-                if not package.validate_packages(args, merged_packages[arch]):
+                if not package.validate_packages(args, merged_packages[arch], state.valid_provides):
                     logging.error("error while validating merged %s packages for %s" % (arch, name))
                     valid = False
 
@@ -201,7 +205,7 @@ def process_uploads(args, state):
             # check for packages which are stale as a result of this upload,
             # which we will want in the same report
             if args.stale:
-                stale_to_vault = remove_stale_packages(args, merged_packages)
+                stale_to_vault = remove_stale_packages(args, merged_packages, state)
 
                 # if an error occurred ...
                 if not stale_to_vault:
@@ -274,7 +278,7 @@ def process(args, state):
         if args.dryrun:
             logging.warning("--dry-run is in effect, nothing will really be done")
 
-        state.packages = process_relarea(args)
+        state.packages = process_relarea(args, state)
         if not state.packages:
             return None
 
@@ -287,7 +291,7 @@ def process(args, state):
 # remove stale packages
 #
 
-def remove_stale_packages(args, packages):
+def remove_stale_packages(args, packages, state):
     to_vault = {}
     to_vault['noarch'] = MoveList()
     to_vault['src'] = MoveList()
@@ -309,8 +313,9 @@ def remove_stale_packages(args, packages):
     # re-validate package sets
     # (this shouldn't fail, but we check just to sure...)
     error = False
+    state.valid_provides = db.update_package_names(args, packages)
     for arch in common_constants.ARCHES:
-        if not package.validate_packages(args, packages[arch]):
+        if not package.validate_packages(args, packages[arch], state.valid_provides):
             logging.error("%s package set has errors after removing stale packages" % arch)
             error = True
 
@@ -561,7 +566,7 @@ def do_daemon(args, state):
                         if last_signal != signal.SIGALRM:
                             irk.irk("calm processing release area")
                         read_relarea = False
-                        state.packages = process_relarea(args)
+                        state.packages = process_relarea(args, state)
 
                     if not state.packages:
                         logging.error("errors in relarea, not processing uploads or writing setup.ini")
