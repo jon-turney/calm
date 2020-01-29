@@ -973,39 +973,41 @@ def write_setup_ini(args, packages, arch):
             print("setup-version: %s" % args.setup_version, file=f)
 
         # for each package
-        for p in sorted(packages.keys(), key=sort_key):
+        for pn in sorted(packages, key=sort_key):
+            po = packages[pn]
+
             # do nothing if 'skip'
-            if packages[p].skip:
+            if po.skip:
                 continue
 
             # write package data
-            print("\n@ %s" % p, file=f)
+            print("\n@ %s" % pn, file=f)
 
-            bv = packages[p].best_version
-            print("sdesc: %s" % packages[p].version_hints[bv]['sdesc'], file=f)
+            bv = po.best_version
+            print("sdesc: %s" % po.version_hints[bv]['sdesc'], file=f)
 
-            if 'ldesc' in packages[p].version_hints[bv]:
-                print("ldesc: %s" % packages[p].version_hints[bv]['ldesc'], file=f)
+            if 'ldesc' in po.version_hints[bv]:
+                print("ldesc: %s" % po.version_hints[bv]['ldesc'], file=f)
 
             # for historical reasons, category names must start with a capital
             # letter
-            category = ' '.join(map(upper_first_character, packages[p].version_hints[bv]['category'].split()))
+            category = ' '.join(map(upper_first_character, po.version_hints[bv]['category'].split()))
             print("category: %s" % category, file=f)
 
             # compute the union of requires for all versions
             requires = set()
-            for hints in packages[p].version_hints.values():
+            for hints in po.version_hints.values():
                 if 'requires' in hints:
                     requires = set.union(requires, hints['requires'].split())
             # empty requires are suppressed as setup's parser can't handle that
             if requires:
                 print("requires: %s" % ' '.join(sorted(requires)), file=f)
 
-            if 'message' in packages[p].version_hints[bv]:
-                print("message: %s" % packages[p].version_hints[bv]['message'], file=f)
+            if 'message' in po.version_hints[bv]:
+                print("message: %s" % po.version_hints[bv]['message'], file=f)
 
-            if 'replace-versions' in packages[p].override_hints:
-                print("replace-versions: %s" % packages[p].override_hints['replace-versions'], file=f)
+            if 'replace-versions' in po.override_hints:
+                print("replace-versions: %s" % po.override_hints['replace-versions'], file=f)
 
             # make a list of version sections
             #
@@ -1018,8 +1020,8 @@ def write_setup_ini(args, packages, arch):
             # due to a historic bug in setup (fixed in 78e4c7d7), we keep the
             # [curr] version first, to ensure that dependencies are used
             # correctly.
-            if 'curr' in packages[p].stability:
-                version = packages[p].stability['curr']
+            if 'curr' in po.stability:
+                version = po.stability['curr']
                 vs.append((version, 'curr'))
 
             # next put any other versions
@@ -1029,8 +1031,8 @@ def write_setup_ini(args, packages, arch):
             # (to maintain historical behaviour, include versions which only
             # exist as a source package)
             #
-            versions = set(packages[p].vermap.keys())
-            sibling_src = p + '-src'
+            versions = set(po.vermap.keys())
+            sibling_src = pn + '-src'
             if sibling_src in packages:
                 versions.update(packages[sibling_src].vermap.keys())
 
@@ -1039,8 +1041,8 @@ def write_setup_ini(args, packages, arch):
                 # already be done, and 'prev' and 'test' will be done later
                 skip = False
                 for level in ['curr', 'prev', 'test']:
-                    if level in packages[p].stability:
-                        if version == packages[p].stability[level]:
+                    if level in po.stability:
+                        if version == po.stability[level]:
                             skip = True
                             break
 
@@ -1048,7 +1050,7 @@ def write_setup_ini(args, packages, arch):
                     continue
 
                 # test versions receive the test label
-                if 'test' in packages[p].version_hints.get(version, {}):
+                if 'test' in po.version_hints.get(version, {}):
                     level = "test"
                 else:
                     level = "prev"
@@ -1061,8 +1063,8 @@ def write_setup_ini(args, packages, arch):
             # version in the final [test] section is the one selected when test
             # packages are requested.
             for level in ['prev', 'test']:
-                if level in packages[p].stability:
-                    version = packages[p].stability[level]
+                if level in po.stability:
+                    version = po.stability[level]
                     vs.append((version, level))
 
             # write the section for each version
@@ -1073,11 +1075,11 @@ def write_setup_ini(args, packages, arch):
                 print("version: %s" % version, file=f)
 
                 is_empty = False
-                if 'install' in packages[p].vermap.get(version, {}):
-                    tar_line(packages[p], 'install', version, f)
-                    is_empty = packages[p].tar(version, 'install').is_empty
+                if 'install' in po.vermap.get(version, {}):
+                    tar_line(po, 'install', version, f)
+                    is_empty = po.tar(version, 'install').is_empty
 
-                hints = packages[p].version_hints.get(version, {})
+                hints = po.version_hints.get(version, {})
 
                 # follow external-source
                 if 'external-source' in hints:
@@ -1093,7 +1095,7 @@ def write_setup_ini(args, packages, arch):
                         tar_line(packages[s], 'source', version, f)
                     else:
                         if not (is_empty or packages[s].orig_name in past_mistakes.self_source):
-                            logging.warning("package '%s' version '%s' has no source in '%s'" % (p, version, packages[s].orig_name))
+                            logging.warning("package '%s' version '%s' has no source in '%s'" % (pn, version, packages[s].orig_name))
 
                 # external-source should also be capable of pointing to a 'real'
                 # source package (if cygport could generate such a thing), in
