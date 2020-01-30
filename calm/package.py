@@ -108,7 +108,7 @@ def read_packages(rel_area, arch):
 
     # <arch>/ noarch/ and src/ directories are considered
     for root in ['noarch', 'src', arch]:
-        packages[root] = defaultdict(Package)
+        packages[root] = {}
 
         releasedir = os.path.join(rel_area, root)
         logging.debug('reading packages from %s' % releasedir)
@@ -404,6 +404,7 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
         hints[ovr] = hintobj
         actual_tars[ovr] = tars[vr]
 
+    packages[pn] = Package()
     packages[pn].version_hints = version_hints
     packages[pn].override_hints = override_hints
     packages[pn].tars = actual_tars
