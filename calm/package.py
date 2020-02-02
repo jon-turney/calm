@@ -540,12 +540,16 @@ def validate_packages(args, packages):
                     o = o.strip()
                     o = re.sub(r'(.*) +\(.*\)', r'\1', o)
 
-                    for (ov, ohints) in packages[o].version_hints.items():
-                        if 'depends' in ohints:
-                            depends = ohints['depends'].split(',')
-                            depends = [d for d in depends if d != p]
-                            packages[o].version_hints[ov]['depends'] = ','.join(depends)
-                            logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
+                    if o in packages:
+                        for (ov, ohints) in packages[o].version_hints.items():
+                            if 'depends' in ohints:
+                                depends = ohints['depends'].split(',')
+                                if p in depends:
+                                    depends = [d for d in depends if d != p]
+                                    packages[o].version_hints[ov]['depends'] = ','.join(depends)
+                                    logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
+                    else:
+                        logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
 
         packages[p].vermap = {}
         is_empty = {}
