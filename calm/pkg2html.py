@@ -434,8 +434,11 @@ def write_arch_listing(args, packages, arch):
         #
         # for each tarfile, write tarfile listing
         #
-        listings = os.listdir(dir)
-        listings.remove('.htaccess')
+        if os.path.exists(dir):
+            listings = os.listdir(dir)
+            listings.remove('.htaccess')
+        else:
+            listings = []
 
         for tn, to in itertools.chain.from_iterable([packages[p].tars[vr].items() for vr in packages[p].tars]):
             fver = re.sub(r'\.tar.*$', '', tn)
