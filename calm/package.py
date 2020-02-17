@@ -225,7 +225,10 @@ def read_package_dir(packages, basedir, dirpath, files, remove=[], upload=False)
             fl['all'].append(f)
             files.remove(f)
         elif re.match(r'^' + re.escape(p) + r'.*\.hint$', f):
-            fl['all'].append(f)
+            if f.endswith('-src.hint'):
+                fl[Kind.source].append(f)
+            else:
+                fl[Kind.binary].append(f)
             files.remove(f)
         elif re.match(r'^' + re.escape(p) + r'.*\.tar\.(bz2|gz|lzma|xz)$', f):
             if '-src.tar' in f:
@@ -372,7 +375,7 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
     hints = {}
     actual_tars = {}
     for vr in vr_list:
-        hint_fn = '%s-%s.hint' % (p, vr)
+        hint_fn = '%s-%s%s.hint' % (p, vr, '-src' if kind == Kind.source else '')
         if hint_fn in files:
             # is there a PVR.hint file?
             pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
@@ -1403,26 +1406,8 @@ def stale_packages(packages):
 
         for v in po.hints:
             # if there's a pvr.hint without a fresh source or install of the
-            # same version, move it as well (this is complicated as the hint may
-            # be used by both a binary and source package; give the source
-            # package ownership, if it exists)
-
-            if po.kind == Kind.source:
-                if ((po.orig_name in packages) and
-                    (v in packages[po.orig_name].vermap) and
-                    ('install' in packages[po.orig_name].vermap[v])):
-                    sourceless = packages[po.orig_name].tar(v, 'install').sourceless
-                else:
-                    sourceless = False
-            else:
-                if 'install' in po.vermap.get(v, {}):
-                    sourceless = po.tar(v, 'install').sourceless
-                else:
-                    sourceless = False
-
-            binary_owns_hint = ('external-source' in po.hints[v].hints) or sourceless
-
-            if all_stale.get(v, True) and ((po.kind == Kind.binary) == binary_owns_hint):
+            # same version, move it as well
+            if all_stale.get(v, True):
                 stale.add(po.hints[v].path, po.hints[v].fn)
                 logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 

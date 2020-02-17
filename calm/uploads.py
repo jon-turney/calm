@@ -30,6 +30,7 @@ import filecmp
 import os
 import logging
 import re
+import shutil
 import tarfile
 import time
 
@@ -168,6 +169,21 @@ def scan(m, all_packages, arch, args):
                 os.rename(os.path.join(dirpath, old), os.path.join(dirpath, new))
                 files.remove(old)
                 files.append(new)
+
+        # see if we can fix-up missing -src.hint file
+        for f in sorted(files):
+            match = re.match(r'^(.*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
+            if match:
+                pvr = match.group(1)
+                old = pvr + '.hint'
+                new = pvr + '-src.hint'
+                if (old in files) and (new not in files):
+                    logging.warning("copying '%s' to '%s'" % (old, new))
+                    shutil.copy2(os.path.join(dirpath, old), os.path.join(dirpath, new))
+                    files.append(new)
+                    if f.replace('-src', '') not in files:
+                        logging.info("ignoring '%s'" % (old))
+                        files.remove(old)
 
         # filter out files we don't need to consider
         for f in sorted(files):
