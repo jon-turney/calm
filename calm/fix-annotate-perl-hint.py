@@ -21,17 +21,9 @@
 # THE SOFTWARE.
 #
 
-#
-# Annotate existing hints with requires: perl with a comment noting these
-# require perl5.26 (or possibly earlier), before we deploy perl5.30.  Later
-# these comments can be transformed into an requires: on an additional provides:
-# in perl_base package.
-#
-
 import argparse
 import logging
 import os
-import re
 import shutil
 import sys
 
@@ -46,29 +38,35 @@ from . import hint
 def fix_one_hint(dirpath, hintfile):
     pn = os.path.join(dirpath, hintfile)
 
+    annotation = False
     with open(pn, 'r') as f:
         for l in f:
-            if 'perl5_26' in l:
-                logging.info("%s already annotated" % (hintfile))
-                return
+            if '# perl5_26' in l:
+                logging.info("%s has annotation comment" % (hintfile))
+                annotation = True
+                break
+
+    if not annotation:
+        return
 
     hints = hint.hint_file_parse(pn, hint.pvr)
 
-    requires = hints.get('requires', '').split()
-    if requires:
-        if ('perl_base' in requires) or ('perl' in requires):
-            logging.info("%s has perl in requires" % (hintfile))
+    hints.pop('parse-warnings', None)
+    if 'parse-errors' in hints:
+        logging.error('invalid hints %s' % hintfile)
+        return
 
-            shutil.copy2(pn, pn + '.bak')
-            with open(pn, 'a') as f:
-                print("# perl5_26", file=f)
+    hints['notes'] = 'perl5_26'
+
+    # write updated hints
+    shutil.copy2(pn, pn + '.bak')
+    hint.hint_file_write(pn, hints)
 
 
 def fix_hints(relarea):
     for (dirpath, subdirs, files) in os.walk(relarea):
         for f in files:
-            match = re.match(r'^.*\.hint$', f)
-            if match:
+            if f.endswith('.hint'):
                 fix_one_hint(dirpath, f)
 
 #

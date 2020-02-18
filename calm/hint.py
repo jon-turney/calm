@@ -57,6 +57,7 @@ hintkeys[pvr] = {
     'disable-check': 'val',
     'provides': 'val',
     'conflicts': 'val',
+    'notes': 'val',    # tool notes; not significant to calm itself
 }
 
 hintkeys[override] = {
@@ -326,6 +327,13 @@ def hint_file_parse(fn, kind):
         hints['parse-warnings'] = warnings
 
     return hints
+
+
+# write hints |hints| to file |fn|
+def hint_file_write(fn, hints):
+    with open(fn, 'w') as f:
+        for k, v in hints.items():
+            print("%s: %s" % (k, v), file=f)
 
 
 #
