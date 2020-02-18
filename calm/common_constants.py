@@ -42,7 +42,17 @@ EMAILS = ','.join(list(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkow
 ALWAYS_BCC = 'jturney@sourceware.org, yselkowitz@sourceware.org'
 
 # these maintainers can upload orphaned packages as well
-ORPHANMAINT = "Yaakov Selkowitz"
+#
+# (these people have sourceware shell access and cygwin group membership, so
+# they can do whatever they like directly, anyhow)
+ORPHANMAINT = '/'.join([
+    'Corinna Vinschen',
+    'Eric Blake',
+    'Jon Turney',
+    'Ken Brown',
+    'Marco Atzeri',
+    'Yaakov Selkowitz',
+])
 
 # architectures we support
 ARCHES = ['x86', 'x86_64']
