@@ -36,6 +36,7 @@ import time
 
 from .movelist import MoveList
 from . import common_constants
+from . import fixes
 from . import package
 
 # reminders will be issued weekly
@@ -170,13 +171,13 @@ def scan(m, all_packages, arch, args):
                 files.remove(old)
                 files.append(new)
 
-        # see if we can fix-up missing -src.hint file
         for f in sorted(files):
-            match = re.match(r'^(.*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.match(r'^([^-].*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
             if match:
                 pvr = match.group(1)
                 old = pvr + '.hint'
                 new = pvr + '-src.hint'
+                # see if we can fix-up missing -src.hint file
                 if (old in files) and (new not in files):
                     logging.warning("copying '%s' to '%s'" % (old, new))
                     shutil.copy2(os.path.join(dirpath, old), os.path.join(dirpath, new))
@@ -184,6 +185,10 @@ def scan(m, all_packages, arch, args):
                     if f.replace('-src', '') not in files:
                         logging.info("ignoring '%s'" % (old))
                         files.remove(old)
+
+                # see if we can fix-up missing homepage: in -src.hint file
+                if (new in files):
+                    fixes.fix_homepage_src_hint(dirpath, new, f)
 
         # filter out files we don't need to consider
         for f in sorted(files):
