@@ -1,0 +1,3 @@
+{'sdesc': '"Per-version hint test package"',
+ 'ldesc': '"Per-version hint test package with missing hint data for some versions"',
+ 'category': 'Base'}

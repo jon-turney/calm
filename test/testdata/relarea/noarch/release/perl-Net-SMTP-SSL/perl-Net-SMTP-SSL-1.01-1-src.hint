@@ -1,0 +1,5 @@
+category: Perl
+requires:
+sdesc: "Perl distribution Net-SMTP-SSL"
+ldesc: "Implements the same API as Net::SMTP, but uses IO::Socket::SSL for
+its network operations in order to support encrypted connections."

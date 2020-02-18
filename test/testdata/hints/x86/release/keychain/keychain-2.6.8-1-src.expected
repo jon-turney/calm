@@ -1,0 +1,12 @@
+{'sdesc': '"Key manager for OpenSSH"',
+ 'ldesc': '"Keychain is an OpenSSH key manager, typically run from\n'
+          '~/.bash_profile. When keychain is run, it checks for a running\n'
+          'ssh-agent, otherwise it starts one. It saves the ssh-agent environment\n'
+          'variables to ~/.keychain/$HOSTNAME-sh, so that subsequent logins\n'
+          'and non-interactive shells such as cron jobs can source the file and\n'
+          'make passwordless ssh connections. In addition, when keychain runs, it\n'
+          'verifies that the key files specified on the command-line are known to\n'
+          'ssh-agent, otherwise it loads them, prompting you for a password if\n'
+          'necessary"',
+ 'category': 'Utils',
+ 'requires': 'openssh'}

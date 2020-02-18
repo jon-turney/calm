@@ -1,0 +1,3 @@
+category: Devel
+sdesc: "test package E"
+build-depends: libtextcat-devel
