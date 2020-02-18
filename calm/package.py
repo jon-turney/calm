@@ -930,11 +930,12 @@ def validate_package_maintainers(args, packages):
         bv = packages[p].best_version
         if bv:
             es = packages[p].version_hints[bv].get('external-source', p)
-            es_pn = packages[es].orig_name
-            if es_pn not in all_packages and p not in all_packages:
-                if bv not in past_mistakes.maint_anomalies.get(p, []):
-                    logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
-                    error = True
+            if es in packages:
+                es_pn = packages[es].orig_name
+                if es_pn not in all_packages and p not in all_packages:
+                    if bv not in past_mistakes.maint_anomalies.get(p, []):
+                        logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
+                        error = True
 
     return error
 
