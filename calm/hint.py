@@ -37,7 +37,7 @@ import argparse
 keytypes = ['multilineval', 'val', 'optval', 'noval']
 
 # kinds of hint file, and their allowed keys
-pvr, override = range(2)
+pvr, override, spvr = range(3)
 
 hintkeys = {}
 
@@ -59,6 +59,11 @@ hintkeys[pvr] = {
     'conflicts': 'val',
     'notes': 'val',    # tool notes; not significant to calm itself
 }
+
+hintkeys[spvr] = hintkeys[pvr].copy()
+hintkeys[spvr].update({
+    'homepage': 'val',
+})
 
 hintkeys[override] = {
     'curr': 'val',
@@ -281,7 +286,7 @@ def hint_file_parse(fn, kind):
 
             # for the pvr kind, 'category' and 'sdesc' must be present
             # XXX: genini also requires 'requires' but that seems wrong
-            if kind == pvr:
+            if kind != override:
                 mandatory = ['category', 'sdesc']
                 for k in mandatory:
                     if k not in hints:

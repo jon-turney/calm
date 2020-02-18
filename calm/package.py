@@ -378,7 +378,7 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
         hint_fn = '%s-%s%s.hint' % (p, vr, '-src' if kind == Kind.source else '')
         if hint_fn in files:
             # is there a PVR.hint file?
-            pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr)
+            pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr if kind == Kind.binary else hint.spvr)
             if not pvr_hint:
                 logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
                 return True
@@ -1189,6 +1189,9 @@ def write_repo_json(args, packages, f):
             'subpackages': [{'name': sp, 'categories': package(sp).version_hints[package(sp).best_version].get('category', '').split()} for sp in sorted(po.is_used_by)],
             'arches': arches,
         }
+
+        if 'homepage' in po.version_hints[bv]:
+            d['homepage'] = po.version_hints[bv]['homepage']
 
         if pkg_maintainers[po.orig_name] and ('ORPHANED' not in pkg_maintainers[po.orig_name]):
             d['maintainers'] = sorted(pkg_maintainers[po.orig_name])

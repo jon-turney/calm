@@ -233,6 +233,9 @@ def update_package_listings(args, packages):
                     if po.kind == package.Kind.source:
                         es = p
                         print('<span class="detail">install package(s)</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(po.is_used_by)]), file=f)
+                        homepage = po.version_hints[po.best_version].get('homepage', None)
+                        if homepage:
+                            print('<span class="detail">homepage</span>: <a href="%s">%s</a><br><br>' % (homepage, homepage), file=f)
                     else:
                         es = po.version_hints[bv].get('external-source', p + '-src')
                         print('<span class="detail">source package</span>: %s<br><br>' % linkify_package(es), file=f)
