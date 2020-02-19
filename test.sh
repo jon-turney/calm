@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-exec python3 -m unittest discover
+exec python3 -m unittest discover "$@"
