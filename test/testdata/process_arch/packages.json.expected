@@ -408,6 +408,7 @@
  '            "arches": [\n'
  '                "x86"\n'
  '            ],\n'
+ '            "homepage": "http://homepage.url",\n'
  '            "maintainers": [\n'
  '                "Blooey McFooey"\n'
  '            ],\n'

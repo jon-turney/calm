@@ -363,8 +363,8 @@
  'version: 1.0-1\n'
  'install: x86/release/testpackage/testpackage-1.0-1.tar.bz2 195 '
  'aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83\n'
- 'source: x86/release/testpackage/testpackage-1.0-1-src.tar.bz2 195 '
- 'aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83\n'
+ 'source: x86/release/testpackage/testpackage-1.0-1-src.tar.bz2 266 '
+ 'acfd77df3347e6432ccf29c12989964bc680a158d574f85dfa7ef222759f411006c7bd2773e37c5abdee628bea769b2da9aae213db615cd91402fd385373933d\n'
  'depends2: cygwin\n'
  '\n'
  '@ testpackage-subpackage\n'
@@ -374,5 +374,5 @@
  'version: 1.0-1\n'
  'install: x86/release/testpackage/testpackage-subpackage/testpackage-subpackage-1.0-1.tar.bz2 195 '
  'aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83\n'
- 'source: x86/release/testpackage/testpackage-1.0-1-src.tar.bz2 195 '
- 'aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83\n',)
+ 'source: x86/release/testpackage/testpackage-1.0-1-src.tar.bz2 266 '
+ 'acfd77df3347e6432ccf29c12989964bc680a158d574f85dfa7ef222759f411006c7bd2773e37c5abdee628bea769b2da9aae213db615cd91402fd385373933d\n',)
