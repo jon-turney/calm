@@ -1350,11 +1350,25 @@ def stale_packages(packages):
             else:
                 logging.error("package '%s' has non-existent keep: version '%s'" % (pn, v))
 
-        # mark as fresh the highest n versions, where n is given by the
+        # mark as fresh the highest n non-test versions, where n is given by the
         # keep-count: override hint, (defaulting to DEFAULT_KEEP_COUNT)
         keep_count = int(po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT))
-        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0:keep_count]:
-            mark_package_fresh(packages, pn, v)
+        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            if 'test' not in po.version_hints[v]:
+                if keep_count <= 0:
+                    break
+                mark_package_fresh(packages, pn, v)
+                keep_count = keep_count - 1
+
+        # mark as fresh the highest n test versions, where n is given by the
+        # keep-count-test: override hint, (defaulting to DEFAULT_KEEP_COUNT_TEST)
+        keep_count = int(po.override_hints.get('keep-count-test', common_constants.DEFAULT_KEEP_COUNT_TEST))
+        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            if 'test' in po.version_hints[v]:
+                if keep_count <= 0:
+                    break
+                mark_package_fresh(packages, pn, v)
+                keep_count = keep_count - 1
 
         # mark as fresh all versions after the first one which is newer than
         # the keep-days: override hint, (defaulting to DEFAULT_KEEP_DAYS)

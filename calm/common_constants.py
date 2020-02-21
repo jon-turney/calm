@@ -71,6 +71,7 @@ MAILHOST = 'localhost'
 
 # defaults for package freshness
 DEFAULT_KEEP_COUNT = 3
+DEFAULT_KEEP_COUNT_TEST = 2
 DEFAULT_KEEP_DAYS = 0
 
 # different values to be used when we are not running on sourceware.org, but my
