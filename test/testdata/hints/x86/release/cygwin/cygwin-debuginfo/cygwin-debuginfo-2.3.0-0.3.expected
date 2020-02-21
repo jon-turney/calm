@@ -2,4 +2,5 @@
  'requires': 'cygwin-debuginfo',
  'external-source': 'cygwin',
  'sdesc': '"Debug info for cygwin"',
- 'ldesc': '"This package contains files necessary for debugging the\ncygwin package with gdb."'}
+ 'ldesc': '"This package contains files necessary for debugging the\ncygwin package with gdb."',
+ 'test': ''}

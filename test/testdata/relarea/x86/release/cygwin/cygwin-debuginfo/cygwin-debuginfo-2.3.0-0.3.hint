@@ -4,3 +4,4 @@ external-source: cygwin
 sdesc: "Debug info for cygwin"
 ldesc: "This package contains files necessary for debugging the
 cygwin package with gdb."
+test:

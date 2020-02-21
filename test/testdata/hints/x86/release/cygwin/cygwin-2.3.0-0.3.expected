@@ -3,4 +3,5 @@
  'category': 'Base',
  'requires': 'base-cygwin',
  'provides': 'cygwin-api0_291',
- 'conflicts': 'fruit-juice'}
+ 'conflicts': 'fruit-juice',
+ 'test': ''}

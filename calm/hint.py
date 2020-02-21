@@ -63,7 +63,6 @@ hintkeys[pvr] = {
 hintkeys[override] = {
     'curr': 'val',
     'prev': 'val',
-    'test': 'val',
     'keep': 'val',
     'keep-count': 'val',
     'keep-count-test': 'val',

@@ -2,3 +2,4 @@ sdesc: "Test package for stale version removal"
 ldesc: "Test package for stale version removal"
 category: Shells Base
 requires:
+test:

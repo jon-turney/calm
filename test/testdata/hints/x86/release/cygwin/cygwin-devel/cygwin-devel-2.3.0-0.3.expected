@@ -2,4 +2,5 @@
  'requires': '',
  'sdesc': '"Core development files"',
  'ldesc': '"Core development files required to build Cygwin packages"',
- 'external-source': 'cygwin'}
+ 'external-source': 'cygwin',
+ 'test': ''}
