@@ -25,8 +25,11 @@
 # utility functions
 #
 
+import filecmp
 import logging
 import os
+
+from contextlib import contextmanager
 
 
 #
@@ -51,3 +54,37 @@ def makedirs(name):
         os.makedirs(name, exist_ok=True)
     except FileExistsError:
         pass
+
+
+#
+# a wrapper for open() which:
+#
+# - atomically changes the file contents (atomic)
+# - only touches the mtime if the file contents have changed (move-if-changed)
+#
+@contextmanager
+def open_amifc(filepath, mode='w', cb=None):
+    tmppath = filepath + '~'
+    while os.path.isfile(tmppath):
+        tmppath += '~'
+
+    try:
+        with open(tmppath, mode) as file:
+            logging.debug('writing %s for move-if-changed' % (tmppath))
+            yield file
+
+        changed = not os.path.exists(filepath) or not filecmp.cmp(tmppath, filepath, shallow=False)
+        if changed:
+            logging.info("writing %s" % (filepath))
+            os.rename(tmppath, filepath)
+        else:
+            logging.debug("unchanged %s" % (filepath))
+    finally:
+        try:
+            os.remove(tmppath)
+        except OSError:
+            pass
+
+    # notify callback if file was changed or not
+    if cb:
+        cb(changed)

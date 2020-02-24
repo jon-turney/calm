@@ -163,9 +163,8 @@ def update_package_listings(args, packages):
         # if listing files were added or removed, or it doesn't already exist,
         # or force, update the summary
         if p in update_summary or not os.path.exists(summary) or args.force:
-            logging.debug('writing %s' % summary)
             if not args.dryrun:
-                with open(summary, 'w') as f:
+                with utils.open_amifc(summary) as f:
                     os.fchmod(f.fileno(), 0o755)
 
                     pos = arch_packages(packages, p)
@@ -305,9 +304,17 @@ def update_package_listings(args, packages):
 #
 def write_packages_inc(args, packages, name, kind, includer):
     packages_inc = os.path.join(args.htdocs, name)
-    logging.debug('writing %s' % packages_inc)
     if not args.dryrun:
-        with open(packages_inc, 'w') as index:
+
+        def touch_including(changed):
+            if changed:
+                # touch the including file for the benefit of 'XBitHack full'
+                package_list = os.path.join(args.htdocs, includer)
+                if os.path.exists(package_list):
+                    logging.info("touching %s for the benefit of 'XBitHack full'" % (package_list))
+                    utils.touch(package_list)
+
+        with utils.open_amifc(packages_inc, cb=touch_including) as index:
             os.fchmod(index.fileno(), 0o644)
 
             # This list contains all packages in any arch. Source packages
@@ -371,11 +378,6 @@ def write_packages_inc(args, packages, name, kind, includer):
 
             print('</table>', file=index)
 
-        # touch the including file for the benefit of 'XBitHack full'
-        package_list = os.path.join(args.htdocs, includer)
-        if os.path.exists(package_list):
-            utils.touch(package_list)
-
 
 def write_arch_listing(args, packages, arch):
     update_summary = set()
@@ -393,9 +395,8 @@ def write_arch_listing(args, packages, arch):
 
     htaccess = os.path.join(base, '.htaccess')
     if not os.path.exists(htaccess) or args.force:
-        logging.debug('writing %s' % htaccess)
         if not args.dryrun:
-            with open(htaccess, 'w') as f:
+            with utils.open_amifc(htaccess) as f:
 
                 print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (arch),
                       file=f)
@@ -413,9 +414,8 @@ def write_arch_listing(args, packages, arch):
 
         htaccess = os.path.join(dir, '.htaccess')
         if not os.path.exists(htaccess):
-            logging.debug('writing %s' % htaccess)
             if not args.dryrun or args.force:
-                with open(htaccess, 'w') as f:
+                with utils.open_amifc(htaccess) as f:
                     # We used to allow access to the directory listing as a
                     # crude way of listing the versions of the package available
                     # for which file lists were available. Redirect that index
@@ -444,16 +444,14 @@ def write_arch_listing(args, packages, arch):
             fver = re.sub(r'\.tar.*$', '', tn)
             listing = os.path.join(dir, fver)
 
-            # ... if it doesn't already exist, or force
-            if not os.path.exists(listing) or args.force:
-
-                logging.debug('writing %s' % listing)
+            # ... if it doesn't already exist, or --force --force
+            if not os.path.exists(listing) or (args.force > 1):
 
                 if not args.dryrun:
                     # versions are being added, so summary needs updating
                     update_summary.add(p)
 
-                    with open(listing, 'w') as f:
+                    with utils.open_amifc(listing) as f:
                         bv = packages[p].best_version
                         header = p + ": " + sdesc(packages[p], bv)
 

@@ -385,6 +385,10 @@ def do_output(args, state):
     # update packages listings
     # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
     pkg2html.update_package_listings(args, state.packages)
+    # if we are daemonized, allow force regeneration of static content in htdocs
+    # initially (in case the generation code has changed), but update that
+    # static content only as needed on subsequent loops
+    args.force = 0
 
     update_json = False
 
@@ -658,7 +662,7 @@ def main():
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('-d', '--daemon', action='store', nargs='?', const=pidfile_default, help="daemonize (PIDFILE defaults to " + pidfile_default + ")", metavar='PIDFILE')
     parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help="email output to maintainer and ADDRS (ADDRS defaults to '" + common_constants.EMAILS + "')", metavar='ADDRS')
-    parser.add_argument('--force', action='store_true', help="overwrite existing files")
+    parser.add_argument('--force', action='count', help="force regeneration of static htdocs content", default=0)
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
