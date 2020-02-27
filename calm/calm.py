@@ -458,7 +458,8 @@ def do_output(args, state):
                         elif ext == '.xz':
                             utils.system('/usr/bin/xz -6e <%s >%s' % (inifile, extfile))
 
-                        utils.system('/usr/bin/gpg --batch --yes -b ' + extfile)
+                        keys = ' '.join(['-u' + k for k in args.keys])
+                        utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
 
                     # arrange for checksums to be recomputed
                     for sumfile in ['md5.sum', 'sha512.sum']:
@@ -666,6 +667,7 @@ def main():
     parser.add_argument('--force', action='count', help="force regeneration of static htdocs content", default=0)
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
+    parser.add_argument('--key', action='append', metavar='KEYID', help="key to use to sign setup.ini", default=[], dest='keys')
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
