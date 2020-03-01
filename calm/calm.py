@@ -448,7 +448,7 @@ def do_output(args, state):
                     irk.irk("calm updated setup.ini for arch '%s'" % (arch))
 
                     # compress and re-sign
-                    for ext in ['.ini', '.bz2', '.xz']:
+                    for ext in ['.ini', '.bz2', '.xz', '.zst']:
                         extfile = os.path.join(basedir, 'setup' + ext)
                         try:
                             os.remove(extfile + '.sig')
@@ -459,6 +459,8 @@ def do_output(args, state):
                             utils.system('/usr/bin/bzip2 <%s >%s' % (inifile, extfile))
                         elif ext == '.xz':
                             utils.system('/usr/bin/xz -6e <%s >%s' % (inifile, extfile))
+                        elif ext == '.zst':
+                            utils.system('/usr/bin/zstd -q -f --ultra -20 %s -o %s' % (inifile, extfile))
 
                         keys = ' '.join(['-u' + k for k in args.keys])
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
