@@ -447,17 +447,18 @@ def do_output(args, state):
 
                     # compress and re-sign
                     for ext in ['.ini', '.bz2', '.xz']:
+                        extfile = os.path.join(basedir, 'setup' + ext)
                         try:
-                            os.remove(os.path.join(basedir, 'setup' + ext + '.sig'))
+                            os.remove(extfile + '.sig')
                         except FileNotFoundError:
                             pass
 
                         if ext == '.bz2':
-                            os.system('/usr/bin/bzip2 <%s >%s' % (inifile, os.path.splitext(inifile)[0] + ext))
+                            os.system('/usr/bin/bzip2 <%s >%s' % (inifile, extfile))
                         elif ext == '.xz':
-                            os.system('/usr/bin/xz -6e <%s >%s' % (inifile, os.path.splitext(inifile)[0] + ext))
+                            os.system('/usr/bin/xz -6e <%s >%s' % (inifile, extfile))
 
-                        os.system('/usr/bin/gpg --batch --yes -b </dev/null ' + os.path.join(basedir, 'setup' + ext))
+                        os.system('/usr/bin/gpg --batch --yes -b </dev/null ' + extfile)
 
                     # arrange for checksums to be recomputed
                     for sumfile in ['md5.sum', 'sha512.sum']:
