@@ -454,11 +454,11 @@ def do_output(args, state):
                             pass
 
                         if ext == '.bz2':
-                            os.system('/usr/bin/bzip2 <%s >%s' % (inifile, extfile))
+                            utils.system('/usr/bin/bzip2 <%s >%s' % (inifile, extfile))
                         elif ext == '.xz':
-                            os.system('/usr/bin/xz -6e <%s >%s' % (inifile, extfile))
+                            utils.system('/usr/bin/xz -6e <%s >%s' % (inifile, extfile))
 
-                        os.system('/usr/bin/gpg --batch --yes -b </dev/null ' + extfile)
+                        utils.system('/usr/bin/gpg --batch --yes -b ' + extfile)
 
                     # arrange for checksums to be recomputed
                     for sumfile in ['md5.sum', 'sha512.sum']:

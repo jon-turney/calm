@@ -28,6 +28,7 @@
 import filecmp
 import logging
 import os
+import subprocess
 
 from contextlib import contextmanager
 
@@ -88,3 +89,24 @@ def open_amifc(filepath, mode='w', cb=None):
     # notify callback if file was changed or not
     if cb:
         cb(changed)
+
+
+#
+# run a subprocess, logging it's output
+#
+# N.B. because we use shell=True, args should be a string to be supplied to 'sh
+# -c', not a list.
+#
+def system(args):
+    logging.debug(args)
+    try:
+        output = subprocess.check_output(args, shell=True,
+                                         stdin=subprocess.DEVNULL,
+                                         stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        for l in e.output.decode().splitlines():
+            logging.warning(l)
+        logging.warning('%s exited %d' % (args.split()[0], e.returncode))
+    else:
+        for l in output.decode().splitlines():
+            logging.info(l)
