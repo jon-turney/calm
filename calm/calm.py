@@ -438,7 +438,8 @@ def do_output(args, state):
                     os.remove(tmpfile.name)
                 else:
                     # make a backup of the current setup.ini
-                    shutil.copy2(inifile, inifile + '.bak')
+                    if os.path.exists(inifile):
+                        shutil.copy2(inifile, inifile + '.bak')
 
                     # replace setup.ini
                     logging.info("moving %s to %s" % (tmpfile.name, inifile))
