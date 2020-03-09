@@ -687,7 +687,13 @@ def main():
         args.email = args.email.split(',')
 
     state = CalmState()
-    state.subject = 'calm%s: cygwin package upload report from %s' % (' [dry-run]' if args.dryrun else '', os.uname()[1])
+
+    host = os.uname()[1]
+    if 'sourceware.org' not in host:
+        host = ' from ' + host
+    else:
+        host = ''
+    state.subject = 'calm%s: cygwin package upload report%s' % (' [dry-run]' if args.dryrun else '', host)
 
     status = 0
     if args.daemon:
