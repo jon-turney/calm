@@ -39,7 +39,7 @@ def irk(message, target=DEFAULT_TARGET, server=DEFAULT_SERVER):
 
 
 def main():
-    message = " ".join(sys.argv[:])
+    message = " ".join(sys.argv[1:])
 
     try:
         irk(message)
