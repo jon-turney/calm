@@ -79,9 +79,14 @@ def scan(m, all_packages, arch, args):
     logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (m.reminder_time, REMINDER_INTERVAL, m.reminder_time + REMINDER_INTERVAL, time.time()))
 
     # scan package directories
-    for (dirpath, subdirs, files) in os.walk(os.path.join(basedir, 'release')):
+    for (dirpath, _subdirs, files) in os.walk(os.path.join(basedir, 'release')):
         relpath = os.path.relpath(dirpath, m.homedir())
         removed_files = []
+
+        # filter out files we don't need to consider
+        for f in sorted(files):
+            if f.endswith('.bak'):
+                files.remove(f)
 
         # skip uninteresting directories
         if (not files) or (relpath == os.path.join(arch, 'release')):
