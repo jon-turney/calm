@@ -33,7 +33,7 @@ from . import fixes
 
 
 def fix_hints(relarea):
-    for (dirpath, subdirs, files) in os.walk(relarea):
+    for (dirpath, _subdirs, files) in os.walk(relarea):
         for f in files:
             match = re.match(r'^(.*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
             if match:
@@ -49,7 +49,7 @@ def fix_hints(relarea):
 #
 #
 
-if __name__ == "__main__":
+def main():
     relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='src hint improver')
@@ -63,3 +63,11 @@ if __name__ == "__main__":
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
     fix_hints(args.relarea)
+
+
+#
+#
+#
+
+if __name__ == "__main__":
+    sys.exit(main())
