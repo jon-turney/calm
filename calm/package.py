@@ -1319,21 +1319,14 @@ def mark_package_fresh(packages, p, v):
     if 'install' in packages[p].vermap[v]:
         packages[p].tar(v, 'install').fresh = True
 
-    if 'source' in packages[p].vermap[v]:
-        packages[p].tar(v, 'source').fresh = True
-        return
-
-    # unless the install tarfile is empty ...
-    if 'install' not in packages[p].vermap[v]:
-        return
-
-    if packages[p].tar(v, 'install').is_empty:
-        return
-
-    # ... mark any corresponding external-source package version as also fresh
+    # ... mark any corresponding sibling or external-source package version as also fresh
     if 'external-source' in packages[p].version_hints[v]:
         es_p = packages[p].version_hints[v]['external-source']
-        if es_p in packages:
+    else:
+        es_p = p + '-src'
+
+    if es_p in packages:
+        if v in packages[es_p].vermap:
             if 'source' in packages[es_p].vermap[v]:
                 packages[es_p].tar(v, 'source').fresh = True
 
