@@ -188,8 +188,9 @@ def scan(m, all_packages, arch, args):
                     shutil.copy2(os.path.join(dirpath, old), os.path.join(dirpath, new))
                     files.append(new)
                     if f.replace('-src', '') not in files:
-                        logging.info("ignoring '%s'" % (old))
+                        logging.info("discarding '%s'" % (old))
                         files.remove(old)
+                        remove.append(os.path.join(dirpath, old))
 
                 # see if we can fix-up missing homepage: in -src.hint file
                 if (new in files):
