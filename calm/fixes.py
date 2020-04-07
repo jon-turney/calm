@@ -84,10 +84,10 @@ def fix_homepage_src_hint(dirpath, hf, tf):
                 if homepage:
                     logging.warning('multiple HOMEPAGE lines in .cygport in srcpkg %s', tf)
                 homepage = match.group(2)
-                homepage = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(|})', pn, homepage)
+                homepage = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(}|)', pn, homepage)
 
     if homepage and '$' in homepage:
-        logging.warning('unknown shell parameter expansions in HOMEPAGE in .cygport in srcpkg %s', tf)
+        logging.warning('unknown shell parameter expansions in HOMEPAGE="%s" in .cygport in srcpkg %s' % (homepage, tf))
         homepage = None
 
     if not homepage:
