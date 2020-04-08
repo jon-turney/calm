@@ -478,7 +478,7 @@ def sort_key(k):
 def validate_packages(args, packages):
     error = False
 
-    if not packages:
+    if packages is None:
         return False
 
     for p in sorted(packages.keys()):
