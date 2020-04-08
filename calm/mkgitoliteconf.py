@@ -77,6 +77,7 @@ def do_main(args):
     print('    RW = @leads')
     print('    R  = @all')
     print('    R  = gitweb daemon')
+    print('    config core.sharedrepository = all')
     print('- VREF/MAX_NEWBIN_SIZE/1024 = @all')
     print('# this rejects binary files over the size limit, text files of any size are still permiited')
     print('')
