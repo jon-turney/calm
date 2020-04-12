@@ -70,7 +70,6 @@ hintkeys[spvr].update({
 })
 
 hintkeys[override] = {
-    'curr': 'val',
     'keep': 'val',
     'keep-count': 'val',
     'keep-count-test': 'val',
