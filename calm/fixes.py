@@ -21,11 +21,14 @@
 # THE SOFTWARE.
 #
 
+import functools
 import logging
 import os
 import re
 import shutil
 import tarfile
+import urllib.request
+import urllib.error
 
 from . import hint
 
@@ -58,6 +61,25 @@ def read_cygport(dirpath, tf):
     return content
 
 
+class NoRedirection(urllib.request.HTTPErrorProcessor):
+    def http_response(self, request, response):
+        return response
+
+    https_response = http_response
+
+
+@functools.lru_cache(maxsize=None)
+def follow_redirect(homepage):
+    opener = urllib.request.build_opener(NoRedirection)
+    try:
+        response = opener.open(homepage)
+        if response.code == 301:
+            return response.headers['Location']
+    except (ConnectionResetError, ValueError, urllib.error.URLError) as e:
+        logging.warning('error %s checking homepage:%s' % (e, homepage))
+    return homepage
+
+
 def fix_homepage_src_hint(dirpath, hf, tf):
     pn = os.path.basename(dirpath)
     hintfile = os.path.join(dirpath, hf)
@@ -70,33 +92,43 @@ def fix_homepage_src_hint(dirpath, hf, tf):
 
     # already present?
     if 'homepage' in hints:
-        return
+        homepage = hints['homepage']
+    else:
+        # crack open corresponding -src.tar and parse homepage out from .cygport
+        logging.debug('examining %s' % tf)
+        content = read_cygport(dirpath, tf)
 
-    # crack open corresponding -src.tar and parse homepage out from .cygport
-    logging.debug('examining %s' % tf)
-    content = read_cygport(dirpath, tf)
-
-    homepage = None
-    if content:
-        for l in content.splitlines():
-            match = re.match(r'^\s*HOMEPAGE\s*=\s*("|)([^"].*)\1', l)
-            if match:
-                if homepage:
-                    logging.warning('multiple HOMEPAGE lines in .cygport in srcpkg %s', tf)
-                homepage = match.group(2)
-                homepage = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(}|)', pn, homepage)
-
-    if homepage and '$' in homepage:
-        logging.warning('unknown shell parameter expansions in HOMEPAGE="%s" in .cygport in srcpkg %s' % (homepage, tf))
         homepage = None
+        if content:
+            for l in content.splitlines():
+                match = re.match(r'^\s*HOMEPAGE\s*=\s*("|)([^"].*)\1', l)
+                if match:
+                    if homepage:
+                        logging.warning('multiple HOMEPAGE lines in .cygport in srcpkg %s', tf)
+                    homepage = match.group(2)
+                    homepage = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(}|)', pn, homepage)
 
-    if not homepage:
-        logging.info('cannot determine homepage: from srcpkg %s' % tf)
-        return
+        if homepage and '$' in homepage:
+            logging.warning('unknown shell parameter expansions in HOMEPAGE="%s" in .cygport in srcpkg %s' % (homepage, tf))
+            homepage = None
 
-    logging.info('adding homepage:%s to hints for srcpkg %s' % (homepage, tf))
+        if not homepage:
+            logging.info('cannot determine homepage: from srcpkg %s' % tf)
+            return
+
+        logging.info('adding homepage:%s to hints for srcpkg %s' % (homepage, tf))
+
+    # check for http -> https redirects
+    redirect_homepage = follow_redirect(homepage)
+    if redirect_homepage != homepage:
+        if redirect_homepage == homepage.replace('http://', 'https://'):
+            logging.warning('homepage:%s permanently redirects to %s, fixing' % (homepage, redirect_homepage))
+            homepage = redirect_homepage
+        else:
+            logging.warning('homepage:%s permanently redirects to %s' % (homepage, redirect_homepage))
 
     # write updated hints
-    hints['homepage'] = homepage
-    shutil.copy2(hintfile, hintfile + '.bak')
-    hint.hint_file_write(hintfile, hints)
+    if homepage != hints.get('homepage', None):
+        hints['homepage'] = homepage
+        shutil.copy2(hintfile, hintfile + '.bak')
+        hint.hint_file_write(hintfile, hints)
