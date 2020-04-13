@@ -32,8 +32,16 @@ from . import common_constants
 from . import fixes
 
 
-def fix_hints(relarea):
+def fix_hints(relarea, packages):
     for (dirpath, _subdirs, files) in os.walk(relarea):
+
+        # only apply to listed packages, if specified
+        if packages:
+            relpath = os.path.relpath(dirpath, relarea)
+            relpath = relpath.split(os.path.sep)
+            if (len(relpath) < 3) or (relpath[2] not in packages):
+                continue
+
         for f in files:
             match = re.match(r'^(.*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
             if match:
@@ -53,6 +61,7 @@ def main():
     relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='src hint improver')
+    parser.add_argument('package', nargs='*', metavar='PACKAGE')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
     (args) = parser.parse_args()
@@ -62,7 +71,7 @@ def main():
 
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
-    fix_hints(args.relarea)
+    fix_hints(args.relarea, args.package)
 
 
 #
