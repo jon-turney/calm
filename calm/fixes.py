@@ -26,6 +26,7 @@ import logging
 import os
 import re
 import shutil
+import socket
 import tarfile
 import urllib.request
 import urllib.error
@@ -71,11 +72,13 @@ class NoRedirection(urllib.request.HTTPErrorProcessor):
 @functools.lru_cache(maxsize=None)
 def follow_redirect(homepage):
     opener = urllib.request.build_opener(NoRedirection)
+    opener.addheaders = [('User-Agent', 'calm')]
+    request = urllib.request.Request(homepage, method='HEAD')
     try:
-        response = opener.open(homepage)
-        if response.code == 301:
+        response = opener.open(request, timeout=60)
+        if response.code in [301, 308]:
             return response.headers['Location']
-    except (ConnectionResetError, ValueError, urllib.error.URLError) as e:
+    except (ConnectionResetError, ValueError, socket.timeout, urllib.error.URLError) as e:
         logging.warning('error %s checking homepage:%s' % (e, homepage))
     return homepage
 
@@ -118,8 +121,13 @@ def fix_homepage_src_hint(dirpath, hf, tf):
 
         logging.info('adding homepage:%s to hints for srcpkg %s' % (homepage, tf))
 
-    # check for http -> https redirects
     redirect_homepage = follow_redirect(homepage)
+
+    # trivial URL transformations aren't interesting
+    if redirect_homepage.endswith('/') and not homepage.endswith('/'):
+        homepage = homepage + '/'
+
+    # check for http -> https redirects
     if redirect_homepage != homepage:
         if redirect_homepage == homepage.replace('http://', 'https://'):
             logging.warning('homepage:%s permanently redirects to %s, fixing' % (homepage, redirect_homepage))
