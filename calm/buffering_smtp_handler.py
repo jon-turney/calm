@@ -85,7 +85,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                 print(msg)
                 print('-' * 40)
             elif len(self.toaddrs) > 0:
-                with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi'], stdin=subprocess.PIPE) as p:
+                with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', self.fromaddr], stdin=subprocess.PIPE) as p:
                     p.communicate(m.as_bytes())
 
             self.buffer = []
