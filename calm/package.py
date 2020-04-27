@@ -866,6 +866,11 @@ def validate_packages(args, packages):
             if re.match(r'^lib.*\d', install_p):
                 continue
 
+            # ignore Python module packages, as we may keep old versions of
+            # those
+            if re.match(r'^python[23][567]-.*', install_p):
+                continue
+
             # ignore packages which don't have a current version (i.e. are test
             # only)
             if 'curr' not in packages[install_p].stability:
