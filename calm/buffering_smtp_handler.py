@@ -89,6 +89,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                     p.communicate(m.as_bytes())
 
             self.buffer = []
+            logging.debug('sent mail with msgid %s' % (m['Message-Id']))
 
     def shouldFlush(self, record):
         # the capacity we pass to BufferingHandler is irrelevant since we
