@@ -64,7 +64,7 @@ def fix_one_hint(dirpath, hintfile):
 
 
 def fix_hints(relarea):
-    for (dirpath, subdirs, files) in os.walk(relarea):
+    for (dirpath, _subdirs, files) in os.walk(relarea):
         for f in files:
             if f.endswith('.hint'):
                 fix_one_hint(dirpath, f)

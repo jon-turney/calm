@@ -85,7 +85,7 @@ def compare_with_expected_file(test, dirpath, results, basename=None):
 
 def capture_dirtree(basedir):
     tree = {}
-    for dirpath, dirnames, filenames in os.walk(basedir):
+    for dirpath, _dirnames, filenames in os.walk(basedir):
         tree[os.path.relpath(dirpath, basedir)] = sorted(filenames)
 
     return tree
@@ -131,7 +131,7 @@ class CalmTest(unittest.TestCase):
         self.maxDiff = None
 
         basedir = 'testdata/relarea'
-        for (dirpath, subdirs, files) in os.walk(basedir):
+        for (dirpath, _subdirs, files) in os.walk(basedir):
             relpath = os.path.relpath(dirpath, basedir)
             for f in files:
                 expected = os.path.join('testdata/hints', relpath)
@@ -183,7 +183,7 @@ class CalmTest(unittest.TestCase):
             compare_with_expected_file(self, 'testdata/htdocs.expected', dirlist, 'dirtree')
 
         # compare the output files with expected
-        for (dirpath, subdirs, files) in os.walk(htdocs):
+        for (dirpath, _subdirs, files) in os.walk(htdocs):
             relpath = os.path.relpath(dirpath, htdocs)
             for f in files:
                 with self.subTest(file=os.path.join(relpath, f)):

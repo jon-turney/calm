@@ -55,7 +55,7 @@ def hint_file_write(fn, hints):
 #
 
 def invent_sdesc(path, vr):
-    for (dirpath, subdirs, files) in os.walk(path):
+    for (dirpath, _subdirs, files) in os.walk(path):
         # debuginfo packages never have a good sdesc
         if 'debuginfo' in dirpath:
             continue
@@ -170,7 +170,7 @@ def dedup(archive, relarea):
 
     # adjust external-source in .hint for all subpackages
     for arch in ['x86', 'x86_64']:
-        for (dirpath, subdirs, files) in os.walk(os.path.join(relarea, arch, path)):
+        for (dirpath, _subdirs, files) in os.walk(os.path.join(relarea, arch, path)):
             subpkg = os.path.basename(dirpath)
             filename = subpkg + '-' + vr + '.hint'
             if filename in files:

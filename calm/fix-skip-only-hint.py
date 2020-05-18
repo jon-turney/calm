@@ -77,7 +77,7 @@ def invent_from_subpackages(path, vr):
     sdesc_candidates = []
     category_candidates = []
 
-    for (dirpath, subdirs, files) in os.walk(path):
+    for (dirpath, _subdirs, files) in os.walk(path):
         # debuginfo packages never have a good information
         if 'debuginfo' in dirpath:
             continue
@@ -180,7 +180,7 @@ def fix_hints(rel_area, mode):
     skip_only = 0
     invented = 0
 
-    for (dirpath, subdirs, files) in os.walk(rel_area):
+    for (dirpath, _subdirs, files) in os.walk(rel_area):
         vrs = {}
         for f in files:
             match = re.match(r'^.*?-(\d.*).hint$', f)

@@ -42,7 +42,7 @@ def hint_migrate(args):
     for arch in common_constants.ARCHES + ['noarch']:
         basedir = os.path.join(args.rel_area, arch, 'release')
 
-        for (dirpath, subdirs, files) in os.walk(basedir):
+        for (dirpath, _subdirs, files) in os.walk(basedir):
 
             if 'setup.hint' not in files:
                 continue

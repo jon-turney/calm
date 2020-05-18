@@ -131,7 +131,7 @@ def compare_archives(f1, f2):
 def find_duplicates(args):
     basedir = os.path.join(args.rel_area, common_constants.ARCHES[0], 'release')
 
-    for (dirpath, subdirs, files) in os.walk(basedir):
+    for (dirpath, _subdirs, files) in os.walk(basedir):
         relpath = os.path.relpath(dirpath, basedir)
         otherdir = os.path.join(args.rel_area, common_constants.ARCHES[1], 'release', relpath)
 
