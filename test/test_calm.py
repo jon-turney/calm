@@ -96,14 +96,14 @@ def capture_dirtree(basedir):
 # (a dict, with lines ordered, rather than OrderedDict repr)
 #
 
-def patched_pprint_ordered_dict(self, object, stream, indent, allowance, context, level):
+def patched_pprint_ordered_dict(self, obj, stream, indent, allowance, context, level):
     write = stream.write
     write('{')
     if self._indent_per_level > 1:
         write((self._indent_per_level - 1) * ' ')
-    length = len(object)
+    length = len(obj)
     if length:
-        items = list(object.items())
+        items = list(obj.items())
         self._format_dict_items(items, stream, indent, allowance + 1,
                                 context, level)
     write('}')
