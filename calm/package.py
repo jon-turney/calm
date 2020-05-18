@@ -1126,7 +1126,7 @@ def write_setup_ini(args, packages, arch):
                     # cygwin package names into package names. For the moment,
                     # we don't have the information to do that, so filter them
                     # all out.
-                    bd = [atom for atom in bd.split() if '(' not in atom]
+                    bd = [atom for atom in bd.split(', ') if '(' not in atom]
 
                     if bd:
                         print("build-depends: %s" % ', '.join(bd), file=f)
