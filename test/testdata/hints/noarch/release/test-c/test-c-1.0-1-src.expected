@@ -1,4 +1,1 @@
-{'category': 'Devel',
- 'sdesc': '"test package C"',
- 'obsoletes': 'obs-a, obs-b',
- 'depends': 'test-d (>= 1.0), test-e'}
+OrderedDict([('category', 'Devel'), ('sdesc', '"test package C"'), ('obsoletes', 'obs-a, obs-b')])

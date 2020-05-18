@@ -41,25 +41,29 @@ pvr, override, spvr = range(3)
 
 hintkeys = {}
 
-hintkeys[pvr] = {
+commonkeys = {
     'ldesc': 'multilineval',
-    'message': 'multilineval',
     'category': 'val',
-    'external-source': 'val',
     'sdesc': 'val',
     'skip': 'noval',
     'requires': 'optval',
-    'depends': 'optval',
     'obsoletes': 'optval',
     'test': 'noval',   # mark the package as a test version
     'version': 'val',  # version override
     'disable-check': 'val',
-    'provides': 'val',
-    'conflicts': 'val',
     'notes': 'val',    # tool notes; not significant to calm itself
 }
 
-hintkeys[spvr] = hintkeys[pvr].copy()
+hintkeys[pvr] = commonkeys.copy()
+hintkeys[pvr].update({
+    'message': 'multilineval',
+    'external-source': 'val',
+    'depends': 'optval',
+    'provides': 'val',
+    'conflicts': 'val',
+})
+
+hintkeys[spvr] = commonkeys.copy()
 hintkeys[spvr].update({
     'homepage': 'val',
     'build-depends': 'optval',
