@@ -3,7 +3,8 @@ sudo: false
 python:
  - "3.4"
  - "3.6"
-install: "pip install pycodestyle flake8 dirq"
+install:
+ - pip install -r requirements.txt
 script:
  - flake8 --count --show-source
  - python -m unittest discover
