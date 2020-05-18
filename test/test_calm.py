@@ -162,13 +162,13 @@ class CalmTest(unittest.TestCase):
 
         htdocs = 'testdata/htdocs'
         args = types.SimpleNamespace()
-        setattr(args, 'arch', 'x86')
-        setattr(args, 'htdocs', htdocs)
-        setattr(args, 'rel_area', 'testdata/relarea')
-        setattr(args, 'homedir', 'testdata/homes')
-        setattr(args, 'dryrun', False)
-        setattr(args, 'force', True)
-        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
+        args.arch = 'x86'
+        args.htdocs = htdocs
+        args.rel_area = 'testdata/relarea'
+        args.homedir = 'testdata/homes'
+        args.dryrun = False
+        args.force = True
+        args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
 
         packages = {}
         for arch in common_constants.ARCHES:
@@ -318,9 +318,9 @@ class CalmTest(unittest.TestCase):
         logging.info('test_root = %s', test_root)
 
         args = types.SimpleNamespace()
-        setattr(args, 'arch', 'x86')
-        setattr(args, 'rel_area', 'testdata/relarea')
-        setattr(args, 'dryrun', False)
+        args.arch = 'x86'
+        args.rel_area = 'testdata/relarea'
+        args.dryrun = False
 
         shutil.copytree('testdata/homes', os.path.join(test_root, 'testdata/homes'))
         oldcwd = os.getcwd()
@@ -357,14 +357,14 @@ class CalmTest(unittest.TestCase):
         self.maxDiff = None
 
         args = types.SimpleNamespace()
-        setattr(args, 'arch', 'x86')
-        setattr(args, 'dryrun', False)
-        setattr(args, 'force', True)
-        setattr(args, 'inifile', 'testdata/inifile/setup.ini')
-        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
-        setattr(args, 'rel_area', 'testdata/relarea')
-        setattr(args, 'release', 'testing')
-        setattr(args, 'setup_version', '4.321')
+        args.arch = 'x86'
+        args.dryrun = False
+        args.force = True
+        args.inifile = 'testdata/inifile/setup.ini'
+        args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
+        args.rel_area = 'testdata/relarea'
+        args.release = 'testing'
+        args.setup_version = '4.321'
 
         packages = package.read_packages(args.rel_area, args.arch)
         package.delete(packages, 'x86/release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
@@ -388,17 +388,17 @@ class CalmTest(unittest.TestCase):
             setattr(args, d, tempfile.mktemp())
             logging.info('%s = %s', d, getattr(args, d))
 
-        shutil.copytree('testdata/relarea', getattr(args, 'rel_area'))
-        shutil.copytree('testdata/homes.conflict', getattr(args, 'homedir'))
+        shutil.copytree('testdata/relarea', args.rel_area)
+        shutil.copytree('testdata/homes.conflict', args.homedir)
 
-        setattr(args, 'dryrun', False)
-        setattr(args, 'email', None)
-        setattr(args, 'force', False)
-        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
-        setattr(args, 'stale', True)
+        args.dryrun = False
+        args.email = None
+        args.force = False
+        args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
+        args.stale = True
 
         # set appropriate !ready
-        m_homedir = os.path.join(getattr(args, 'homedir'), 'Blooey McFooey')
+        m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
         os.system('touch "%s"' % (os.path.join(m_homedir, 'x86', 'release', 'staleversion', '!ready')))
 
         state = calm.calm.CalmState()
@@ -421,22 +421,22 @@ class CalmTest(unittest.TestCase):
             setattr(args, d, tempfile.mktemp())
             logging.info('%s = %s', d, getattr(args, d))
 
-        setattr(args, 'dryrun', False)
-        setattr(args, 'email', None)
-        setattr(args, 'force', False)
-        setattr(args, 'inifile', os.path.join(getattr(args, 'rel_area'), 'setup.ini'))
-        setattr(args, 'pkglist', 'testdata/pkglist/cygwin-pkg-maint')
-        setattr(args, 'release', 'trial')
-        setattr(args, 'setup_version', '3.1415')
-        setattr(args, 'stale', True)
+        args.dryrun = False
+        args.email = None
+        args.force = False
+        args.inifile = os.path.join(args.rel_area, 'setup.ini')
+        args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
+        args.release = 'trial'
+        args.setup_version = '3.1415'
+        args.stale = True
 
         state = calm.calm.CalmState()
 
-        shutil.copytree('testdata/relarea', getattr(args, 'rel_area'))
-        shutil.copytree('testdata/homes', getattr(args, 'homedir'))
+        shutil.copytree('testdata/relarea', args.rel_area)
+        shutil.copytree('testdata/homes', args.homedir)
 
         # set appropriate !readys
-        m_homedir = os.path.join(getattr(args, 'homedir'), 'Blooey McFooey')
+        m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
         ready_fns = [(os.path.join(m_homedir, 'x86', 'release', 'testpackage', '!ready'), ''),
                      (os.path.join(m_homedir, 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
                      (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
