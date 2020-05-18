@@ -784,15 +784,6 @@ def validate_packages(args, packages):
                                         lvl = logging.WARNING
                                 logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in the _obsolete category" % (p, vr))
 
-        # the presence of build-depends only makes sense if this is a source
-        # package, or it has a sibling source package, with which is shares hints
-        if packages[p].kind != Kind.source:
-            for vr in packages[p].version_hints:
-                if 'build-depends' in packages[p].version_hints[vr]:
-                    if 'external-source' in packages[p].version_hints[vr]:
-                        logging.error("package '%s' version '%s' has build-depends but isn't a source package" % (p, vr))
-                        error = True
-
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
     for p in sorted(packages.keys()):

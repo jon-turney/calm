@@ -50,7 +50,6 @@ hintkeys[pvr] = {
     'skip': 'noval',
     'requires': 'optval',
     'depends': 'optval',
-    'build-depends': 'optval',
     'obsoletes': 'optval',
     'test': 'noval',   # mark the package as a test version
     'version': 'val',  # version override
@@ -63,6 +62,7 @@ hintkeys[pvr] = {
 hintkeys[spvr] = hintkeys[pvr].copy()
 hintkeys[spvr].update({
     'homepage': 'val',
+    'build-depends': 'optval',
 })
 
 hintkeys[override] = {

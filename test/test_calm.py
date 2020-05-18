@@ -139,6 +139,9 @@ class CalmTest(unittest.TestCase):
                     if f == 'override.hint':
                         kind = hint.override
                         name = 'override'
+                    elif f.endswith('-src.hint'):
+                        kind = hint.spvr
+                        name = f[:-5]
                     else:
                         kind = hint.pvr
                         name = f[:-5]
