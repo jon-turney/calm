@@ -1110,14 +1110,16 @@ def write_setup_ini(args, packages, arch):
                 if hints.get('obsoletes', ''):
                     print("obsoletes: %s" % hints['obsoletes'], file=f)
 
-                if hints.get('build-depends', ''):
-                    bd = hints['build-depends']
+                if s:
+                    src_hints = packages[s].version_hints.get(version, {})
+                    bd = src_hints.get('build-depends', '')
 
                     # Ideally, we'd transform dependency atoms which aren't
                     # cygwin package names into package names. For the moment,
                     # we don't have the information to do that, so filter them
                     # all out.
-                    bd = [atom for atom in bd.split(', ') if '(' not in atom]
+                    if bd:
+                        bd = [atom for atom in bd.split(', ') if '(' not in atom]
 
                     if bd:
                         print("build-depends: %s" % ', '.join(bd), file=f)
