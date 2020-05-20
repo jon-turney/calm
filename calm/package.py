@@ -537,7 +537,7 @@ def validate_packages(args, packages):
         # versions of setup, which should just install B).  This condition can
         # occur since we might have synthesized the depends: from the requires:
         # in read_hints(), so fix that up here.
-        for (v, hints) in packages[p].version_hints.items():
+        for hints in packages[p].version_hints.values():
             obsoletes = hints.get('obsoletes', '')
             if obsoletes:
                 for o in obsoletes.split(','):
