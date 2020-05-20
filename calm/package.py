@@ -187,7 +187,10 @@ def clean_hints(p, hints, warnings):
 # (return True if problems, False otherwise)
 #
 
-def read_package_dir(packages, basedir, dirpath, files, remove=[], upload=False):
+def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=False):
+    if remove is None:
+        remove = []
+
     relpath = os.path.relpath(dirpath, basedir)
 
     # the package name is always the directory name
