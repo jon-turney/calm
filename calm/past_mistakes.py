@@ -109,11 +109,9 @@ nonunique_versions = [
     'cgdb-debuginfo',             # debuginfo from NMU needs to age out
     'dolphin4',                   # dropped from kde-baseapps
     'gcc-java',                   # dropped from gcc 6
-    'girepository-AppStream1.0',  # moved from appstream-glib to appstream
     'girepository-SpiceClientGtk2.0',  # gtk2 dropped from spice-gtk
     'gnome-panel-doc',
     'gtk2.0-engines-svg',
-    'guile-doc',
     'kdepasswd',                  # dropped from split kde-baseapps
     'kexi',                       # split out from calligra
     'kfilereplace',               # split out from kdewebdev
@@ -125,7 +123,6 @@ nonunique_versions = [
     'libquota-devel',             # no longer provided by e2fsprogs
     'libturbojpeg',               # no number means it isn't considered an old soversion
     'libtxc_dxtn',                # split out from s2tc
-    'libtxc_dxtn-devel',          # split out from s2tc
     'mingw64-i686-poppler-qt4',   # dropped since 0.62.0
     'mingw64-i686-spice-gtk2.0',  # gtk2 dropped from spice-gtk
     'mingw64-x86_64-poppler-qt4',  # dropped since 0.62.0
@@ -137,7 +134,6 @@ nonunique_versions = [
     'python-spiceclientgtk',      # gtk2 dropped from spice-gtk
     'sng-debuginfo',
     'sqlite3-zlib',               # sqlite3-zlib removed in 3.8.10, use sqlite3-compress instead
-    'transfig-debuginfo',         # after transfig 3.2.6 source is included in xfig
     'w3m-img',
 ]
 

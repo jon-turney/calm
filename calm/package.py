@@ -870,6 +870,12 @@ def validate_packages(args, packages):
             if 'curr' not in packages[install_p].stability:
                 continue
 
+            # ignore packages which have a different external-source:
+            # (e.g. where a different source package supersedes this one)
+            es = packages[install_p].version_hints[packages[install_p].best_version].get('external-source', source_p)
+            if es != source_p:
+                continue
+
             # ignore specific packages we disable this check for
             if ((install_p in past_mistakes.nonunique_versions) or
                 ('unique-version' in packages[install_p].version_hints[packages[install_p].best_version].get('disable-check', ''))):
