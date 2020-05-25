@@ -163,9 +163,9 @@ def process_uploads(args, state):
                 # queue for source package validator
                 queue.add(args, scan_result[arch].to_relarea, os.path.join(m.homedir()))
 
-            # if there are no uploaded or removed packages for this
-            # maintainer, we don't have anything to do
-            if not any([scan_result[a].packages or scan_result[a].to_vault for a in scan_result]):
+            # if there are no added or removed files for this maintainer, we
+            # don't have anything to do
+            if not any([scan_result[a].to_relarea or scan_result[a].to_vault for a in scan_result]):
                 logging.debug("nothing to do for maintainer %s" % (name))
                 skip_maintainer = True
 
