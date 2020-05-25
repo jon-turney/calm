@@ -394,6 +394,8 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
         # apply a version override
         if 'version' in pvr_hint:
             ovr = pvr_hint['version']
+            # also record the version before the override
+            pvr_hint['original-version'] = vr
         else:
             ovr = vr
 
@@ -1411,8 +1413,9 @@ def stale_packages(packages):
 
         for v in po.hints:
             # if there's a pvr.hint without a fresh source or install of the
-            # same version, move it as well
-            if all_stale.get(v, True):
+            # same version (including version: overrides), move it as well
+            ov = po.hints[v].hints.get('original-version', v)
+            if all_stale.get(v, True) and all_stale.get(ov, True):
                 stale.add(po.hints[v].path, po.hints[v].fn)
                 logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 
