@@ -84,12 +84,12 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
                 print('-' * 40)
                 print(msg)
                 print('-' * 40)
-            elif len(self.toaddrs) > 0:
+            else:
                 with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', self.fromaddr], stdin=subprocess.PIPE) as p:
                     p.communicate(m.as_bytes())
+                    logging.debug('sendmail: msgid %s, exit status %d' % (m['Message-Id'], p.returncode))
 
             self.buffer = []
-            logging.debug('sent mail with msgid %s' % (m['Message-Id']))
 
     def shouldFlush(self, record):
         # the capacity we pass to BufferingHandler is irrelevant since we
