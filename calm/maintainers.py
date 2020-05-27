@@ -124,6 +124,8 @@ class Maintainer(object):
                             l = l.strip()
                             if l:
                                 m.email.append(l)
+            if not m.email:
+                logging.error("no email address known for maintainer '%s'" % (m.name))
 
         return mlist
 
