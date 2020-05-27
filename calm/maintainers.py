@@ -173,6 +173,7 @@ class Maintainer(object):
 
                     # joint maintainers are separated by '/'
                     for name in m.split('/'):
+                        name = name.strip()
 
                         # is the maintainer name ascii?
                         #
