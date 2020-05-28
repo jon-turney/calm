@@ -141,7 +141,8 @@ def process_uploads(args, state):
         m = mlist[name]
 
         # also send a mail to each maintainer about their packages
-        with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (state.subject, name), thresholdLevel=logging.INFO) as maint_email:  # noqa: F841
+        threshold = logging.WARNING if m.quiet else logging.INFO
+        with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (state.subject, name), thresholdLevel=threshold, retainLevel=logging.INFO) as maint_email:  # noqa: F841
 
             # for each arch and noarch
             scan_result = {}

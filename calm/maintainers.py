@@ -65,6 +65,7 @@ class Maintainer(object):
         self.name = name
         self.email = email
         self.pkgs = pkgs
+        self.quiet = False
 
         # the mtime of this file records the timestamp
         reminder_file = os.path.join(self.homedir(), '!reminder-timestamp')
@@ -113,6 +114,7 @@ def add_directories(mlist, homedirs):
 
         m = Maintainer._find(mlist, n)
 
+        # !mail is the deprecated historical alternative
         for e in ['!email', '!mail']:
             email = os.path.join(homedirs, m.name, e)
             if os.path.isfile(email):
@@ -122,7 +124,9 @@ def add_directories(mlist, homedirs):
                         if l.startswith('#'):
                             continue
                         l = l.strip()
-                        if l:
+                        if l.lower() == 'quiet':
+                            m.quiet = True
+                        elif l:
                             m.email.append(l)
         if not m.email:
             logging.error("no email address known for maintainer '%s'" % (m.name))
