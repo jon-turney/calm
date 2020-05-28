@@ -131,10 +131,10 @@ def process_relarea(args):
 
 def process_uploads(args, state):
     # read maintainer list
-    mlist = maintainers.Maintainer.read(args, getattr(args, 'orphanmaint', None))
+    mlist = maintainers.read(args, getattr(args, 'orphanmaint', None))
 
     # make the list of all packages
-    all_packages = maintainers.Maintainer.all_packages(mlist)
+    all_packages = maintainers.all_packages(mlist)
 
     # for each maintainer
     for name in sorted(mlist.keys()):
@@ -260,7 +260,7 @@ def process_uploads(args, state):
             irk.irk("calm %s" % msg)
 
     # record updated reminder times for maintainers
-    maintainers.Maintainer.update_reminder_times(mlist)
+    maintainers.update_reminder_times(mlist)
 
     return state.packages
 

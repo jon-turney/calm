@@ -135,8 +135,8 @@ def update_package_listings(args, packages):
     summaries = os.path.join(args.htdocs, 'summary')
     ensure_dir_exists(args, summaries)
 
-    mlist = maintainers.Maintainer.read(args, None)
-    pkg_maintainers = maintainers.Maintainer.invert(mlist)
+    mlist = maintainers.read(args, None)
+    pkg_maintainers = maintainers.invert(mlist)
 
     toremove = glob.glob(os.path.join(summaries, '*'))
 

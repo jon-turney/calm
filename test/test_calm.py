@@ -306,8 +306,8 @@ class CalmTest(unittest.TestCase):
         self.maxDiff = None
 
         mlist = {}
-        mlist = maintainers.Maintainer.add_directories(mlist, 'testdata/homes')
-        mlist = maintainers.Maintainer.add_packages(mlist, 'testdata/pkglist/cygwin-pkg-maint', None)
+        mlist = maintainers.add_directories(mlist, 'testdata/homes')
+        mlist = maintainers.add_packages(mlist, 'testdata/pkglist/cygwin-pkg-maint', None)
 
         compare_with_expected_file(self, 'testdata/pkglist', mlist)
 
@@ -329,7 +329,7 @@ class CalmTest(unittest.TestCase):
         pkglist = ['after-ready', 'not-ready', 'testpackage', 'testpackage2']
 
         mlist = {}
-        mlist = maintainers.Maintainer.add_directories(mlist, 'testdata/homes')
+        mlist = maintainers.add_directories(mlist, 'testdata/homes')
         m = mlist['Blooey McFooey']
         m.pkgs.extend(pkglist + ['not-on-package-list'])
 

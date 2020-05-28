@@ -915,10 +915,10 @@ def validate_package_maintainers(args, packages):
 
     # read maintainer list
     mlist = {}
-    mlist = maintainers.Maintainer.add_packages(mlist, args.pkglist)
+    mlist = maintainers.add_packages(mlist, args.pkglist)
 
     # make the list of all packages
-    all_packages = maintainers.Maintainer.all_packages(mlist)
+    all_packages = maintainers.all_packages(mlist)
 
     # validate that all packages are in the package list
     for p in sorted(packages):
@@ -1165,8 +1165,8 @@ def write_repo_json(args, packages, f):
     for arch in packages:
         package_list.update(packages[arch])
 
-    mlist = maintainers.Maintainer.read(args, None)
-    pkg_maintainers = maintainers.Maintainer.invert(mlist)
+    mlist = maintainers.read(args, None)
+    pkg_maintainers = maintainers.invert(mlist)
 
     pl = []
     for pn in sorted(package_list):

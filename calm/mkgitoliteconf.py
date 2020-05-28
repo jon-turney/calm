@@ -51,10 +51,10 @@ def transform_username(name):
 def do_main(args):
     # read maintainer list
     mlist = {}
-    mlist = maintainers.Maintainer.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
+    mlist = maintainers.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
 
     # make the list of all packages
-    maintainers.Maintainer.all_packages(mlist)
+    maintainers.all_packages(mlist)
 
     # invert to a per-package list of maintainers
     pkgs = defaultdict(list)

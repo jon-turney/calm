@@ -102,125 +102,124 @@ class Maintainer(object):
         mlist.setdefault(name, Maintainer(name))
         return mlist[name]
 
-    # add maintainers which have existing directories
-    @classmethod
-    def add_directories(self, mlist, homedirs):
-        self._homedirs = homedirs
 
-        for n in os.listdir(homedirs):
-            if not os.path.isdir(os.path.join(homedirs, n)):
-                continue
+# add maintainers which have existing directories
+def add_directories(mlist, homedirs):
+    Maintainer._homedirs = homedirs
 
-            m = Maintainer._find(mlist, n)
+    for n in os.listdir(homedirs):
+        if not os.path.isdir(os.path.join(homedirs, n)):
+            continue
 
-            for e in ['!email', '!mail']:
-                email = os.path.join(homedirs, m.name, e)
-                if os.path.isfile(email):
-                    with open(email) as f:
-                        for l in f:
-                            # one address per line, ignore blank and comment lines
-                            if l.startswith('#'):
-                                continue
-                            l = l.strip()
-                            if l:
-                                m.email.append(l)
-            if not m.email:
-                logging.error("no email address known for maintainer '%s'" % (m.name))
+        m = Maintainer._find(mlist, n)
 
-        return mlist
-
-    # add maintainers from the package maintainers list, with the packages they
-    # maintain
-    @staticmethod
-    def add_packages(mlist, pkglist, orphanMaint=None):
-        with open(pkglist) as f:
-            for (i, l) in enumerate(f):
-                l = l.rstrip()
-
-                # match lines of the form '<package> <maintainer(s)|status>'
-                match = re.match(r'^(\S+)\s+(.+)$', l)
-                if match:
-                    pkg = match.group(1)
-                    rest = match.group(2)
-
-                    # does rest starts with a status in all caps?
-                    status_match = re.match(r'^([A-Z]+)\b.*$', rest)
-                    if status_match:
-                        status = status_match.group(1)
-
-                        # ignore packages marked as 'OBSOLETE'
-                        if status == 'OBSOLETE':
+        for e in ['!email', '!mail']:
+            email = os.path.join(homedirs, m.name, e)
+            if os.path.isfile(email):
+                with open(email) as f:
+                    for l in f:
+                        # one address per line, ignore blank and comment lines
+                        if l.startswith('#'):
                             continue
+                        l = l.strip()
+                        if l:
+                            m.email.append(l)
+        if not m.email:
+            logging.error("no email address known for maintainer '%s'" % (m.name))
 
-                        # orphaned packages get the default maintainer if we
-                        # have one, otherwise they are assigned to 'ORPHANED'
-                        elif status == 'ORPHANED':
-                            if orphanMaint is not None:
-                                m = orphanMaint
-                            else:
-                                m = status
+    return mlist
 
-                            # also add any previous maintainer(s) listed
-                            prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
-                            if prevm:
-                                m = m + '/' + prevm.group(1)
 
+# add maintainers from the package maintainers list, with the packages they
+# maintain
+def add_packages(mlist, pkglist, orphanMaint=None):
+    with open(pkglist) as f:
+        for (i, l) in enumerate(f):
+            l = l.rstrip()
+
+            # match lines of the form '<package> <maintainer(s)|status>'
+            match = re.match(r'^(\S+)\s+(.+)$', l)
+            if match:
+                pkg = match.group(1)
+                rest = match.group(2)
+
+                # does rest starts with a status in all caps?
+                status_match = re.match(r'^([A-Z]+)\b.*$', rest)
+                if status_match:
+                    status = status_match.group(1)
+
+                    # ignore packages marked as 'OBSOLETE'
+                    if status == 'OBSOLETE':
+                        continue
+
+                    # orphaned packages get the default maintainer if we
+                    # have one, otherwise they are assigned to 'ORPHANED'
+                    elif status == 'ORPHANED':
+                        if orphanMaint is not None:
+                            m = orphanMaint
                         else:
-                            logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
-                            continue
+                            m = status
+
+                        # also add any previous maintainer(s) listed
+                        prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
+                        if prevm:
+                            m = m + '/' + prevm.group(1)
                     else:
-                        m = rest
-
-                    # joint maintainers are separated by '/'
-                    for name in m.split('/'):
-                        name = name.strip()
-
-                        # is the maintainer name ascii?
-                        #
-                        # (despite containing spaces, think of these as an account
-                        # name, rather than a display name)
-                        try:
-                            name.encode('ascii')
-                        except UnicodeError:
-                            logging.error("non-ascii maintainer name '%s' in line %s:%d, skipped" % (rest, pkglist, i))
-                            continue
-
-                        m = Maintainer._find(mlist, name)
-                        m.pkgs.append(pkg)
-
+                        logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
+                        continue
                 else:
-                    logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
+                    m = rest
 
-        return mlist
+                # joint maintainers are separated by '/'
+                for name in m.split('/'):
+                    name = name.strip()
 
-    # create maintainer list
-    @staticmethod
-    def read(args, orphanmaint=None):
-        mlist = {}
-        mlist = Maintainer.add_directories(mlist, args.homedir)
-        mlist = Maintainer.add_packages(mlist, args.pkglist, orphanmaint)
+                    # is the maintainer name ascii?
+                    #
+                    # (despite containing spaces, think of these as an account
+                    # name, rather than a display name)
+                    try:
+                        name.encode('ascii')
+                    except UnicodeError:
+                        logging.error("non-ascii maintainer name '%s' in line %s:%d, skipped" % (rest, pkglist, i))
+                        continue
 
-        return mlist
+                    m = Maintainer._find(mlist, name)
+                    m.pkgs.append(pkg)
 
-    # invert to a per-package list of maintainers
-    @staticmethod
-    def invert(mlist):
-        _pkgs = defaultdict(list)
-        # for each maintainer
-        for m in mlist.values():
-            # for each package
-            for p in m.pkgs:
-                # add the maintainer name
-                _pkgs[p].append(m.name)
+            else:
+                logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
 
-        return _pkgs
+    return mlist
 
-    @staticmethod
-    def update_reminder_times(mlist):
-        for m in mlist.values():
-            m._update_reminder_time()
 
-    # a list of all packages
-    @staticmethod
-    def all_packages(mlist):
-        return list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))
+# create maintainer list
+def read(args, orphanmaint=None):
+    mlist = {}
+    mlist = add_directories(mlist, args.homedir)
+    mlist = add_packages(mlist, args.pkglist, orphanmaint)
+
+    return mlist
+
+
+# invert to a per-package list of maintainers
+def invert(mlist):
+    _pkgs = defaultdict(list)
+    # for each maintainer
+    for m in mlist.values():
+        # for each package
+        for p in m.pkgs:
+            # add the maintainer name
+            _pkgs[p].append(m.name)
+
+    return _pkgs
+
+
+def update_reminder_times(mlist):
+    for m in mlist.values():
+        m._update_reminder_time()
+
+
+# a list of all packages
+def all_packages(mlist):
+    return list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))
