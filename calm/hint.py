@@ -309,7 +309,10 @@ def hint_file_parse(fn, kind):
                 hints['requires'] = split_trim_sort_join(hints['requires'], None, ' ')
 
             if 'build-depends' in hints:
-                hints['build-depends'] = split_trim_sort_join(hints['build-depends'], None, ', ')
+                if ',' in hints['build-depends']:
+                    hints['build-depends'] = split_trim_sort_join(hints['build-depends'], ',')
+                else:
+                    hints['build-depends'] = split_trim_sort_join(hints['build-depends'], None, ', ')
 
             if 'depends' in hints:
                 hints['depends'] = split_trim_sort_join(hints['depends'], ',')
