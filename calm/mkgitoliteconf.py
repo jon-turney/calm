@@ -73,7 +73,6 @@ def do_main(args):
     print('@leads = %s' % ' '.join(map(transform_username, common_constants.ORPHANMAINT.split('/'))))
     print('')
     print('repo @all')
-    print('    C  = @leads')
     print('    RW = @leads')
     print('    RW+ playground$ = @all')
     print('# anyone can create, push, rewind or delete the \'playground\' branch')
@@ -91,7 +90,7 @@ def do_main(args):
         owner = pkgs[p][0]  # first named maintainer
 
         print("repo git/cygwin-packages/%s" % (p))
-        print("C  = %s" % (users))
+        print("C  = %s @leads" % (users))
         print("RW = %s" % (users))
         print("owner = %s" % (owner))
         print("")
