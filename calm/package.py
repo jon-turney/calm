@@ -486,6 +486,14 @@ def validate_packages(args, packages):
     if packages is None:
         return False
 
+    # build the set of valid things to requires:
+    valid_requires = set()
+    for p in packages:
+        valid_requires.add(p)
+        for hints in packages[p].version_hints.values():
+            valid_requires.update(hints.get('provides', '').split())
+
+    # perform various package validations
     for p in sorted(packages.keys()):
         logging.log(5, "validating package '%s'" % (p))
         has_requires = False
@@ -517,14 +525,14 @@ def validate_packages(args, packages):
 
                         # all packages listed in a hint must exist (unless the
                         # disable-check option says that's ok)
-                        if r not in packages:
+                        if r not in valid_requires:
                             if okmissing not in getattr(args, 'disable_check', []):
-                                logging.error("package '%s' version '%s' %s nonexistent or errored package '%s'" % (p, v, c, r))
+                                logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, v, c, r))
                                 error = True
                             continue
 
                         # hint referencing a source-only package makes no sense
-                        if packages[r].skip:
+                        if r in packages and packages[r].skip:
                             logging.error("package '%s' version '%s' %s source-only package '%s'" % (p, v, c, r))
                             error = True
 
@@ -532,7 +540,7 @@ def validate_packages(args, packages):
             if 'external-source' in hints:
                 e = hints['external-source']
                 if e not in packages:
-                    logging.error("package '%s' version '%s' refers to nonexistent or errored external-source '%s'" % (p, v, e))
+                    logging.error("package '%s' version '%s' refers to non-existent or errored external-source '%s'" % (p, v, e))
                     error = True
 
         # If package A is obsoleted by package B, B should appear in the
