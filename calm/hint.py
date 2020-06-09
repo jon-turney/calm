@@ -224,17 +224,17 @@ def hint_file_parse(fn, kind):
                     if key not in hintkeys[kind]:
                         errors.append('unknown key %s at line %d' % (key, i))
                         continue
-                    type = hintkeys[kind][key]
+                    valtype = hintkeys[kind][key]
 
                     # check if the key occurs more than once
                     if key in hints:
                         errors.append('duplicate key %s' % (key))
 
                     # check the value meets any key-specific constraints
-                    if (type == 'val') and (len(value) == 0):
+                    if (valtype == 'val') and (len(value) == 0):
                         errors.append('%s has empty value' % (key))
 
-                    if (type == 'noval') and (len(value) != 0):
+                    if (valtype == 'noval') and (len(value) != 0):
                         errors.append("%s has non-empty value '%s'" % (key, value))
 
                     # validate all categories are in the category list (case-insensitively)
@@ -267,7 +267,7 @@ def hint_file_parse(fn, kind):
                             value = value.replace('  ', ' ')
 
                     # only 'ldesc' and 'message' are allowed a multi-line value
-                    if (type != 'multilineval') and (len(value.splitlines()) > 1):
+                    if (valtype != 'multilineval') and (len(value.splitlines()) > 1):
                         errors.append("key %s has multi-line value" % (key))
 
                     # message must have an id and some text
