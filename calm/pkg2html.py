@@ -408,14 +408,14 @@ def write_arch_listing(args, packages, arch):
 
     for p in packages:
 
-        dir = os.path.join(base, p)
-        ensure_dir_exists(args, dir)
+        dirpath = os.path.join(base, p)
+        ensure_dir_exists(args, dirpath)
 
         #
         # write .htaccess if needed
         #
 
-        htaccess = os.path.join(dir, '.htaccess')
+        htaccess = os.path.join(dirpath, '.htaccess')
         if not os.path.exists(htaccess):
             if not args.dryrun or args.force:
                 with utils.open_amifc(htaccess) as f:
@@ -437,15 +437,15 @@ def write_arch_listing(args, packages, arch):
         #
         # for each tarfile, write tarfile listing
         #
-        if os.path.exists(dir):
-            listings = os.listdir(dir)
+        if os.path.exists(dirpath):
+            listings = os.listdir(dirpath)
             listings.remove('.htaccess')
         else:
             listings = []
 
         for tn, to in itertools.chain.from_iterable([packages[p].tars[vr].items() for vr in packages[p].tars]):
             fver = re.sub(r'\.tar.*$', '', tn)
-            listing = os.path.join(dir, fver)
+            listing = os.path.join(dirpath, fver)
 
             # ... if it doesn't already exist, or --force --force
             if not os.path.exists(listing) or (args.force > 1):
