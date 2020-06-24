@@ -148,7 +148,7 @@ def add_packages(mlist, pkglist, orphanMaint=None):
                 rest = match.group(2)
 
                 # does rest starts with a status in all caps?
-                status_match = re.match(r'^([A-Z]+)\b.*$', rest)
+                status_match = re.match(r'^([A-Z]{2,})\b.*$', rest)
                 if status_match:
                     status = status_match.group(1)
 
