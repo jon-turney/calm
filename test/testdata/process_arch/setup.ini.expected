@@ -9,7 +9,7 @@
  'arch: x86\n'
  'setup-timestamp: 1473797080\n'
  'include-setup: setup <2.878 not supported\n'
- 'setup-minimum-version: 2.891\n'
+ 'setup-minimum-version: 2.895\n'
  'setup-version: 3.1415\n'
  '\n'
  '@ arc\n'
