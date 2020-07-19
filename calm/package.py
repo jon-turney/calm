@@ -1290,7 +1290,9 @@ def merge(a, *l):
 #
 
 def delete(packages, path, fn):
+    ex_packages = []
     (_, _, pkgpath) = path.split(os.sep, 2)
+
     for p in packages:
         if packages[p].pkgpath == pkgpath:
             for vr in packages[p].tars:
@@ -1306,7 +1308,17 @@ def delete(packages, path, fn):
             for h in packages[p].hints:
                 if packages[p].hints[h].fn == fn:
                     del packages[p].hints[h]
+                    del packages[p].version_hints[h]
                     break
+
+        # if nothing remains, also remove from package set
+        if not packages[p].vermap and not packages[p].hints:
+            ex_packages.append(p)
+
+    # (modify package set outside of iteration over it)
+    for p in ex_packages:
+        logging.info("removing package '%s' for package set" % (p))
+        del packages[p]
 
 
 #
