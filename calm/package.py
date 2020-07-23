@@ -1317,7 +1317,7 @@ def delete(packages, path, fn):
 
     # (modify package set outside of iteration over it)
     for p in ex_packages:
-        logging.info("removing package '%s' for package set" % (p))
+        logging.debug("removing package '%s' from package set" % (p))
         del packages[p]
 
 
