@@ -36,10 +36,10 @@ HOMEDIR = '/sourceware/cygwin-staging/home'
 FTP = '/var/ftp/pub/cygwin'
 
 # logs are emailed to these addresses if any errors occurred
-EMAILS = ','.join(list(map(lambda m: m + '@sourceware.org', ['corinna', 'yselkowitz'])) + ['Stromeko@NexGo.DE'])
+EMAILS = ','.join(list(map(lambda m: m[0] + '@' + m[1], zip(['corinna', 'Stromeko'], ['sourceware.org', 'NexGo.DE']))))
 
 # every email we send is bcc'd to these addresses
-ALWAYS_BCC = 'jturney@sourceware.org, yselkowitz@sourceware.org'
+ALWAYS_BCC = 'jturney@sourceware.org'
 
 # these maintainers can upload orphaned packages as well
 #
