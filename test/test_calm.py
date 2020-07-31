@@ -486,8 +486,16 @@ class CalmTest(unittest.TestCase):
         # remove !ready files
         os.system("find testdata/homes -name !ready -exec rm {} \\;")
 
-        # fix up package timestamps so highest version is also latest
+        # fix up package timestamps
         # (git doesn't store timestamps, so they will all be dated the time of checkout)
+
+        # set all package timestamps to some arbitrary date
+        os.environ['TZ'] = 'UTC'
+        for dirpath, _dirnames, filenames in os.walk(os.path.join('testdata', 'relarea')):
+            for f in filenames:
+                os.system('touch "%s" -d %s' % (os.path.join(dirpath, f), '2018-03-02'))
+
+        # then adjust packages where we need highest version to also be latest
         relarea_x86 = os.path.join('testdata', 'relarea', 'x86', 'release')
         relarea_noarch = os.path.join('testdata', 'relarea', 'noarch', 'release')
         home_conflict = os.path.join('testdata', 'homes.conflict', 'Blooey McFooey', 'x86', 'release')

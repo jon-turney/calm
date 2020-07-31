@@ -264,7 +264,7 @@ def update_package_listings(args, packages):
                             print('<li><span class="detail">%s</span></li>' % arch, file=f)
 
                             print('<table class="pkgtable">', file=f)
-                            print('<tr><th>Version</th><th>Package Size</th><th>Files</th><th>Status</th></tr>', file=f)
+                            print('<tr><th>Version</th><th>Package Size</th><th>Date</th><th>Files</th><th>Status</th></tr>', file=f)
 
                             def tar_line(pn, p, category, v, arch, f):
                                 if category not in p.vermap[v]:
@@ -273,7 +273,8 @@ def update_package_listings(args, packages):
                                 name = v if category == 'install' else v + ' (source)'
                                 target = "%s-%s" % (p.orig_name, v) + ('' if category == 'install' else '-src')
                                 test = 'test' if 'test' in p.version_hints[v] else 'stable'
-                                print('<tr><td>%s</td><td class="right">%d kB</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, arch, pn, target, test), file=f)
+                                ts = time.strftime('%Y-%m-%d %H:%M', time.gmtime(p.tar(v, category).mtime))
+                                print('<tr><td>%s</td><td class="right">%d KiB</td><td>%s</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, ts, arch, pn, target, test), file=f)
 
                             for version in sorted(packages[arch][p].vermap.keys(), key=lambda v: SetupVersion(v)):
                                 tar_line(p, packages[arch][p], 'install', version, arch, f)
