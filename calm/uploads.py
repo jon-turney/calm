@@ -143,7 +143,7 @@ def scan(m, all_packages, arch, args):
 
         # only process packages for which we are listed as a maintainer
         if not package.is_in_package_list(pkgpath, m.pkgs):
-            logging.warning("package '%s' is not in the package list for maintainer %s" % (relpath, m.name))
+            logging.warning("package '%s' is not in the package list for maintainer '%s'" % (relpath, m.name))
             continue
 
         # see if we can fix-up any setup.hint files
