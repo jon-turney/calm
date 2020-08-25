@@ -267,7 +267,8 @@ def scan(m, all_packages, arch, args):
                         logging.info("discarding, identical %s is already in release area" % fn)
                         remove_success.append(fn)
                     else:
-                        logging.error("ignoring, different %s is already in release area (perhaps you should rebuild with a different version-release identifier?)" % fn)
+                        logging.error("discarding, different %s is already in release area (perhaps you should rebuild with a different version-release identifier?)" % fn)
+                        remove.append(fn)
                         error = True
                     files.remove(f)
                 else:
