@@ -872,7 +872,7 @@ def validate_packages(args, packages):
 
             # ignore Python module packages, as we may keep old versions of
             # those
-            if re.match(r'^python[23][567]-.*', install_p):
+            if re.match(r'^python[23][5678]?-.*', install_p):
                 continue
 
             # ignore packages which don't have a current version (i.e. are test
