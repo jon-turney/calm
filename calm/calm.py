@@ -503,6 +503,7 @@ def do_daemon(args, state):
     context = daemon.DaemonContext(
         stdout=sys.stdout,
         stderr=sys.stderr,
+        umask=0o002,
         pidfile=lockfile.pidlockfile.PIDLockFile(args.daemon))
 
     running = True
