@@ -133,7 +133,9 @@ def fix_homepage_src_hint(dirpath, hf, tf):
             logging.warning('homepage:%s permanently redirects to %s, fixing' % (homepage, redirect_homepage))
             homepage = redirect_homepage
         else:
-            logging.warning('homepage:%s permanently redirects to %s' % (homepage, redirect_homepage))
+            # don't warn about intra-site redirects
+            if not redirect_homepage.startswith(homepage):
+                logging.warning('homepage:%s permanently redirects to %s' % (homepage, redirect_homepage))
 
     # write updated hints
     if homepage != hints.get('homepage', None):
