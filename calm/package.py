@@ -962,7 +962,7 @@ def write_setup_ini(args, packages, arch):
             print("include-setup: setup <2.878 not supported", file=f)
 
             # not implemented until 2.890, ignored by earlier versions
-            print("setup-minimum-version: 2.895", file=f)
+            print("setup-minimum-version: 2.903", file=f)
 
             # for setup to check if a setup upgrade is possible
             print("setup-version: %s" % args.setup_version, file=f)
