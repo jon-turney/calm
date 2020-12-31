@@ -19,4 +19,7 @@ setup(
     },
     url='https://cygwin.com/git/?p=cygwin-apps/calm.git',
     test_suite='tests',
+    install_requires=[
+        'xtarfile[zstd]',
+    ],
 )

@@ -1,0 +1,5 @@
+category: Base
+requires:   
+sdesc: "test package (zstd compressed)"
+ldesc: "test package (zstd compressed)"
+

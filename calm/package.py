@@ -35,9 +35,9 @@ import logging
 import os
 import pprint
 import re
-import tarfile
 import textwrap
 import time
+import xtarfile
 
 from .version import SetupVersion
 from .movelist import MoveList
@@ -455,7 +455,7 @@ def tarfile_is_empty(tf):
 
     # if it's really a tar file, does it contain zero files?
     try:
-        with tarfile.open(tf) as a:
+        with xtarfile.open(tf, mode='r') as a:
             if any(a) == 0:
                 return True
     except Exception as e:

@@ -49,9 +49,9 @@ import os
 import re
 import string
 import sys
-import tarfile
 import textwrap
 import time
+import xtarfile
 
 from .version import SetupVersion
 from . import common_constants
@@ -482,7 +482,7 @@ def write_arch_listing(args, packages, arch):
                             pass
                         else:
                             try:
-                                with tarfile.open(tf) as a:
+                                with xtarfile.open(tf, mode='r') as a:
                                     for i in a:
                                         print('    %-16s%12d %s' % (time.strftime('%Y-%m-%d %H:%M', time.gmtime(i.mtime)), i.size, i.name), file=f, end='')
                                         if i.isdir():

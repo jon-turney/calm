@@ -326,7 +326,7 @@ class CalmTest(unittest.TestCase):
         oldcwd = os.getcwd()
         os.chdir(test_root)
 
-        pkglist = ['after-ready', 'not-ready', 'testpackage', 'testpackage2']
+        pkglist = ['after-ready', 'not-ready', 'testpackage', 'testpackage2', 'testpackage-zstd']
 
         mlist = {}
         mlist = maintainers.add_directories(mlist, 'testdata/homes')
@@ -335,6 +335,7 @@ class CalmTest(unittest.TestCase):
 
         ready_fns = [(os.path.join(m.homedir(), 'x86', 'release', 'testpackage', '!ready'), ''),
                      (os.path.join(m.homedir(), 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
+                     (os.path.join(m.homedir(), 'x86', 'release', 'testpackage-zstd', '!ready'), ''),
                      (os.path.join(m.homedir(), 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
                      (os.path.join(m.homedir(), 'x86', 'release', 'corrupt', '!ready'), '')]
         for (f, t) in ready_fns:

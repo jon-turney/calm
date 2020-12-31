@@ -30,13 +30,14 @@ import socket
 import tarfile
 import urllib.request
 import urllib.error
+import xtarfile
 
 from . import hint
 
 
 def read_cygport(dirpath, tf):
     try:
-        with tarfile.open(os.path.join(dirpath, tf)) as a:
+        with xtarfile.open(os.path.join(dirpath, tf), mode='r') as a:
             cygports = [m for m in a.getmembers() if m.name.endswith('.cygport')]
 
             if len(cygports) != 1:

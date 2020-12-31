@@ -6,3 +6,4 @@ flake8-import-order == 0.14.1
 lockfile
 pycodestyle
 python-daemon
+xtarfile[zstd]

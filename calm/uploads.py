@@ -31,8 +31,8 @@ import os
 import logging
 import re
 import shutil
-import tarfile
 import time
+import xtarfile
 
 from .movelist import MoveList
 from . import common_constants
@@ -238,8 +238,9 @@ def scan(m, all_packages, arch, args):
                 try:
                     # we need to extract all of an archive contents to validate
                     # it
-                    with tarfile.open(fn) as a:
+                    with xtarfile.open(fn, mode='r') as a:
                         a.getmembers()
+
                 except Exception as e:
                     valid = False
                     logging.error("exception %s while reading %s" % (type(e).__name__, fn))

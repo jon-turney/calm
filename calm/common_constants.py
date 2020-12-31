@@ -83,5 +83,5 @@ if os.uname()[1] == 'tambora':
     MAILHOST = 'allegra'
 
 # package compressions
-PACKAGE_COMPRESSIONS = ['bz2', 'gz', 'lzma', 'xz']
+PACKAGE_COMPRESSIONS = ['bz2', 'gz', 'lzma', 'xz', 'zst']
 PACKAGE_COMPRESSIONS_RE = r'\.(' + '|'.join(PACKAGE_COMPRESSIONS) + r')'

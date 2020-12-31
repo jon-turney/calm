@@ -27,6 +27,7 @@ import re
 import os
 import sys
 import tarfile
+import xtarfile
 
 from . import common_constants
 
@@ -65,7 +66,7 @@ def read_tar(f):
     result = {}
 
     try:
-        with tarfile.open(f) as t:
+        with xtarfile.open(f, mode='r') as t:
             for m in t:
                 if m.isfile():
                     f = t.extractfile(m)
