@@ -11,3 +11,4 @@
 * report changes in override.hint like we used to for setup.hint
 * maintainers.py should only re-read cygwin-pkg-maint if it's changed
 * empty install packages should only come in two variants: no dependencies and in _obsolete category, or with dependencies and in 'meta' category
+* expire test versions superseded by a non-test version (unless keep-superseded-test: in override.hint?)
