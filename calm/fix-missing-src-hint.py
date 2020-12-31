@@ -38,7 +38,7 @@ from . import common_constants
 def fix_hints(relarea):
     for (dirpath, _subdirs, files) in os.walk(relarea):
         for f in files:
-            match = re.match(r'^(.*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.match(r'^(.*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 pvr = match.group(1)
                 old = pvr + '.hint'

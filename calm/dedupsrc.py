@@ -91,7 +91,8 @@ def dedup(archive, relarea):
     (path, filename) = os.path.split(archive)
 
     # parse tarfile name
-    match = re.match(r'^(.+?)-(\d.*)-src\.tar\.(bz2|gz|lzma|xz)$', filename)
+    match = re.match(r'^(.+?)-(\d.*)-src\.tar' +
+                     common_constants.PACKAGE_COMPRESSIONS_RE + r'$', filename)
 
     if not match:
         print('tarfile name %s does not meet expectations' % (filename))

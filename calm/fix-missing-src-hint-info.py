@@ -43,7 +43,7 @@ def fix_hints(relarea, packages):
                 continue
 
         for f in files:
-            match = re.match(r'^(.*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.match(r'^(.*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 hf = match.group(1) + '-src.hint'
                 if hf not in files:

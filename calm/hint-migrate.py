@@ -51,7 +51,7 @@ def hint_migrate(args):
             migrate = set()
             vr = set()
             for f in files:
-                match = re.match(r'^(.*?)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
+                match = re.match(r'^(.*?)(-src|)\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
 
                 # not an archive?
                 if not match:

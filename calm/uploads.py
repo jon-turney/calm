@@ -157,7 +157,7 @@ def scan(m, all_packages, arch, args):
                 logging.warning("'%s' seen, please update to cygport >= 0.23.0" % f)
                 seen = True
 
-            match = re.match(r'^([^-].*?)(-src|)\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.match(r'^([^-].*?)(-src|)\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 if (pvr is not None) and (pvr != match.group(1)):
                     ambiguous = True
@@ -177,7 +177,7 @@ def scan(m, all_packages, arch, args):
                 files.append(new)
 
         for f in sorted(files):
-            match = re.match(r'^([^-].*)-src\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.match(r'^([^-].*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 pvr = match.group(1)
                 old = pvr + '.hint'
@@ -231,7 +231,7 @@ def scan(m, all_packages, arch, args):
                 continue
 
             # verify compressed archive files are valid
-            match = re.search(r'\.tar\.(bz2|gz|lzma|xz)$', f)
+            match = re.search(r'\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 valid = True
 

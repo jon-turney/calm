@@ -82,6 +82,10 @@ if os.uname()[1] == 'tambora':
     ALWAYS_BCC = ''
     MAILHOST = 'allegra'
 
+# package compressions
+PACKAGE_COMPRESSIONS = ['bz2', 'gz', 'lzma', 'xz']
+PACKAGE_COMPRESSIONS_RE = r'\.(' + '|'.join(PACKAGE_COMPRESSIONS) + r')'
+
 # size of a 0-byte file compressed
 COMPRESSION_MINSIZE = {
     'bz2': 14,

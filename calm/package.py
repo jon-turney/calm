@@ -233,7 +233,7 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
             else:
                 fl[Kind.binary].append(f)
             files.remove(f)
-        elif re.match(r'^' + re.escape(p) + r'.*\.tar\.(bz2|gz|lzma|xz)$', f):
+        elif re.match(r'^' + re.escape(p) + r'.*\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f):
             if '-src.tar' in f:
                 fl[Kind.source].append(f)
             else:
@@ -329,7 +329,7 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
         #
         # P must match the package name, V can contain anything, R must
         # start with a number
-        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.(tar\.(bz2|gz|lzma|xz)|hint)$', f)
+        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
         if not match:
             logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
             return True

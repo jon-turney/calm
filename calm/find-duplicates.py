@@ -137,7 +137,7 @@ def find_duplicates(args):
 
         for f in files:
             # not an archive
-            if not re.match(r'^.*\.tar\.(bz2|gz|lzma|xz)$', f):
+            if not re.match(r'^.*\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f):
                 continue
 
             f1 = os.path.join(dirpath, f)
