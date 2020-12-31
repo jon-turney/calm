@@ -71,7 +71,6 @@ from . import irk
 from . import maintainers
 from . import package
 from . import pkg2html
-from . import queue
 from . import setup_exe
 from . import uploads
 from . import utils
@@ -160,9 +159,6 @@ def process_uploads(args, state):
                     logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, name))
                     skip_maintainer = True
                     continue
-
-                # queue for source package validator
-                queue.add(args, scan_result[arch].to_relarea, os.path.join(m.homedir()))
 
             # if there are no added or removed files for this maintainer, we
             # don't have anything to do
@@ -664,7 +660,6 @@ def main():
     setupdir_default = common_constants.HTDOCS
     vault_default = common_constants.VAULT
     logdir_default = '/sourceware/cygwin-staging/logs'
-    queuedir_default = '/sourceware/cygwin-staging/queue'
 
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('-d', '--daemon', action='store', nargs='?', const=pidfile_default, help="daemonize (PIDFILE defaults to " + pidfile_default + ")", metavar='PIDFILE')
@@ -676,7 +671,6 @@ def main():
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
     parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
-    parser.add_argument('--queuedir', action='store', nargs='?', metavar='DIR', help="queue directory (default: '" + queuedir_default + "')", const=queuedir_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
     parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)

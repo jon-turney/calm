@@ -1,4 +1,3 @@
-dirq
 flake8
 flake8-blind-except
 flake8-bugbear ; python_version >= "3.5"
