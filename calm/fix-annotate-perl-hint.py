@@ -24,30 +24,35 @@
 import argparse
 import logging
 import os
+import re
 import shutil
 import sys
+import tarfile
+import xtarfile
 
 from . import common_constants
 from . import hint
 
+# packages which are known to embed a perl interpreter or contain perl extension
+# dlls (i.e. link with libperl)
+known_packages = [
+    'perl-gdal',
+    'hexchat-perl',
+    'irssi',
+    'postgresql-contrib',
+    'postgresql-plperl',
+    'rxvt-unicode',
+    'weechat-perl',
+    'znc-perl',
+]
+
 #
 #
 #
 
 
-def fix_one_hint(dirpath, hintfile):
+def fix_one_hint(dirpath, hintfile, tf):
     pn = os.path.join(dirpath, hintfile)
-
-    annotation = False
-    with open(pn, 'r') as f:
-        for l in f:
-            if '# perl5_26' in l:
-                logging.info("%s has annotation comment" % (hintfile))
-                annotation = True
-                break
-
-    if not annotation:
-        return
 
     hints = hint.hint_file_parse(pn, hint.pvr)
 
@@ -56,18 +61,65 @@ def fix_one_hint(dirpath, hintfile):
         logging.error('invalid hints %s' % hintfile)
         return
 
-    hints['notes'] = 'perl5_26'
+    modified = False
+
+    # if no annotation yet, add a perl annotation
+    if 'notes' not in hints:
+        requires = hints.get('requires', '').split()
+        if requires:
+            if ('perl_base' in requires) or ('perl' in requires):
+                logging.info("%s has perl in requires and no annotations" % (hintfile))
+                hints['notes'] = 'perl5_030'
+                modified = True
+
+    # if annotated, check if this package installs into vendor_perl, and if so,
+    # add the annotate perl version to requires, if not already present
+    if hints.get('notes', '').startswith('perl5_0'):
+        ivp = False
+        exe = False
+
+        try:
+            with xtarfile.open(os.path.join(dirpath, tf), mode='r') as a:
+                ivp = any(re.match(r'usr/(lib|share)/perl5/vendor_perl/', m) for m in a.getnames())
+                exe = any(re.search(r'\.(exe|dll)$', m) for m in a.getnames())
+        except tarfile.ReadError:
+            pass
+
+        knwn = any(hintfile.startswith(k) for k in known_packages)
+
+        if ivp or knwn:
+            requires = hints.get('requires', '').split()
+            if hints['notes'] not in requires:
+                requires.append(hints['notes'])
+                requires = sorted(requires)
+                modified = True
+                logging.warning("adding perl provide to requires in %s" % (hintfile))
+            hints['requires'] = ' '.join(requires)
+        else:
+            if exe:
+                logging.info("%s has perl in requires, and might have content linked to libperl" % (hintfile))
+            else:
+                logging.info("%s has perl in requires, assuming that's for a perl script" % (hintfile))
+
+    if not modified:
+        return
 
     # write updated hints
     shutil.copy2(pn, pn + '.bak')
     hint.hint_file_write(pn, hints)
+    # os.system('/usr/bin/diff -uBZ %s %s' % (pn + '.bak', pn))
 
 
 def fix_hints(relarea):
     for (dirpath, _subdirs, files) in os.walk(relarea):
         for f in files:
-            if f.endswith('.hint'):
-                fix_one_hint(dirpath, f)
+            match = re.match(r'^([^-].*?)\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
+            if match:
+                root = match.group(1)
+                if root.endswith('-src'):
+                    continue
+
+                fix_one_hint(dirpath, root + '.hint', f)
 
 #
 #
