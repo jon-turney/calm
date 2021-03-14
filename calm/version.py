@@ -43,20 +43,25 @@ class SetupVersion:
     def __init__(self, version_string):
         self._version_string = version_string
 
-        # split version into [V, R], on the last '-', if any
-        split = list(itertools.chain(version_string.rsplit('-', 1), ['']))[:2]
+        # split release on the last '-', if any (default '')
+        v, r = list(itertools.chain(version_string.rsplit('-', 1), ['']))[:2]
+
+        # split epoch, on the first ':', if any (default '0')
+        e, v = list(itertools.chain('0', v.split(':', 1)))[-2:]
+
+        split = [e, v, r]
 
         # then split each part into numeric and alphabetic sequences
         # non-alphanumeric separators are discarded
         # numeric sequences have leading zeroes discarded
-        for j, i in enumerate(['V', 'R']):
+        for j, i in enumerate(['E', 'V', 'R']):
             sequences = re.finditer(r'(\d+|[a-zA-Z]+|[^a-zA-Z\d]+)', split[j])
             sequences = [m for m in sequences if not re.match(r'[^a-zA-Z\d]+', m.group(1))]
             sequences = [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in sequences]
             setattr(self, '_' + i, sequences)
 
     def __str__(self):
-        return '%s (V=%s R=%s)' % (self._version_string, str(self._V), str(self._R))
+        return '%s (E=%s V=%s R=%s)' % (self._version_string, str(self._E), str(self._V), str(self._R))
 
     def __lt__(self, other):
         return self.__cmp__(other) == -1
@@ -65,6 +70,11 @@ class SetupVersion:
         return self.__cmp__(other) == 0
 
     def __cmp__(self, other):
+        # compare E
+        c = SetupVersion._compare(self._E, other._E)
+        if c != 0:
+            return c
+
         # compare V
         c = SetupVersion._compare(self._V, other._V)
         if c != 0:
