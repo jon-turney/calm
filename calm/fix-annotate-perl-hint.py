@@ -63,17 +63,26 @@ def fix_one_hint(dirpath, hintfile, tf):
 
     modified = False
 
-    # if no annotation yet, add a perl annotation
+    # if no annotation yet ...
     if 'notes' not in hints:
         requires = hints.get('requires', '').split()
         if requires:
+            # is a perl provide is already present in requires?
+            if any(r.startswith('perl5_') for r in requires):
+                return
+
+            # ... otherwise, add a perl annotation
             if ('perl_base' in requires) or ('perl' in requires):
                 logging.info("%s has perl in requires and no annotations" % (hintfile))
-                hints['notes'] = 'perl5_030'
+                hints['notes'] = 'perl5_032'
                 modified = True
 
+    # fix spelling mistake in 5_26 annotation
+    if hints.get('notes', '') == 'perl5_26':
+        hints['notes'] = 'perl5_026'
+
     # if annotated, check if this package installs into vendor_perl, and if so,
-    # add the annotate perl version to requires, if not already present
+    # add the annotated perl version to requires, if not already present
     if hints.get('notes', '').startswith('perl5_0'):
         ivp = False
         exe = False
@@ -93,7 +102,7 @@ def fix_one_hint(dirpath, hintfile, tf):
                 requires.append(hints['notes'])
                 requires = sorted(requires)
                 modified = True
-                logging.warning("adding perl provide to requires in %s" % (hintfile))
+                logging.warning("adding %s to requires in %s" % (hints['notes'], hintfile))
             hints['requires'] = ' '.join(requires)
         else:
             if exe:

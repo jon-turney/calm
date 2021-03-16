@@ -190,3 +190,8 @@ maint_anomalies = {
     'python-debuginfo': ['2.7.12-1'],  # should be obsoleted by python2(-debuginfo)
     'transfig-debuginfo': ['3.2.5e-2'],  # should be obsoleted by xfig(-debuginfo)
 }
+
+# provides: which don't exist
+nonexistent_provides = [
+    'perl5_026',
+]
