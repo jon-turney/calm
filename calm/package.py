@@ -1071,15 +1071,6 @@ def write_setup_ini(args, packages, arch):
             category = ' '.join(map(upper_first_character, category.split()))
             print("category: %s" % category, file=f)
 
-            # compute the union of requires for all versions
-            requires = set()
-            for hints in po.version_hints.values():
-                if 'requires' in hints:
-                    requires = set.union(requires, hints['requires'].split())
-            # empty requires are suppressed as setup's parser can't handle that
-            if requires:
-                print("requires: %s" % ' '.join(sorted(requires)), file=f)
-
             if 'message' in po.version_hints[bv]:
                 print("message: %s" % po.version_hints[bv]['message'], file=f)
 
@@ -1189,7 +1180,7 @@ def write_setup_ini(args, packages, arch):
                 # also itself emitted.
 
                 if version in po.versions():
-                    if hints.get('depends', '') or requires:
+                    if hints.get('depends', ''):
                         print("depends2: %s" % hints.get('depends', ''), file=f)
 
                     if hints.get('obsoletes', ''):
