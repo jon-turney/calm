@@ -135,19 +135,18 @@ nonunique_versions = [
     'w3m-img',
 ]
 
-# packages with an empty install file, no source, but aren't obsolete
+# empty install packages, that aren't obsolete
 #
 # don't add to this list, use 'disable-check: empty-obsolete' in pvr.hint instead
 empty_but_not_obsolete = {
+    'freeglut-doc': ['3.0.0-1', '3.2.1-1'],                # should be obsoleted by libglut-devel which contains doc now
     'isl': ['0.16.1-1'],                                   # useless empty package, not autosupressed as it has depends
-    'kdegames3': ['3.5.10-11'],                            # a metapackage
-    'kdewebdev': ['15.04.3-1', '16.08.3-1', '16.08.3-2'],  # a metapackage
     'libpopt-devel': ['1.16-1'],                           # version 1.16-1 was empty (x86_64)
     'libpopt0': ['1.16-1'],                                # version 1.16-1 was empty
     'mbedtls': ['2.16.0-1'],                               # useless empty package, not autosupressed as it has depends
     'mpclib': ['1.1.0-1'],                                 # useless empty package, not autosupressed as it has depends
     'mpfr': ['4.0.2-1'],                                   # useless empty package, not autosupressed as it has depends
-    'ocaml': ['4.02.3-2'],                                 # a metapackage
+    'serf-debuginfo': ['1.3.8-1', '1.3.9-1'],              # empty presumably due to build problems
 }
 
 # packages with timestamp anomalies
@@ -190,3 +189,24 @@ maint_anomalies = {
 nonexistent_provides = [
     'perl5_026',
 ]
+
+# empty source packages
+#
+# (these usually have a corresponding hand-built empty install package, which
+# depends on it's replacement, and so are a lingering remnant of something not
+# properly obsoleted)
+empty_source = {
+    'SuiteSparse-src': ['4.0.2-1'],
+    'ash-src': ['20040127-5'],                   # obsoleted by dash
+    'checkx-src': ['0.2.1-1'],                   # obsoleted by run2
+    'db4.8-src': ['4.8.30-2'],                   # obsoleted by db
+    'gcc-tools-autoconf-src': ['2.59-11'],       # obsoleted by gcc-tools-epoch{1,2}-autoconf
+    'gcc-tools-automake-src': ['1.9.6-11'],      # obsoleted by gcc-tools-epoch{1,2}-automake
+    'lzma-src': ['4.32.7-10'],                   # obsoleted by xz
+    'mlcscope-src': ['99-1'],                    # obsoleted by cscope
+    'octave-forge-src': ['20140215-1'],
+    'octave-octcdf-src': ['1.1.7-99'],
+    'perl-File-Slurp-Unicode-src': ['0.7.1-2'],  # obsoleted by perl-File-Slurp
+    'pinentry-qt3-src': ['0.7.6-3'],             # obsoleted by pinentry-qt
+    'xerces-c-devel-src': ['2.8.0-1'],           # obsoleted by libxerces-c-devel
+}

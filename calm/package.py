@@ -781,24 +781,42 @@ def validate_packages(args, packages):
                 if rv in packages[p].version_hints:
                     logging.warning("package '%s' replace-versions: lists version '%s', which is also available to install" % (p, rv))
 
-        # If the install tarball is empty and there is no source tarball, we
-        # should probably be marked obsolete
-        if not packages[p].skip:
-            for vr in packages[p].version_hints:
-                if '_obsolete' not in packages[p].version_hints[vr].get('category', '') and vr in packages[p].vermap:
-                    if ('source' not in packages[p].vermap[vr]) and ('external-source' not in packages[p].version_hints[vr]):
-                        if 'install' in packages[p].vermap[vr]:
-                            if packages[p].tar(vr, 'install').is_empty:
-                                if ((vr in past_mistakes.empty_but_not_obsolete.get(p, [])) or
-                                    ('empty-obsolete' in packages[p].version_hints[vr].get('disable-check', ''))):
-                                    lvl = logging.DEBUG
-                                else:
-                                    if 'external-source' in packages[p].version_hints[vr]:
-                                        lvl = logging.ERROR
-                                        error = True
-                                    else:
-                                        lvl = logging.WARNING
-                                logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in the _obsolete category" % (p, vr))
+        # If the install tarball is empty, we should probably either be marked
+        # obsolete (if we have no dependencies) or virtual (if we do)
+        if packages[p].kind == Kind.binary and not packages[p].skip:
+            for vr in packages[p].vermap:
+                if 'install' in packages[p].vermap[vr]:
+                    if packages[p].tar(vr, 'install').is_empty:
+                        # this classification relies on obsoleting packages
+                        # not being present in depends
+                        if packages[p].version_hints[vr].get('depends', ''):
+                            # also allow '_obsolete' because old obsoletion
+                            # packages depend on their replacement, but are not
+                            # obsoleted by it
+                            expected_categories = ['virtual', '_obsolete']
+                        else:
+                            expected_categories = ['_obsolete']
+
+                        if all(c not in packages[p].version_hints[vr].get('category', '').lower() for c in expected_categories):
+                            if ((vr in past_mistakes.empty_but_not_obsolete.get(p, [])) or
+                                ('empty-obsolete' in packages[p].version_hints[vr].get('disable-check', ''))):
+                                lvl = logging.DEBUG
+                            else:
+                                lvl = logging.ERROR
+                                error = True
+                            logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in %s category" % (p, vr, expected_categories))
+        # If the source tarball is empty, that can't be right!
+        elif packages[p].kind == Kind.source:
+            for vr in packages[p].vermap:
+                if 'source' in packages[p].vermap[vr]:
+                    if packages[p].tar(vr, 'source').is_empty:
+                        if ((vr in past_mistakes.empty_source.get(p, [])) and
+                            '_obsolete' in packages[p].version_hints[vr].get('category', '')):
+                            lvl = logging.DEBUG
+                        else:
+                            error = True
+                            lvl = logging.ERROR
+                        logging.log(lvl, "package '%s' version '%s' has empty source tar file" % (p, vr))
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
