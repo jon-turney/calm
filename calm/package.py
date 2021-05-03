@@ -507,9 +507,6 @@ def validate_packages(args, packages):
                 # if c is in hints, and not the empty string
                 if hints.get(c, ''):
                     for r in hints[c].split(splitchar):
-                        if c == 'requires':
-                            has_requires = True
-
                         # remove any extraneous whitespace
                         r = r.strip()
 
@@ -517,6 +514,14 @@ def validate_packages(args, packages):
                         # following the package name
                         if splitchar:
                             r = re.sub(r'(.*) +\(.*\)', r'\1', r)
+
+                        if c == 'requires':
+                            # don't count cygwin-debuginfo for the purpose of
+                            # checking if this package has any requires, as
+                            # cygport always makes debuginfo packages require
+                            # that, even if they are empty
+                            if r != 'cygwin-debuginfo':
+                                has_requires = True
 
                         # a package should not appear in it's own hint
                         if r == p:
