@@ -42,7 +42,6 @@
 import argparse
 import glob
 import html
-import itertools
 import logging
 import math
 import os
@@ -266,19 +265,20 @@ def update_package_listings(args, packages):
                             print('<table class="pkgtable">', file=f)
                             print('<tr><th>Version</th><th>Package Size</th><th>Date</th><th>Files</th><th>Status</th></tr>', file=f)
 
-                            def tar_line(pn, p, category, v, arch, f):
-                                if category not in p.vermap[v]:
-                                    return
-                                size = int(math.ceil(p.tar(v, category).size / 1024))
-                                name = v if category == 'install' else v + ' (source)'
-                                target = "%s-%s" % (p.orig_name, v) + ('' if category == 'install' else '-src')
+                            def tar_line(pn, p, v, arch, f):
+                                size = int(math.ceil(p.tar(v).size / 1024))
+                                if p.kind == package.Kind.binary:
+                                    name = v
+                                    target = "%s-%s" % (p.orig_name, v)
+                                else:
+                                    name = v + ' (source)'
+                                    target = "%s-%s-src" % (p.orig_name, v)
                                 test = 'test' if 'test' in p.version_hints[v] else 'stable'
-                                ts = time.strftime('%Y-%m-%d %H:%M', time.gmtime(p.tar(v, category).mtime))
+                                ts = time.strftime('%Y-%m-%d %H:%M', time.gmtime(p.tar(v).mtime))
                                 print('<tr><td>%s</td><td class="right">%d KiB</td><td>%s</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, ts, arch, pn, target, test), file=f)
 
                             for version in sorted(packages[arch][p].versions(), key=lambda v: SetupVersion(v)):
-                                tar_line(p, packages[arch][p], 'install', version, arch, f)
-                                tar_line(p, packages[arch][p], 'source', version, arch, f)
+                                tar_line(p, packages[arch][p], version, arch, f)
 
                             print('</table><br>', file=f)
                     print('</ul>', file=f)
@@ -444,7 +444,8 @@ def write_arch_listing(args, packages, arch):
         else:
             listings = []
 
-        for tn, to in itertools.chain.from_iterable([packages[p].tars[vr].items() for vr in packages[p].tars]):
+        for to in packages[p].tarfiles.values():
+            tn = to.fn
             fver = re.sub(r'\.tar.*$', '', tn)
             listing = os.path.join(dirpath, fver)
 
