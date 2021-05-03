@@ -101,7 +101,6 @@ categories = ['accessibility',
               'mail',
               'mate',
               'math',
-              'mingw',
               'net',
               'ocaml',
               'office',
@@ -121,11 +120,12 @@ categories = ['accessibility',
               'text',
               'utils',
               'video',
+              'virtual',
               'web',
               'x11',
               'xfce',
               '_obsolete',
-              '_postinstalllast']
+              ]
 
 
 #
