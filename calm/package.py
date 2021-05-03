@@ -350,6 +350,23 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
             vr_list.add(vr)
 
         if not f.endswith('.hint'):
+            # a package can only contain tar archives of the appropriate type
+            if not re.search(r'-src.*\.tar', f):
+                if kind == Kind.source:
+                    logging.error("source package '%s' has install archives" % (p))
+                    return True
+            else:
+                if kind == Kind.binary:
+                    logging.error("package '%s' has source archives" % (p))
+                    return True
+
+            # for each version, a package can contain at most one tar file (of
+            # the appropriate type). Warn if we have too many (for e.g. both a
+            # .xz and .bz2 install tar file).
+            if vr in tars:
+                logging.error("package '%s' has more than one tar file for version '%s'" % (p, vr))
+                return True
+
             # collect the attributes for each tar file
             t = Tar()
             t.path = relpath
@@ -567,16 +584,13 @@ def validate_packages(args, packages):
                         logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
 
         packages[p].vermap = {}
-        has_source = False
         has_install = False
         has_nonempty_install = False
 
         for vr in packages[p].tars:
             for (t, tar) in packages[p].tars[vr].items():
-                # categorize each tarfile as either 'source' or 'install'
                 if re.search(r'-src.*\.tar', t):
                     category = 'source'
-                    has_source = True
                 else:
                     category = 'install'
                     has_install = True
@@ -586,26 +600,9 @@ def validate_packages(args, packages):
                 if vr not in packages[p].vermap:
                     packages[p].vermap[vr] = {}
 
-                # for each version, a package can contain at most one source tar
-                # file and at most one install tar file.  warn if we have too many
-                # (for e.g. both a .xz and .bz2 install tar file)
-                if category in packages[p].vermap[vr]:
-                    logging.error("package '%s' has more than one %s tar file for version '%s'" % (p, category, vr))
-                    error = True
-
                 # store tarfile corresponding to this version and category
                 packages[p].vermap[vr][category] = t
                 packages[p].vermap[vr]['mtime'] = tar.mtime
-
-        # check that package only contains tar archives of the appropriate type
-        if packages[p].kind == Kind.source:
-            if has_install:
-                logging.error("source package '%s' has install archives" % (p))
-                error = True
-        elif packages[p].kind == Kind.binary:
-            if has_source:
-                logging.error("package '%s' has source archives" % (p))
-                error = True
 
         obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
 
