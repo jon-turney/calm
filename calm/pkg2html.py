@@ -276,7 +276,7 @@ def update_package_listings(args, packages):
                                 ts = time.strftime('%Y-%m-%d %H:%M', time.gmtime(p.tar(v, category).mtime))
                                 print('<tr><td>%s</td><td class="right">%d KiB</td><td>%s</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, ts, arch, pn, target, test), file=f)
 
-                            for version in sorted(packages[arch][p].vermap.keys(), key=lambda v: SetupVersion(v)):
+                            for version in sorted(packages[arch][p].versions(), key=lambda v: SetupVersion(v)):
                                 tar_line(p, packages[arch][p], 'install', version, arch, f)
                                 tar_line(p, packages[arch][p], 'source', version, arch, f)
 

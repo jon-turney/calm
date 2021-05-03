@@ -77,6 +77,9 @@ class Package(object):
     def tar(self, vr, category):
         return self.tars[vr][self.vermap[vr][category]]
 
+    def versions(self):
+        return self.vermap.keys()
+
 
 # information we keep about a tar file
 class Tar(object):
@@ -633,7 +636,7 @@ def validate_packages(args, packages):
         packages[p].stability = defaultdict()
 
         # sort in order from highest to lowest version
-        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
             level_found = False
 
             while True:
@@ -682,7 +685,7 @@ def validate_packages(args, packages):
 
         l = 'test'
         if l not in packages[p].stability:
-            for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+            for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
                 if 'test' in packages[p].version_hints[v]:
                     packages[p].stability[l] = v
                     packages[p].version_hints[v][l] = ''
@@ -690,10 +693,10 @@ def validate_packages(args, packages):
 
         # identify a 'best' version to take certain information from: this is
         # the curr version, if we have one, otherwise, the highest version.
-        if ('curr' in packages[p].stability) and (packages[p].stability['curr'] in packages[p].vermap):
+        if ('curr' in packages[p].stability) and (packages[p].stability['curr'] in packages[p].versions()):
             packages[p].best_version = packages[p].stability['curr']
-        elif len(packages[p].vermap):
-            packages[p].best_version = sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True)[0]
+        elif len(packages[p].versions()):
+            packages[p].best_version = sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
         else:
             logging.error("package '%s' doesn't have any versions" % (p))
             packages[p].best_version = None
@@ -710,13 +713,13 @@ def validate_packages(args, packages):
             logging.warning("package '%s' doesn't have a curr version" % (p))
 
         # error if the curr: version isn't the most recent non-test: version
-        for v in sorted(packages[p].vermap.keys(), key=lambda v: packages[p].vermap[v]['mtime'], reverse=True):
+        for v in sorted(packages[p].versions(), key=lambda v: packages[p].vermap[v]['mtime'], reverse=True):
             if 'test' in packages[p].version_hints[v]:
                 continue
 
             cv = packages[p].stability['curr']
 
-            if cv not in packages[p].vermap:
+            if cv not in packages[p].versions():
                 continue
 
             if cv != v:
@@ -752,7 +755,7 @@ def validate_packages(args, packages):
         # If the install tarball is empty, we should probably either be marked
         # obsolete (if we have no dependencies) or virtual (if we do)
         if packages[p].kind == Kind.binary and not packages[p].skip:
-            for vr in packages[p].vermap:
+            for vr in packages[p].versions():
                 if 'install' in packages[p].vermap[vr]:
                     if packages[p].tar(vr, 'install').is_empty:
                         # this classification relies on obsoleting packages
@@ -775,7 +778,7 @@ def validate_packages(args, packages):
                             logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in %s category" % (p, vr, expected_categories))
         # If the source tarball is empty, that can't be right!
         elif packages[p].kind == Kind.source:
-            for vr in packages[p].vermap:
+            for vr in packages[p].versions():
                 if 'source' in packages[p].vermap[vr]:
                     if packages[p].tar(vr, 'source').is_empty:
                         if ((vr in past_mistakes.empty_source.get(p, [])) and
@@ -789,7 +792,7 @@ def validate_packages(args, packages):
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
     for p in sorted(packages.keys()):
-        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
             if 'install' not in packages[p].vermap[v]:
                 continue
 
@@ -805,7 +808,7 @@ def validate_packages(args, packages):
 
             # mark the source tarfile as being used by an install tarfile
             if es_p in packages:
-                if v in packages[es_p].vermap and 'source' in packages[es_p].vermap[v]:
+                if v in packages[es_p].versions() and 'source' in packages[es_p].vermap[v]:
                     packages[es_p].tar(v, 'source').is_used = True
                     packages[es_p].is_used_by.add(p)
                     missing_source = False
@@ -830,7 +833,7 @@ def validate_packages(args, packages):
     # make another pass to verify that each non-empty source tarfile version has
     # at least one corresponding non-empty install tarfile, in some package.
     for p in sorted(packages.keys()):
-        for v in sorted(packages[p].vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
             if 'source' not in packages[p].vermap[v]:
                 continue
 
@@ -1041,10 +1044,10 @@ def write_setup_ini(args, packages, arch):
             # (to maintain historical behaviour, include versions which only
             # exist as a source package)
             #
-            versions = set(po.vermap.keys())
+            versions = set(po.versions())
             sibling_src = pn + '-src'
             if sibling_src in packages:
-                versions.update(packages[sibling_src].vermap.keys())
+                versions.update(packages[sibling_src].versions())
 
             for version in sorted(versions, key=lambda v: SetupVersion(v), reverse=True):
                 # skip over versions assigned to stability level: 'curr' has
@@ -1345,7 +1348,7 @@ def mark_package_fresh(packages, p, v):
         es_p = p + '-src'
 
     if es_p in packages:
-        if v in packages[es_p].vermap:
+        if v in packages[es_p].versions():
             if 'source' in packages[es_p].vermap[v]:
                 packages[es_p].tar(v, 'source').fresh = True
 
@@ -1364,7 +1367,7 @@ def stale_packages(packages):
 
         # mark any versions explicitly listed in the keep: override hint
         for v in po.override_hints.get('keep', '').split():
-            if v in po.vermap:
+            if v in po.versions():
                 mark_package_fresh(packages, pn, v)
             else:
                 logging.error("package '%s' has non-existent keep: version '%s'" % (pn, v))
@@ -1372,7 +1375,7 @@ def stale_packages(packages):
         # mark as fresh the highest n non-test versions, where n is given by the
         # keep-count: override hint, (defaulting to DEFAULT_KEEP_COUNT)
         keep_count = int(po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT))
-        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+        for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True):
             if 'test' not in po.version_hints[v]:
                 if keep_count <= 0:
                     break
@@ -1382,7 +1385,7 @@ def stale_packages(packages):
         # mark as fresh the highest n test versions, where n is given by the
         # keep-count-test: override hint, (defaulting to DEFAULT_KEEP_COUNT_TEST)
         keep_count = int(po.override_hints.get('keep-count-test', common_constants.DEFAULT_KEEP_COUNT_TEST))
-        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v), reverse=True):
+        for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True):
             if 'test' in po.version_hints[v]:
                 if keep_count <= 0:
                     break
@@ -1395,7 +1398,7 @@ def stale_packages(packages):
         # it is included)
         keep_days = po.override_hints.get('keep-days', common_constants.DEFAULT_KEEP_DAYS)
         newer = False
-        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
+        for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
             if not newer:
                 if 'install' in po.vermap[v]:
                     if po.tar(v, 'install').mtime > (time.time() - (keep_days * 24 * 60 * 60)):
@@ -1409,7 +1412,7 @@ def stale_packages(packages):
     for pn, po in packages.items():
         all_stale = {}
 
-        for v in sorted(po.vermap.keys(), key=lambda v: SetupVersion(v)):
+        for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
             all_stale[v] = True
             for category in ['source', 'install']:
                 if category in po.vermap[v]:
@@ -1429,7 +1432,7 @@ def stale_packages(packages):
                 logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 
         # clean up freshness mark
-        for v in po.vermap:
+        for v in po.versions():
             for c in ['source', 'install']:
                 try:
                     delattr(po.tar(v, c), 'fresh')
