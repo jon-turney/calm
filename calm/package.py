@@ -283,9 +283,6 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
                       (relpath, packages[p].pkgpath))
         return True
 
-    # determine version overrides
-    note_absent = ('override.hint' in remove) or ('override.hint' in files)
-
     if 'override.hint' in files:
         # read override.hint
         override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
@@ -295,13 +292,6 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
         files.remove('override.hint')
     else:
         override_hints = {}
-
-    # if override.hint exists or is being removed, explicitly note absent
-    # stability level hints
-    if note_absent:
-        for level in ['test', 'curr', 'prev']:
-            if level not in override_hints:
-                override_hints[level] = None
 
     # read sha512.sum
     sha512 = {}
@@ -637,19 +627,7 @@ def validate_packages(args, packages):
                 packages[p].skip = True
                 logging.info("package '%s' appears to be source-only as it has no non-empty install tarfiles and no dependencies, marking as 'skip'" % (p))
 
-        # verify the versions specified for stability level exist
         levels = ['test', 'curr', 'prev']
-        for l in levels:
-            if l in packages[p].override_hints:
-                # check that if a version was specified, it exists
-                v = packages[p].override_hints[l]
-
-                if v is None:
-                    continue
-
-                if v not in packages[p].vermap:
-                    logging.error("package '%s' stability '%s' selects non-existent version '%s'" % (p, l, v))
-                    error = True
 
         # assign a version to each stability level
         packages[p].stability = defaultdict()
@@ -661,29 +639,19 @@ def validate_packages(args, packages):
             while True:
                 # no stability levels left
                 if len(levels) == 0:
-                    # XXX: versions which don't correspond to any stability level
-                    # should be reported, we might want to remove them at some point
-                    logging.log(5, "package '%s' has no stability levels left for version '%s'" % (p, v))
                     break
 
                 l = levels[0]
 
-                # if current stability level has an override
-                if (l in packages[p].override_hints) and (packages[p].override_hints[l] is not None):
-                    # if we haven't reached that version yet
-                    if v != packages[p].override_hints[l]:
-                        break
-                    else:
-                        logging.debug("package '%s' stability '%s' overridden to version '%s'" % (p, l, v))
                 # if package is explicitly marked as having that stability level
                 # (only used for test, currently)
-                elif (l == 'test') and ('test' in packages[p].version_hints[v]):
+                if (l == 'test') and ('test' in packages[p].version_hints[v]):
                     logging.debug("package '%s' version '%s' marked as stability '%s'" % (p, v, l))
                 else:
-                    # level 'test' must be assigned by override
+                    # level 'test' must be explicitly assigned
                     if l == 'test':
                         levels.remove(l)
-                        # go around again to check for override at the new level
+                        # go around again to check at the new level
                         continue
                     else:
                         # if version is explicitly marked test, it can't be
