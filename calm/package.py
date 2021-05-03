@@ -602,7 +602,6 @@ def validate_packages(args, packages):
 
                 # store tarfile corresponding to this version and category
                 packages[p].vermap[vr][category] = t
-                packages[p].vermap[vr]['mtime'] = tar.mtime
 
         obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
 
@@ -710,7 +709,13 @@ def validate_packages(args, packages):
             logging.warning("package '%s' doesn't have a curr version" % (p))
 
         # error if the curr: version isn't the most recent non-test: version
-        for v in sorted(packages[p].versions(), key=lambda v: packages[p].vermap[v]['mtime'], reverse=True):
+        mtimes = {}
+        for vr in packages[p].tars:
+            for category in ['source', 'install']:
+                if category in packages[p].vermap:
+                    mtimes[vr] = packages[p].tar(vr, category).mtime
+
+        for v in sorted(packages[p].versions(), key=lambda v: mtimes[v], reverse=True):
             if 'test' in packages[p].version_hints[v]:
                 continue
 
@@ -720,7 +725,7 @@ def validate_packages(args, packages):
                 continue
 
             if cv != v:
-                if packages[p].vermap[v]['mtime'] == packages[p].vermap[cv]['mtime']:
+                if mtimes[v] == mtimes[cv]:
                     # don't consider an equal mtime to be more recent
                     continue
 
