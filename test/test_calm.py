@@ -170,6 +170,11 @@ class CalmTest(unittest.TestCase):
         args.force = True
         args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
 
+        try:
+            shutil.rmtree(htdocs)
+        except FileNotFoundError:
+            pass
+
         packages = {}
         for arch in common_constants.ARCHES:
             packages[arch] = {}
