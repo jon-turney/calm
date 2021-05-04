@@ -574,7 +574,6 @@ def validate_packages(args, packages):
                         logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
 
         packages[p].vermap = {}
-        is_empty = {}
         has_source = False
         has_install = False
         has_nonempty_install = False
@@ -588,8 +587,7 @@ def validate_packages(args, packages):
                 else:
                     category = 'install'
                     has_install = True
-                    is_empty[t] = packages[p].tars[vr][t].is_empty
-                    if not is_empty[t]:
+                    if not packages[p].tars[vr][t].is_empty:
                         has_nonempty_install = True
 
                 if vr not in packages[p].vermap:
