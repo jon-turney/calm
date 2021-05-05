@@ -497,13 +497,79 @@ def sort_key(k):
 
 
 #
+# generate missing_obsolete data for upgrading old-style obsoletion install
+# packages:
+#
+# they are empty, have the '_obsolete' category, and requires: exactly 1
+# package, their replacement.
+#
+# generate a record to add an obsoletes: header to the replacement package.
+#
+
+OBSOLETE_AGE_THRESHOLD_YEARS = 20
+
+
+def upgrade_oldstyle_obsoletes(packages):
+    missing_obsolete = {}
+    certain_age = time.time() - (OBSOLETE_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    logging.debug("cut-off date for _obsolete package to be considered for conversion is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
+
+    for p in sorted(packages):
+        if packages[p].kind == Kind.binary:
+            for vr in packages[p].versions():
+                # initially apply to a subset over a certain age, to gradually
+                # introduce this change
+                mtime = packages[p].tar(vr).mtime
+                if mtime > certain_age:
+                    continue
+                logging.debug("_obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (p, vr, time.strftime("%F %T %Z", time.localtime(mtime))))
+
+                if packages[p].tar(vr).is_empty:
+                    if '_obsolete' in packages[p].version_hints[vr]['category']:
+                        requires = packages[p].version_hints[vr].get('requires', '').split()
+
+                        if p in past_mistakes.old_style_obsolete_by:
+                            o = past_mistakes.old_style_obsolete_by[p]
+
+                            # empty replacement means "ignore"
+                            if not o:
+                                continue
+
+                            logging.debug('%s is hardcoded as obsoleted by %s ' % (p, o))
+
+                        else:
+                            if len(requires) == 0:
+                                # obsolete but has no replacement
+                                logging.warning('%s is obsolete, but has no replacement' % (p))
+                                continue
+                            elif len(requires) == 1:
+                                o = requires[0]
+                            elif len(requires) >= 2:
+                                # obsolete with multiple replacements (pick one?)
+                                logging.warning('%s %s is obsoleted by %d packages (%s)' % (p, vr, len(requires), requires))
+                                continue
+
+                        if o in packages:
+                            if o not in missing_obsolete:
+                                missing_obsolete[o] = set()
+
+                            missing_obsolete[o].add(p)
+                            logging.info("converting from empty, _obsolete category package '%s' to 'obsoletes: %s' in package '%s'" % (p, p, o))
+
+    return missing_obsolete
+
+
+#
 # validate the package database
 #
-def validate_packages(args, packages, valid_requires_extra=None):
+def validate_packages(args, packages, valid_requires_extra=None, missing_obsolete_extra=None):
     error = False
 
     if packages is None:
         return False
+
+    if missing_obsolete_extra is None:
+        missing_obsolete_extra = {}
 
     # build the set of valid things to requires: etc.
     valid_requires = set()
@@ -573,17 +639,19 @@ def validate_packages(args, packages, valid_requires_extra=None):
             # some old packages are missing needed obsoletes:, add them where
             # needed, and make sure the uploader is warned if/when package is
             # updated
-            if p in past_mistakes.missing_obsolete:
-                obsoletes = packages[p].version_hints[v].get('obsoletes', '').split(',')
-                obsoletes = [o.strip() for o in obsoletes]
-                obsoletes = [o for o in obsoletes if o]
+            for mo in [past_mistakes.missing_obsolete, missing_obsolete_extra]:
+                if p in mo:
+                    obsoletes = packages[p].version_hints[v].get('obsoletes', '').split(',')
+                    obsoletes = [o.strip() for o in obsoletes]
+                    obsoletes = [o for o in obsoletes if o]
 
-                needed = past_mistakes.missing_obsolete[p]
-                for n in needed:
-                    if n not in obsoletes:
-                        obsoletes.append(n)
-                        packages[p].version_hints[v]['obsoletes'] = ','.join(obsoletes)
-                        logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
+                    # XXX: this needs to recurse so we don't drop transitive missing obsoletes?
+                    needed = mo[p]
+                    for n in sorted(needed):
+                        if n not in obsoletes:
+                            obsoletes.append(n)
+                            packages[p].version_hints[v]['obsoletes'] = ', '.join(obsoletes)
+                            logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
 
             # if external-source is used, the package must exist
             if 'external-source' in hints:

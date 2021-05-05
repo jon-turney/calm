@@ -89,6 +89,7 @@ class CalmState(object):
         self.subject = ''
         self.packages = {}
         self.valid_provides = set()
+        self.missing_obsolete = {}
 
 
 #
@@ -104,10 +105,13 @@ def process_relarea(args, state):
         logging.debug("reading existing packages for arch %s" % (arch))
         packages[arch] = package.read_packages(args.rel_area, arch)
 
-    # validate the package set for each arch
     state.valid_provides = db.update_package_names(args, packages)
     for arch in common_constants.ARCHES:
-        if not package.validate_packages(args, packages[arch], state.valid_provides):
+        state.missing_obsolete[arch] = package.upgrade_oldstyle_obsoletes(packages[arch])
+
+    # validate the package set for each arch
+    for arch in common_constants.ARCHES:
+        if not package.validate_packages(args, packages[arch], state.valid_provides, state.missing_obsolete[arch]):
             logging.error("existing %s package set has errors" % (arch))
             error = True
 
@@ -208,7 +212,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
     state.valid_provides = db.update_package_names(args, merged_packages)
     for arch in common_constants.ARCHES:
         logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
-        if not package.validate_packages(args, merged_packages[arch], state.valid_provides):
+        if not package.validate_packages(args, merged_packages[arch], state.valid_provides, state.missing_obsolete):
             logging.error("error while validating merged %s packages for %s" % (arch, name))
             valid = False
 
@@ -329,7 +333,7 @@ def remove_stale_packages(args, packages, state):
     error = False
     state.valid_provides = db.update_package_names(args, packages)
     for arch in common_constants.ARCHES:
-        if not package.validate_packages(args, packages[arch], state.valid_provides):
+        if not package.validate_packages(args, packages[arch], state.valid_provides, state.missing_obsolete):
             logging.error("%s package set has errors after removing stale packages" % arch)
             error = True
 

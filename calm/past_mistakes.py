@@ -220,3 +220,39 @@ empty_source = {
     'pinentry-qt3-src': ['0.7.6-3'],             # obsoleted by pinentry-qt
     'xerces-c-devel-src': ['2.8.0-1'],           # obsoleted by libxerces-c-devel
 }
+
+# additional data for the heuristic for upgrading old-style obsoletion packages
+old_style_obsolete_by = {
+    'at-spi2-atk': 'libatk-bridge2.0_0',
+    'qt-gstreamer': 'libQtGStreamer1_0_0',
+    'lighttpd-mod_trigger_b4_dl': 'lighttpd',
+    # these require: both epoch1 and epoch2 replacements, but epoch1 contains
+    # the same version
+    'gcc-tools-autoconf': 'gcc-tools-epoch1-autoconf',
+    'gcc-tools-automake': 'gcc-tools-epoch1-automake',
+    # these are odd and only exist to record an optional dependency on the
+    # language runtime (dynamically loaded at runtime), which is also noted in
+    # build-requires:
+    'vim-lua': 'vim',
+    'vim-perl': 'vim',
+    'vim-python': 'vim',
+    'vim-python3': 'vim',
+    'vim-ruby': 'vim',
+    # (An empty replacement means "don't apply this heuristic". We use that to
+    # not bother with some x86-only packages which have complex replacements,
+    # since they will be going away relatively soon anyhow...)
+    'SuiteSparse': '',
+    'libSuiteSparse-devel': '',
+    'libksba': '',
+    'libstdc++6-devel': '',
+    'octave-forge': '',
+    'plotutils-devel': '',
+    'rpm-doc': '',
+    'tetex-base': '',
+    'tetex-bin': '',
+    'tetex-extra': '',
+    'tetex-tiny': '',
+    'tetex-x11': '',
+    'texlive-collection-langtibetan': '',
+    'texlive-collection-texinfo': '',
+}
