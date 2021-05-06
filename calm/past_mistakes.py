@@ -54,8 +54,6 @@ hyphen_in_version = {
     'mingw64-x86_64-hidapi-debuginfo': ['0.8.0-rc1'],
     'recode': ['3.7-beta2'],
     'recode-debuginfo': ['3.7-beta2'],
-    'socat': ['2.0.0-b8', '2.0.0-b9'],
-    'socat-debuginfo': ['2.0.0-b8', '2.0.0-b9'],
     'tack': ['1.07-20130713', '1.07-20150606'],
     'tack-debuginfo': ['1.07-20130713', '1.07-20150606'],
     'xemacs-mule-sumo': ['2007-04-27'],
@@ -141,17 +139,14 @@ nonunique_versions = [
 #
 # don't add to this list, use 'disable-check: empty-obsolete' in pvr.hint instead
 empty_but_not_obsolete = {
-    'gambas3': ['3.12.0-1', '3.12.2-1', '3.13.0-1'],       # a metapackage
-    'gmp': ['6.1.0-3p1', '6.1.1-1', '6.1.2-1'],            # useless empty package, not autosupressed as it has depends
-    'isl': ['0.14.1-1', '0.16.1-1'],                       # useless empty package, not autosupressed as it has depends
+    'isl': ['0.16.1-1'],                                   # useless empty package, not autosupressed as it has depends
     'kdegames3': ['3.5.10-11'],                            # a metapackage
     'kdewebdev': ['15.04.3-1', '16.08.3-1', '16.08.3-2'],  # a metapackage
-    'libao': ['1.1.0-1'],                                  # useless empty package, not autosupressed as it has depends (used to contain doc)
     'libpopt-devel': ['1.16-1'],                           # version 1.16-1 was empty (x86_64)
     'libpopt0': ['1.16-1'],                                # version 1.16-1 was empty
-    'mbedtls': ['2.12.0-1', '2.14.1-1', '2.16.0-1'],       # useless empty package, not autosupressed as it has depends
-    'mpclib': ['1.0.2-2', '1.0.3-1', '1.1.0-1'],           # useless empty package, not autosupressed as it has depends
-    'mpfr': ['4.0.1-3p6', '4.0.1-4p11', '4.0.2-1'],        # useless empty package, not autosupressed as it has depends
+    'mbedtls': ['2.16.0-1'],                               # useless empty package, not autosupressed as it has depends
+    'mpclib': ['1.1.0-1'],                                 # useless empty package, not autosupressed as it has depends
+    'mpfr': ['4.0.2-1'],                                   # useless empty package, not autosupressed as it has depends
     'ocaml': ['4.02.3-2'],                                 # a metapackage
 }
 
