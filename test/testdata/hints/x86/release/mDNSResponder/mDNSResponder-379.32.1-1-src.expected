@@ -1,5 +1,4 @@
 {'category': 'Net',
- 'requires': 'libdns_sd1',
  'sdesc': '"Bonjour Zeroconf implementation"',
  'ldesc': '"Bonjour, also known as zero-configuration networking, enables\n'
           'automatic discovery of computers, devices, and services on IP networks using\n'

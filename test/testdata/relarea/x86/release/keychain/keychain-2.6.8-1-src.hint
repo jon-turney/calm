@@ -9,4 +9,3 @@ verifies that the key files specified on the command-line are known to
 ssh-agent, otherwise it loads them, prompting you for a password if
 necessary"
 category: Utils
-requires: openssh

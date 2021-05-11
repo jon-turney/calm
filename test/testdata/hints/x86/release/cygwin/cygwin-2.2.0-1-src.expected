@@ -1,4 +1,1 @@
-{'sdesc': '"The UNIX emulation engine"',
- 'ldesc': '"The UNIX emulation engine"',
- 'category': 'Base',
- 'requires': 'base-cygwin'}
+OrderedDict([('sdesc', '"The UNIX emulation engine"'), ('ldesc', '"The UNIX emulation engine"'), ('category', 'Base')])

@@ -45,8 +45,6 @@ commonkeys = {
     'ldesc': 'multilineval',
     'category': 'val',
     'sdesc': 'val',
-    'requires': 'optval',
-    'obsoletes': 'optval',
     'test': 'noval',   # mark the package as a test version
     'version': 'val',  # version override
     'disable-check': 'val',
@@ -57,6 +55,8 @@ hintkeys[pvr] = commonkeys.copy()
 hintkeys[pvr].update({
     'message': 'multilineval',
     'external-source': 'val',
+    'requires': 'optval',
+    'obsoletes': 'optval',
     'depends': 'optval',
     'provides': 'val',
     'conflicts': 'val',
