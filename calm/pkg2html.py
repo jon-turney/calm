@@ -329,9 +329,8 @@ def write_packages_inc(args, packages, name, kind, includer):
                     if p.endswith('-debuginfo'):
                         continue
 
-                    if packages[arch][p].kind == package.Kind.binary:
-                        if packages[arch][p].skip:
-                            continue
+                    if packages[arch][p].not_for_output:
+                        continue
 
                     if packages[arch][p].kind == kind:
                         package_list[packages[arch][p].orig_name] = p

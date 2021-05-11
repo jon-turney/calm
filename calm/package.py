@@ -63,7 +63,7 @@ class Package(object):
         self.is_used_by = set()
         self.version_hints = {}
         self.override_hints = {}
-        self.skip = False
+        self.not_for_output = False
 
     def __repr__(self):
         return "Package('%s', %s, %s, %s, %s)" % (
@@ -71,7 +71,7 @@ class Package(object):
             pprint.pformat(self.tarfiles),
             pprint.pformat(self.version_hints),
             pprint.pformat(self.override_hints),
-            self.skip)
+            self.not_for_output)
 
     def tar(self, vr):
         return self.tarfiles[vr]
@@ -428,10 +428,6 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
     packages[pn].tarfiles = actual_tars
     packages[pn].hints = hints
     packages[pn].pkgpath = pkgpath
-    if kind == Kind.source:
-        packages[pn].skip = True
-    else:
-        packages[pn].skip = any(['skip' in version_hints[vr] for vr in version_hints])
     packages[pn].kind = kind
     # since we are kind of inventing the source package names, and don't
     # want to report them, keep track of the real name
@@ -546,9 +542,9 @@ def validate_packages(args, packages):
                                 error = True
                             continue
 
-                        # hint referencing a source-only package makes no sense
-                        if r in packages and packages[r].skip:
-                            logging.error("package '%s' version '%s' %s source-only package '%s'" % (p, v, c, r))
+                        # package relation hint referencing a source package makes no sense
+                        if r in packages and packages[r].kind == Kind.source:
+                            logging.error("package '%s' version '%s' %s source package '%s'" % (p, v, c, r))
                             error = True
 
             # if external-source is used, the package must exist
@@ -583,37 +579,23 @@ def validate_packages(args, packages):
                     else:
                         logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
 
-        has_install = False
         has_nonempty_install = False
 
         if packages[p].kind == Kind.binary:
             for vr in packages[p].versions():
-                has_install = True
                 if not packages[p].tar(vr).is_empty:
                     has_nonempty_install = True
 
         obsolete = any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints])
 
-        # if the package has no install tarfiles (i.e. is source only), make
-        # sure it is marked as 'skip' (which really means 'source-only' at the
-        # moment)
-        #
         # if the package has no non-empty install tarfiles, and no dependencies
         # installing it will do nothing (and making it appear in the package
-        # list is just confusing), so if it's not obsolete, mark it as 'skip'
-        #
-        # (this needs to take place after uploads have been merged into the
-        # package set, so that an upload containing just a replacement
-        # setup.hint is not considered a source-only package)
-        #
-        if not packages[p].skip:
-            if not has_install:
-                packages[p].skip = True
-                logging.info("package '%s' appears to be source-only as it has no install tarfiles, marking as 'skip'" % (p))
-
-            elif not has_nonempty_install and not has_requires and not obsolete:
-                packages[p].skip = True
-                logging.info("package '%s' appears to be source-only as it has no non-empty install tarfiles and no dependencies, marking as 'skip'" % (p))
+        # list is just confusing), so if it's not obsolete, mark it as
+        # 'not_for_output'
+        if packages[p].kind == Kind.binary:
+            if not has_nonempty_install and not has_requires and not obsolete:
+                packages[p].not_for_output = True
+                logging.info("package '%s' has no non-empty install tarfiles and no dependencies, marking as 'not_for_output'" % (p))
 
         levels = ['test', 'curr', 'prev']
 
@@ -743,7 +725,7 @@ def validate_packages(args, packages):
 
         # If the install tarball is empty, we should probably either be marked
         # obsolete (if we have no dependencies) or virtual (if we do)
-        if packages[p].kind == Kind.binary and not packages[p].skip:
+        if packages[p].kind == Kind.binary and not packages[p].not_for_output:
             for vr in packages[p].versions():
                 if packages[p].tar(vr).is_empty:
                     # this classification relies on obsoleting packages
@@ -980,8 +962,11 @@ def write_setup_ini(args, packages, arch):
         for pn in sorted(packages, key=sort_key):
             po = packages[pn]
 
-            # do nothing if 'skip'
-            if po.skip:
+            if po.kind == Kind.source:
+                continue
+
+            # do nothing if not_for_output
+            if po.not_for_output:
                 continue
 
             # write package data
@@ -1262,9 +1247,6 @@ def merge(a, *l):
 
                     # merge hint file lists
                     c[p].hints.update(b[p].hints)
-
-                    # skip if both a and b are skip
-                    c[p].skip = c[p].skip and b[p].skip
 
     return c
 

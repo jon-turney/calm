@@ -45,7 +45,6 @@ commonkeys = {
     'ldesc': 'multilineval',
     'category': 'val',
     'sdesc': 'val',
-    'skip': 'noval',
     'requires': 'optval',
     'obsoletes': 'optval',
     'test': 'noval',   # mark the package as a test version
@@ -65,6 +64,7 @@ hintkeys[pvr].update({
 
 hintkeys[spvr] = commonkeys.copy()
 hintkeys[spvr].update({
+    'skip': 'noval',   # in all spvr hints, but ignored
     'homepage': 'val',
     'build-depends': 'optval',
 })

@@ -14,7 +14,7 @@
            'category': 'Devel',
            'requires': 'cygwin',
            'homepage': 'http://homepage.url',
-           'depends': 'cygwin'}}, {}, True),
+           'depends': 'cygwin'}}, {}, False),
  'testpackage-subpackage': Package('testpackage/testpackage-subpackage', {'1.0-1': Tar('testpackage-subpackage-1.0-1.tar.bz2', 'x86/release/testpackage/testpackage-subpackage', 'aff488008bee3486e25b539fe6ccd1397bd3c5c0ba2ee2cf34af279554baa195af7493ee51d6f8510735c9a2ea54436d776a71e768165716762aec286abbbf83', 195, False)}, {'1.0-1': {'sdesc': '"A test subpackage"',
            'ldesc': '"A test subpackage"',
            'category': 'Devel',
@@ -28,7 +28,7 @@
            'build-depends': 'cygport',
            'sdesc': '"test package (zstd compressed)"',
            'ldesc': '"test package (zstd compressed)"',
-           'skip': ''}}, {}, True),
+           'skip': ''}}, {}, False),
  'testpackage2-subpackage': Package('testpackage2/testpackage2-subpackage', {'1.0-1': Tar('testpackage2-subpackage-1.0-1.tar.bz2', 'x86/release/testpackage2/testpackage2-subpackage', 'c4bf8e28d71b532e2b741e2931906dec0f0a70d4d051c0503476f864a5228f43765ae3342aafcebfd5a1738073537726b2bfbbd89c6da939a5f46d95aca3feaf', 46, True)}, {'1.0-1': {'sdesc': '"A test subpackage 2"',
            'ldesc': '"A test subpackage 2"',
            'category': 'Devel'}}, {}, False)}
