@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Jon Turney
+# Copyright (c) 2021 Jon Turney
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,16 +21,18 @@
 # THE SOFTWARE.
 #
 
-
 import argparse
 import logging
 import os
-import re
 import sys
 
 from . import common_constants
 from . import fixes
 
+
+#
+#
+#
 
 def fix_hints(relarea, packages):
     for (dirpath, _subdirs, files) in os.walk(relarea):
@@ -43,14 +45,9 @@ def fix_hints(relarea, packages):
                 continue
 
         for f in files:
-            match = re.match(r'^(.*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
-            if match:
-                hf = match.group(1) + '-src.hint'
-                if hf not in files:
-                    logging.error('hint %s missing' % hf)
-                    continue
-
-                fixes.fix_hint(dirpath, hf, f, ['homepage'])
+            if f.endswith('.hint') and f != 'override.hint':
+                if fixes.fix_hint(dirpath, f, '', ['invalid_keys']):
+                    logging.warning('fixed hints %s' % f)
 
 
 #
@@ -60,12 +57,14 @@ def fix_hints(relarea, packages):
 def main():
     relarea_default = common_constants.FTP
 
-    parser = argparse.ArgumentParser(description='src hint improver')
+    parser = argparse.ArgumentParser(description='fix invalid keys in hint')
+
     parser.add_argument('package', nargs='*', metavar='PACKAGE')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
-    (args) = parser.parse_args()
+    # XXX: should take an argument listing fixes to apply
 
+    (args) = parser.parse_args()
     if args.verbose:
         logging.getLogger().setLevel(logging.INFO)
 

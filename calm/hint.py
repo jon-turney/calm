@@ -197,7 +197,7 @@ def hint_file_parse(fn, kind):
     errors = []
     warnings = []
 
-    assert(kind in hintkeys)
+    assert((kind in hintkeys) or (kind is None))
 
     with open(fn, 'rb') as f:
         c = f.read()
@@ -221,21 +221,26 @@ def hint_file_parse(fn, kind):
                     key = match.group(1)
                     value = match.group(2)
 
-                    if key not in hintkeys[kind]:
-                        errors.append('unknown key %s at line %d' % (key, i))
-                        continue
-                    valtype = hintkeys[kind][key]
+                    if kind is not None:
+                        if key not in hintkeys[kind]:
+                            errors.append('unknown key %s at line %d' % (key, i))
+                            continue
+                        valtype = hintkeys[kind][key]
 
-                    # check if the key occurs more than once
-                    if key in hints:
-                        errors.append('duplicate key %s' % (key))
+                        # check if the key occurs more than once
+                        if key in hints:
+                            errors.append('duplicate key %s' % (key))
 
-                    # check the value meets any key-specific constraints
-                    if (valtype == 'val') and (len(value) == 0):
-                        errors.append('%s has empty value' % (key))
+                        # check the value meets any key-specific constraints
+                        if (valtype == 'val') and (len(value) == 0):
+                            errors.append('%s has empty value' % (key))
 
-                    if (valtype == 'noval') and (len(value) != 0):
-                        errors.append("%s has non-empty value '%s'" % (key, value))
+                        if (valtype == 'noval') and (len(value) != 0):
+                            errors.append("%s has non-empty value '%s'" % (key, value))
+
+                        # only 'ldesc' and 'message' are allowed a multi-line value
+                        if (valtype != 'multilineval') and (len(value.splitlines()) > 1):
+                            errors.append("key %s has multi-line value" % (key))
 
                     # validate all categories are in the category list (case-insensitively)
                     if key == 'category':
@@ -266,10 +271,6 @@ def hint_file_parse(fn, kind):
                             warnings.append("sdesc contains '  '")
                             value = value.replace('  ', ' ')
 
-                    # only 'ldesc' and 'message' are allowed a multi-line value
-                    if (valtype != 'multilineval') and (len(value.splitlines()) > 1):
-                        errors.append("key %s has multi-line value" % (key))
-
                     # message must have an id and some text
                     if key == 'message':
                         if not re.match(r'(\S+)\s+(\S.*)', value):
@@ -289,7 +290,7 @@ def hint_file_parse(fn, kind):
 
             # for the pvr kind, 'category' and 'sdesc' must be present
             # XXX: genini also requires 'requires' but that seems wrong
-            if kind != override:
+            if (kind == pvr) or (kind == spvr):
                 mandatory = ['category', 'sdesc']
                 for k in mandatory:
                     if k not in hints:

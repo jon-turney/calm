@@ -193,8 +193,10 @@ def scan(m, all_packages, arch, args):
                         remove.append(os.path.join(dirpath, old))
 
                 # see if we can fix-up missing homepage: in -src.hint file
+                # check homepage: for liveliness and redirection
+                # discard any keys which are invalid in a -src.hint
                 if (new in files):
-                    fixes.fix_homepage_src_hint(dirpath, new, f)
+                    fixes.fix_hint(dirpath, new, f, ['homepage', 'invalid_keys'])
 
         # filter out files we don't need to consider
         for f in sorted(files):

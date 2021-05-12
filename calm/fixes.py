@@ -84,16 +84,7 @@ def follow_redirect(homepage):
     return homepage
 
 
-def fix_homepage_src_hint(dirpath, hf, tf):
-    pn = os.path.basename(dirpath)
-    hintfile = os.path.join(dirpath, hf)
-    hints = hint.hint_file_parse(hintfile, hint.spvr)
-
-    hints.pop('parse-warnings', None)
-    if 'parse-errors' in hints:
-        logging.error('invalid hints %s' % hf)
-        return
-
+def _fix_homepage_src_hint(hints, dirpath, _hf, tf):
     # already present?
     if 'homepage' in hints:
         homepage = hints['homepage']
@@ -109,6 +100,7 @@ def fix_homepage_src_hint(dirpath, hf, tf):
                 if match:
                     if homepage:
                         logging.warning('multiple HOMEPAGE lines in .cygport in srcpkg %s', tf)
+                    pn = os.path.basename(dirpath)
                     homepage = match.group(2)
                     homepage = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(}|)', pn, homepage)
 
@@ -118,10 +110,11 @@ def fix_homepage_src_hint(dirpath, hf, tf):
 
         if not homepage:
             logging.info('cannot determine homepage: from srcpkg %s' % tf)
-            return
+            return False
 
         logging.info('adding homepage:%s to hints for srcpkg %s' % (homepage, tf))
 
+    # check if redirect?
     redirect_homepage = follow_redirect(homepage)
 
     # trivial URL transformations aren't interesting
@@ -138,8 +131,49 @@ def fix_homepage_src_hint(dirpath, hf, tf):
             if not redirect_homepage.startswith(homepage):
                 logging.warning('homepage:%s permanently redirects to %s' % (homepage, redirect_homepage))
 
-    # write updated hints
+    # changed?
     if homepage != hints.get('homepage', None):
         hints['homepage'] = homepage
+        return True
+
+    return False
+
+
+def _fix_invalid_keys_hint(hints, _dirpath, hf, _tf):
+    # eliminate keys that aren't appropriate to the package type
+    if hf.endswith('-src.hint'):
+        valid_keys = hint.hintkeys[hint.spvr]
+    else:
+        valid_keys = hint.hintkeys[hint.pvr]
+
+    changed = False
+    for k in list(hints.keys()):
+        if k not in valid_keys:
+            logging.debug("discarding invalid key '%s:' from hint '%s'" % (k, hf))
+            hints.pop(k, None)
+            changed = True
+
+    return changed
+
+
+def fix_hint(dirpath, hf, tf, problems):
+    hintfile = os.path.join(dirpath, hf)
+    hints = hint.hint_file_parse(hintfile, None)
+
+    hints.pop('parse-warnings', None)
+    if 'parse-errors' in hints:
+        logging.error('invalid hints %s' % hf)
+        return
+
+    changed = False
+    if 'homepage' in problems:
+        changed = _fix_homepage_src_hint(hints, dirpath, hf, tf)
+    if 'invalid_keys' in problems:
+        changed = _fix_invalid_keys_hint(hints, dirpath, hf, tf) or changed
+
+    # write updated hints
+    if changed:
         shutil.copy2(hintfile, hintfile + '.bak')
         hint.hint_file_write(hintfile, hints)
+
+    return changed
