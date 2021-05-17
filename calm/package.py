@@ -840,6 +840,10 @@ def validate_packages(args, packages):
         versions = defaultdict(list)
 
         for install_p in packages[source_p].is_used_by:
+            # ignore package which are getting removed
+            if install_p not in packages:
+                continue
+
             # ignore obsolete packages
             if any(['_obsolete' in packages[install_p].version_hints[vr].get('category', '') for vr in packages[install_p].version_hints]):
                 continue
