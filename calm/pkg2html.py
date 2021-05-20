@@ -256,6 +256,12 @@ def update_package_listings(args, packages):
                         <a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
                         print('<br><br>', file=f)
 
+                    if po.kind == package.Kind.source:
+                        repo = 'git/cygwin-packages/%s.git' % pn
+                        if os.path.exists('/' + repo):
+                            repo_browse_url = '/git-cygwin-packages/?p=%s' % repo
+                            print('<span class="detail">packaging repository</span>: <a href="%s">%s.git</a>' % (repo_browse_url, pn), file=f)
+
                     print('<ul>', file=f)
                     for arch in sorted(packages):
                         if p in packages[arch]:
@@ -282,12 +288,6 @@ def update_package_listings(args, packages):
 
                             print('</table><br>', file=f)
                     print('</ul>', file=f)
-
-                    if po.kind == package.Kind.source:
-                        repo = 'git/cygwin-packages/%s.git' % pn
-                        if os.path.exists('/' + repo):
-                            repo_browse_url = '/git-cygwin-packages/?p=%s' % repo
-                            print('<span class="detail">packaging repository</span>: <a href="%s">%s.git</a>' % (repo_browse_url, pn), file=f)
 
                     print(textwrap.dedent('''\
                     </div>
