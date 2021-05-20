@@ -45,7 +45,7 @@ def untest(pvr):
     cygname = os.environ['CYGNAME']
 
     mlist = {}
-    mlist = maintainers.add_packages(mlist, common_constants.PKGMAINT)
+    mlist = maintainers.add_packages(mlist, common_constants.PKGMAINT, orphanMaint=common_constants.ORPHANMAINT)
 
     if cygname not in mlist:
         logging.error("'%s' is not a package maintainer" % (cygname))
