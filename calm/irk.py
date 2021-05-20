@@ -12,7 +12,7 @@ import socket
 import sys
 
 DEFAULT_SERVER = ("localhost", 6659)
-DEFAULT_TARGET = 'cygwin-bots'
+DEFAULT_TARGET = ['cygwin-bots', 'irc://irc.libera.chat/cygwin-bots']
 
 
 def connect(server=DEFAULT_SERVER):
@@ -26,16 +26,20 @@ def send(s, target, message):
 
 
 def irk(message, target=DEFAULT_TARGET, server=DEFAULT_SERVER):
-    try:
-        s = connect(server)
-        if "irc:" not in target and "ircs:" not in target:
-            target = "irc://chat.freenode.net/{0}".format(target)
+    if not isinstance(target, list):
+        target = [target]
 
-        send(s, target, message)
+    for t in target:
+        try:
+            s = connect(server)
+            if "irc:" not in t and "ircs:" not in t:
+                t = "irc://chat.freenode.net/{0}".format(t)
 
-        s.close()
-    except OSError:
-        pass
+            send(s, t, message)
+
+            s.close()
+        except OSError:
+            pass
 
 
 def main():
