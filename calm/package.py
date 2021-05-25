@@ -594,8 +594,11 @@ def validate_packages(args, packages):
         # 'not_for_output'
         if packages[p].kind == Kind.binary:
             if not has_nonempty_install and not has_requires and not obsolete:
-                packages[p].not_for_output = True
-                logging.info("package '%s' has no non-empty install tarfiles and no dependencies, marking as 'not_for_output'" % (p))
+                if not packages[p].not_for_output:
+                    packages[p].not_for_output = True
+                    logging.info("package '%s' has no non-empty install tarfiles and no dependencies, marking as 'not for output'" % (p))
+            else:
+                packages[p].not_for_output = False
 
         levels = ['test', 'curr', 'prev']
 
