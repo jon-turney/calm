@@ -82,6 +82,8 @@ def do_main(args):
     print('    config uploadpack.allowReachableSHA1InWant = true')
     print('    - VREF/MAX_NEWBIN_SIZE/1024 = @all')
     print('# this rejects binary files over the size limit, text files of any size are still permiited')
+    print('    - VREF/HIGHLANDER/cygport = @all')
+    print('# this checks for trees which contain more than one .cygport file')
     print('')
 
     # for each package
