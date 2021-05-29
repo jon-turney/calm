@@ -2,5 +2,6 @@ category: Base
 build-depends: cygport 
 sdesc: "test package (zstd compressed)"
 ldesc: "test package (zstd compressed)"
+homepage: http://zstd.testpkg.invalid
 skip:
 

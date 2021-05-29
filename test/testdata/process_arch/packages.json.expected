@@ -266,6 +266,7 @@
  '                "x86",\n'
  '                "x86_64"\n'
  '            ],\n'
+ '            "homepage": "https://metacpan.org/release/RJBS/Net-SMTP-SSL-1.04",\n'
  '            "maintainers": [\n'
  '                "Blooey McFooey",\n'
  '                "Yaakov Selkowitz"\n'

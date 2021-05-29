@@ -136,8 +136,8 @@ def sha512_file(fn, block_size=256 * 128):
 
 
 # helper function to read hints
-def read_hints(p, fn, kind):
-    hints = hint.hint_file_parse(fn, kind)
+def read_hints(p, fn, kind, strict=False):
+    hints = hint.hint_file_parse(fn, kind, strict)
 
     if 'parse-errors' in hints:
         for l in hints['parse-errors']:
@@ -247,7 +247,7 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
     for kind in Kind:
         # only create a package if there's archives for it to contain
         if fl[kind]:
-            result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], remove, kind) or result
+            result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], remove, kind, upload) or result
 
     # warn about unexpected files, including tarfiles which don't match the
     # package name
@@ -261,7 +261,7 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
 #
 # read a single package
 #
-def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
+def read_one_package(packages, p, relpath, dirpath, files, remove, kind, strict):
     warnings = False
 
     if not re.match(r'^[\w\-._+]*$', p):
@@ -390,7 +390,7 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind):
         hint_fn = '%s-%s%s.hint' % (p, vr, '-src' if kind == Kind.source else '')
         if hint_fn in files:
             # is there a PVR.hint file?
-            pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr if kind == Kind.binary else hint.spvr)
+            pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr if kind == Kind.binary else hint.spvr, strict)
             if not pvr_hint:
                 logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
                 return True

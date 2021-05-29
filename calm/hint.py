@@ -192,7 +192,7 @@ def split_trim_sort_join(hint, splitchar, joinchar=None):
 
 
 # parse the file |fn| as a .hint file of kind |kind|
-def hint_file_parse(fn, kind):
+def hint_file_parse(fn, kind, strict=False):
     hints = OrderedDict()
     errors = []
     warnings = []
@@ -289,9 +289,13 @@ def hint_file_parse(fn, kind):
                 errors.append("hint only contains skip: key, please update to cygport >= 0.22.0")
 
             # for the pvr kind, 'category' and 'sdesc' must be present
-            # XXX: genini also requires 'requires' but that seems wrong
+            # (genini also requires 'requires' but that seems wrong)
+            # for the spvr kind, 'homepage' must be present for new packages
             if (kind == pvr) or (kind == spvr):
                 mandatory = ['category', 'sdesc']
+                if (kind == spvr) and strict:
+                    mandatory.append('homepage')
+
                 for k in mandatory:
                     if k not in hints:
                         errors.append("required key '%s' missing" % (k))
