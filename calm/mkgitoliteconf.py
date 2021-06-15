@@ -80,6 +80,7 @@ def do_main(args):
     print('    R  = gitweb daemon')
     print('    config core.sharedrepository = all')
     print('    config uploadpack.allowReachableSHA1InWant = true')
+    print('    config receive.advertisePushOptions = true')
     print('    - VREF/MAX_NEWBIN_SIZE/1024 = @all')
     print('# this rejects binary files over the size limit, text files of any size are still permiited')
     print('    - VREF/HIGHLANDER/cygport = @all')
