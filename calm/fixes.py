@@ -128,7 +128,7 @@ def _fix_homepage_src_hint(hints, dirpath, _hf, tf):
             homepage = redirect_homepage
         else:
             # don't warn about intra-site redirects
-            if not redirect_homepage.startswith(homepage):
+            if (not redirect_homepage.startswith(homepage)) and (redirect_homepage.startswith('http')):
                 logging.warning('homepage:%s permanently redirects to %s' % (homepage, redirect_homepage))
 
     # changed?
