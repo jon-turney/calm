@@ -457,20 +457,20 @@ def write_arch_listing(args, packages, arch):
 
                     with utils.open_amifc(listing) as f:
                         bv = packages[p].best_version
-                        header = p + ": " + sdesc(packages[p], bv)
+                        desc = sdesc(packages[p], bv)
 
                         if fver.endswith('-src'):
-                            header = header + " (source)"
+                            desc = desc + " (source)"
 
                         print(textwrap.dedent('''\
                                                  <!DOCTYPE html>
                                                  <html>
                                                  <head>
-                                                 <title>%s</title>
+                                                 <title>%s: %s</title>
                                                  </head>
                                                  <body>
-                                                 <h1>%s</h1>
-                                                 <pre>''' % (header, header)), file=f)
+                                                 <h1><a href="../../summary/%s.html">%s</a>: %s</h1>
+                                                 <pre>''' % (p, desc, p, p, desc)), file=f)
 
                         tf = os.path.join(args.rel_area, to.path, to.fn)
                         if not os.path.exists(tf):
