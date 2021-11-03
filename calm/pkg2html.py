@@ -469,7 +469,7 @@ def write_arch_listing(args, packages, arch):
                                                  <title>%s: %s</title>
                                                  </head>
                                                  <body>
-                                                 <h1><a href="../../summary/%s.html">%s</a>: %s</h1>
+                                                 <h1><a href="/packages/summary/%s.html">%s</a>: %s</h1>
                                                  <pre>''' % (p, desc, p, p, desc)), file=f)
 
                         tf = os.path.join(args.rel_area, to.path, to.fn)
