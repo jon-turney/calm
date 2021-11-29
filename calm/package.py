@@ -1340,7 +1340,7 @@ def mark_package_fresh(packages, p, v):
 def stale_packages(packages):
     for pn, po in packages.items():
         # mark any versions used by stability levels as fresh
-        for level in ['curr', 'prev', 'test']:
+        for level in ['curr', 'prev']:
             if level in po.stability:
                 v = po.stability[level]
                 mark_package_fresh(packages, pn, v)
@@ -1364,6 +1364,9 @@ def stale_packages(packages):
 
         # mark as fresh the highest n test versions, where n is given by the
         # keep-count-test: override hint, (defaulting to DEFAULT_KEEP_COUNT_TEST)
+        #
+        # only consider versions not superseded by non-test versions (unless
+        # 'keep-superseded-test' is present).
         keep_count = int(po.override_hints.get('keep-count-test', common_constants.DEFAULT_KEEP_COUNT_TEST))
         for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True):
             if 'test' in po.version_hints[v]:
@@ -1371,6 +1374,9 @@ def stale_packages(packages):
                     break
                 mark_package_fresh(packages, pn, v)
                 keep_count = keep_count - 1
+            else:
+                if 'keep-superseded-test' not in po.override_hints:
+                    break
 
         # mark as fresh all versions after the first one which is newer than
         # the keep-days: override hint, (defaulting to DEFAULT_KEEP_DAYS)
