@@ -12,7 +12,7 @@ import socket
 import sys
 
 DEFAULT_SERVER = ("localhost", 6659)
-DEFAULT_TARGET = ['cygwin-bots', 'irc://irc.libera.chat/cygwin-bots']
+DEFAULT_TARGET = ['irc://irc.libera.chat/cygwin-bots']
 
 
 def connect(server=DEFAULT_SERVER):
