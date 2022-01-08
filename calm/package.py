@@ -763,6 +763,9 @@ def validate_packages(args, packages):
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
+    for p in packages.keys():
+        packages[p].is_used_by = set()
+
     for p in sorted(packages.keys()):
         if not packages[p].kind == Kind.binary:
             continue
@@ -1160,6 +1163,8 @@ def write_repo_json(args, packages, f):
             for arch in common_constants.ARCHES:
                 if p in packages[arch]:
                     return packages[arch][p]
+
+            # will lead to AttributeError as has no version_hints
             return None
 
         bv = po.best_version
