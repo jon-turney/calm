@@ -4,7 +4,7 @@
 <title>openssh: The OpenSSH server and client programs</title>
 </head>
 <body>
-<h1>openssh: The OpenSSH server and client programs</h1>
+<h1><a href="/packages/summary/openssh.html">openssh</a>: The OpenSSH server and client programs</h1>
 <pre>
     2015-10-11 14:45          26 test/test.1
     2015-10-11 14:45          31 test/test.2

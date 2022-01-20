@@ -4,7 +4,7 @@
 <title>mDNSResponder-src: Bonjour Zeroconf implementation (source)</title>
 </head>
 <body>
-<h1>mDNSResponder-src: Bonjour Zeroconf implementation (source)</h1>
+<h1><a href="/packages/summary/mDNSResponder-src.html">mDNSResponder-src</a>: Bonjour Zeroconf implementation (source)</h1>
 <pre>
     2015-10-11 14:45          26 test/test.1
     2015-10-11 14:45          31 test/test.2

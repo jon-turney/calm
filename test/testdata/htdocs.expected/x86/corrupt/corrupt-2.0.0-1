@@ -4,7 +4,7 @@
 <title>corrupt: A corrupt package</title>
 </head>
 <body>
-<h1>corrupt: A corrupt package</h1>
+<h1><a href="/packages/summary/corrupt.html">corrupt</a>: A corrupt package</h1>
 <pre>
 package is corrupted
 </pre>

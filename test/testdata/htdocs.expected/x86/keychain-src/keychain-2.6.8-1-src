@@ -4,7 +4,7 @@
 <title>keychain-src: Key manager for OpenSSH (source)</title>
 </head>
 <body>
-<h1>keychain-src: Key manager for OpenSSH (source)</h1>
+<h1><a href="/packages/summary/keychain-src.html">keychain-src</a>: Key manager for OpenSSH (source)</h1>
 <pre>
     2006-11-09 04:59        3051 keychain-2.6.8-1.patch
     2006-11-09 04:59        5621 keychain-2.6.8-1.sh

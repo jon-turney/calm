@@ -4,7 +4,7 @@
 <title>rpm-doc: Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)</title>
 </head>
 <body>
-<h1>rpm-doc: Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)</h1>
+<h1><a href="/packages/summary/rpm-doc.html">rpm-doc</a>: Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)</h1>
 <pre>
     2003-05-02 11:46       25562 usr/man/fr/man8/rpm.8
     2003-05-02 11:46       39721 usr/man/ja/man8/rpm.8

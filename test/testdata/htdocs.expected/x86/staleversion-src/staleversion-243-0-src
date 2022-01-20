@@ -4,7 +4,7 @@
 <title>staleversion-src: Test package for stale version removal (source)</title>
 </head>
 <body>
-<h1>staleversion-src: Test package for stale version removal (source)</h1>
+<h1><a href="/packages/summary/staleversion-src.html">staleversion-src</a>: Test package for stale version removal (source)</h1>
 <pre>
     2015-10-11 14:45          26 test/test.1
     2015-10-11 14:45          31 test/test.2

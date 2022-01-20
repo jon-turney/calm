@@ -4,7 +4,7 @@
 <title>testpackage: A test package (stuff &amp; other stuff)</title>
 </head>
 <body>
-<h1>testpackage: A test package (stuff &amp; other stuff)</h1>
+<h1><a href="/packages/summary/testpackage.html">testpackage</a>: A test package (stuff &amp; other stuff)</h1>
 <pre>
     2016-11-24 22:47        1786 cc1BOI4Z
     2016-11-24 18:14        1786 ccbdRcNC
