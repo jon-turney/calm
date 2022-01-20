@@ -499,6 +499,9 @@ def validate_packages(args, packages):
         for hints in packages[p].version_hints.values():
             valid_requires.update(hints.get('provides', '').split())
 
+            # reset obsolete:d by some other package state
+            packages[p].obsolete = False
+
     # perform various package validations
     for p in sorted(packages.keys()):
         logging.log(5, "validating package '%s'" % (p))
@@ -569,6 +572,8 @@ def validate_packages(args, packages):
                     o = re.sub(r'(.*) +\(.*\)', r'\1', o)
 
                     if o in packages:
+                        packages[o].obsolete = True
+
                         for (ov, ohints) in packages[o].version_hints.items():
                             if 'depends' in ohints:
                                 depends = ohints['depends'].split(',')
@@ -833,6 +838,8 @@ def validate_packages(args, packages):
                 continue
 
             # ignore obsolete packages
+            if packages[install_p].obsolete:
+                continue
             if any(['_obsolete' in packages[install_p].version_hints[vr].get('category', '') for vr in packages[install_p].version_hints]):
                 continue
 
