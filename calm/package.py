@@ -201,7 +201,7 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
     # no .hint files
     if not any([f.endswith('.hint') for f in files]):
         if (relpath.count(os.path.sep) > 1):
-            for s in ['md5.sum', 'sha512.sum']:
+            for s in ['sha512.sum']:
                 if s in files:
                     files.remove(s)
 
@@ -210,10 +210,6 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
                 return True
 
         return False
-
-    # discard obsolete md5.sum
-    if 'md5.sum' in files:
-        files.remove('md5.sum')
 
     # ignore dotfiles and backup files
     for f in files[:]:

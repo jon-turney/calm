@@ -462,7 +462,7 @@ def do_output(args, state):
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
 
                     # arrange for checksums to be recomputed
-                    for sumfile in ['md5.sum', 'sha512.sum']:
+                    for sumfile in ['sha512.sum']:
                         try:
                             os.remove(os.path.join(basedir, sumfile))
                         except FileNotFoundError:
