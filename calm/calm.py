@@ -444,7 +444,8 @@ def do_output(args, state):
                     irk.irk("calm updated setup.ini for arch '%s'" % (arch))
 
                     # compress and re-sign
-                    for ext in ['.ini', '.bz2', '.xz', '.zst']:
+                    extensions = ['.ini', '.bz2', '.xz', '.zst']
+                    for ext in extensions:
                         extfile = os.path.join(basedir, 'setup' + ext)
                         try:
                             os.remove(extfile + '.sig')
@@ -461,12 +462,17 @@ def do_output(args, state):
                         keys = ' '.join(['-u' + k for k in args.keys])
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
 
-                    # arrange for checksums to be recomputed
-                    for sumfile in ['sha512.sum']:
-                        try:
-                            os.remove(os.path.join(basedir, sumfile))
-                        except FileNotFoundError:
-                            pass
+                    # recompute checksums
+                    files = ['setup' + ext for ext in extensions] + ['setup' + ext + '.sig' for ext in extensions] + ['setup.ini.bak']
+
+                    hashfile = os.path.join(basedir, 'sha512.sum')
+                    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmphashfile:
+                        for fn in sorted(files):
+                            sha512 = package.sha512_file(os.path.join(basedir, fn))
+                            print('%s  %s' % (sha512, fn), file=tmphashfile)
+                    logging.info("moving %s to %s" % (tmphashfile.name, hashfile))
+                    shutil.move(tmphashfile.name, hashfile)
+
             else:
                 logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
                 os.remove(tmpfile.name)
