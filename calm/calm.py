@@ -462,17 +462,6 @@ def do_output(args, state):
                         keys = ' '.join(['-u' + k for k in args.keys])
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
 
-                    # recompute checksums
-                    files = ['setup' + ext for ext in extensions] + ['setup' + ext + '.sig' for ext in extensions] + ['setup.ini.bak']
-
-                    hashfile = os.path.join(basedir, 'sha512.sum')
-                    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmphashfile:
-                        for fn in sorted(files):
-                            sha512 = package.sha512_file(os.path.join(basedir, fn))
-                            print('%s  %s' % (sha512, fn), file=tmphashfile)
-                    logging.info("moving %s to %s" % (tmphashfile.name, hashfile))
-                    shutil.move(tmphashfile.name, hashfile)
-
             else:
                 logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
                 os.remove(tmpfile.name)
