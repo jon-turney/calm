@@ -1100,11 +1100,18 @@ def write_setup_ini(args, packages, arch):
                 # which case we should emit a 'Source:' line, and the package is
                 # also itself emitted.
 
-                if hints.get('depends', '') or requires:
-                    print("depends2: %s" % hints.get('depends', ''), file=f)
+                if version in po.versions():
+                    if hints.get('depends', '') or requires:
+                        print("depends2: %s" % hints.get('depends', ''), file=f)
 
-                if hints.get('obsoletes', ''):
-                    print("obsoletes: %s" % hints['obsoletes'], file=f)
+                    if hints.get('obsoletes', ''):
+                        print("obsoletes: %s" % hints['obsoletes'], file=f)
+
+                    if hints.get('provides', ''):
+                        print("provides: %s" % hints['provides'], file=f)
+
+                    if hints.get('conflicts', ''):
+                        print("conflicts: %s" % hints['conflicts'], file=f)
 
                 if s:
                     src_hints = packages[s].version_hints.get(version, {})
@@ -1119,12 +1126,6 @@ def write_setup_ini(args, packages, arch):
 
                     if bd:
                         print("build-depends: %s" % ', '.join(bd), file=f)
-
-                if hints.get('provides', ''):
-                    print("provides: %s" % hints['provides'], file=f)
-
-                if hints.get('conflicts', ''):
-                    print("conflicts: %s" % hints['conflicts'], file=f)
 
 
 # helper function to output details for a particular tar file
