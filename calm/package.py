@@ -495,8 +495,10 @@ def validate_packages(args, packages):
         for hints in packages[p].version_hints.values():
             valid_requires.update(hints.get('provides', '').split())
 
-            # reset obsolete:d by some other package state
+            # reset computed package state
             packages[p].obsolete = False
+            packages[p].rdepends = set()
+            packages[p].build_rdepends = set()
 
     # perform various package validations
     for p in sorted(packages.keys()):
@@ -761,6 +763,22 @@ def validate_packages(args, packages):
                         error = True
                         lvl = logging.ERROR
                     logging.log(lvl, "package '%s' version '%s' has empty source tar file" % (p, vr))
+
+    # build the set of packages which depends: on this package (rdepends), and
+    # the set of packages which build-depends: on it (build_rdepends)
+    for p in packages:
+        for hints in packages[p].version_hints.values():
+            for k, a in [
+                    ('depends', 'rdepends'),
+                    ('build-depends', 'build_rdepends')
+            ]:
+                if k in hints:
+                    dpl = hints[k].split(',')
+                    for dp in dpl:
+                        dp = dp.strip()
+                        dp = re.sub(r'(.*)\s+\(.*\)', r'\1', dp)
+                        if dp in packages:
+                            getattr(packages[dp], a).add(p)
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version

@@ -120,6 +120,13 @@ def ensure_dir_exists(args, path):
 
 
 #
+# format a unix epoch time (UTC)
+#
+def tsformat(ts):
+    return time.strftime('%Y-%m-%d %H:%M', time.gmtime(ts))
+
+
+#
 #
 #
 
@@ -280,7 +287,7 @@ def update_package_listings(args, packages):
                                     name = v + ' (source)'
                                     target = "%s-%s-src" % (p.orig_name, v)
                                 test = 'test' if 'test' in p.version_hints[v] else 'stable'
-                                ts = time.strftime('%Y-%m-%d %H:%M', time.gmtime(p.tar(v).mtime))
+                                ts = tsformat(p.tar(v).mtime)
                                 print('<tr><td>%s</td><td class="right">%d KiB</td><td>%s</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, ts, arch, pn, target, test), file=f)
 
                             for version in sorted(packages[arch][p].versions(), key=lambda v: SetupVersion(v)):

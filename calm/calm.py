@@ -71,6 +71,7 @@ from . import irk
 from . import maintainers
 from . import package
 from . import pkg2html
+from . import reports
 from . import setup_exe
 from . import uploads
 from . import utils
@@ -382,10 +383,6 @@ def do_output(args, state):
     # update packages listings
     # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
     pkg2html.update_package_listings(args, state.packages)
-    # if we are daemonized, allow force regeneration of static content in htdocs
-    # initially (in case the generation code has changed), but update that
-    # static content only as needed on subsequent loops
-    args.force = 0
 
     update_json = False
 
@@ -481,6 +478,15 @@ def do_output(args, state):
             os.chmod(jsonfile, 0o644)
         except (OSError):
             pass
+
+    # write reports
+    if update_json or args.force:
+        reports.do_reports(args, state.packages)
+
+    # if we are daemonized, allow force regeneration of static content in htdocs
+    # initially (in case the generation code has changed), but update that
+    # static content only as needed on subsequent loops
+    args.force = 0
 
 
 #
