@@ -23,6 +23,7 @@
 
 import io
 import os
+import re
 import textwrap
 import types
 
@@ -120,6 +121,64 @@ def unmaintained(args, packages, reportsdir):
         template('Unmaintained packages', body.getvalue(), f)
 
 
+# produce a report of deprecated packages
+#
+def deprecated(args, packages, reportsdir):
+    dep_list = []
+
+    arch = 'x86_64'
+    # XXX: look into how we can make this 'src', after x86 is dropped
+    for p in packages[arch]:
+        po = packages[arch][p]
+
+        if po.kind != package.Kind.binary:
+            continue
+
+        if not re.match(r'^lib.*\d', p):
+            continue
+
+        bv = po.best_version
+        es = po.version_hints[bv].get('external-source', None)
+        if not es:
+            continue
+
+        if packages[arch][es].best_version == bv:
+            continue
+
+        if po.tar(bv).is_empty:
+            continue
+
+        # an old version of a shared library
+        depp = types.SimpleNamespace()
+        depp.pn = p
+        depp.po = po
+        depp.v = bv
+        depp.ts = po.tar(bv).mtime
+        depp.rdepends = len(po.rdepends)
+
+        dep_list.append(depp)
+
+    body = io.StringIO()
+    print(textwrap.dedent('''\
+    <p>Packages for old soversions. (The corresponding source package produces a
+    newer soversion, or has stopped producing this soversion).</p>'''), file=body)
+
+    print('<table class="grid">', file=body)
+    print('<tr><th>package</th><th>version</th><th>rdepends</th></tr>', file=body)
+
+    for depp in sorted(dep_list, key=lambda i: (i.rdepends, i.ts), reverse=True):
+        po = depp.po
+        print('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (linkify(depp.pn, depp.po), depp.v, depp.rdepends), file=body)
+
+    print('</table>', file=body)
+
+    deprecated = os.path.join(reportsdir, 'deprecated_so.html')
+    with utils.open_amifc(deprecated) as f:
+        template('Deprecated shared library packages', body.getvalue(), f)
+
+
+#
 def do_reports(args, packages):
     if args.dryrun:
         return
@@ -128,3 +187,4 @@ def do_reports(args, packages):
     pkg2html.ensure_dir_exists(args, reportsdir)
 
     unmaintained(args, packages, reportsdir)
+    deprecated(args, packages, reportsdir)
