@@ -97,10 +97,16 @@ def unmaintained(args, packages, reportsdir):
         up = types.SimpleNamespace()
         up.pn = p
         up.po = po
-        up.v = v
+        up.v = SetupVersion(v).V
+        up.upstream_v = getattr(po, 'upstream_version', 'unknown')
         up.ts = po.tar(v).mtime
         up.rdepends = len(rdepends)
         up.build_rdepends = len(build_rdepends)
+
+        # some packages are mature. If 'v' is still latest upstream version,
+        # then maybe we don't need to worry about this package quite as much...
+        if SetupVersion(v)._V == SetupVersion(up.upstream_v)._V:
+            up.upstream_v += " (unchanged)"
 
         um_list.append(up)
 
@@ -108,11 +114,11 @@ def unmaintained(args, packages, reportsdir):
     print('<p>Packages without a maintainer.</p>', file=body)
 
     print('<table class="grid">', file=body)
-    print('<tr><th>last updated</th><th>package</th><th>version</th><th>rdepends</th><th>build_rdepends</th></tr>', file=body)
+    print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>rdepends</th><th>build_rdepends</th></tr>', file=body)
 
     for up in sorted(um_list, key=lambda i: (i.rdepends + i.build_rdepends, i.ts), reverse=True):
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.rdepends, up.build_rdepends), file=body)
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.upstream_v, up.rdepends, up.build_rdepends), file=body)
 
     print('</table>', file=body)
 

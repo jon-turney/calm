@@ -71,6 +71,7 @@ from . import irk
 from . import maintainers
 from . import package
 from . import pkg2html
+from . import repology
 from . import reports
 from . import setup_exe
 from . import uploads
@@ -481,6 +482,7 @@ def do_output(args, state):
 
     # write reports
     if update_json or args.force:
+        repology.annotate_packages(args, state.packages)
         reports.do_reports(args, state.packages)
 
     # if we are daemonized, allow force regeneration of static content in htdocs
