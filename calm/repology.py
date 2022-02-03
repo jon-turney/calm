@@ -33,6 +33,7 @@ import urllib.request
 
 REPOLOGY_API_URL = 'https://repology.org/api/v1/projects/'
 last_check = 0
+last_data = {}
 
 
 def repology_fetch_versions():
@@ -79,14 +80,17 @@ def repology_fetch_versions():
 
 
 def annotate_packages(args, packages):
-    # rate limit to daily
     global last_check
+    global last_data
+
+    # rate limit to daily
     if (time.time() - last_check) < (24 * 60 * 60):
         logging.info("not consulting %s due to ratelimit" % (REPOLOGY_API_URL))
-        return
+    else:
+        logging.info("consulting %s" % (REPOLOGY_API_URL))
+        last_data = repology_fetch_versions()
 
-    logging.info("consulting %s" % (REPOLOGY_API_URL))
-    uv = repology_fetch_versions()
+    uv = last_data
 
     for pn in uv:
         spn = pn + '-src'
