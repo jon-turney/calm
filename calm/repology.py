@@ -26,14 +26,25 @@
 # may not exist for some packages, e.g. where upstream doesn't do releases)
 #
 
+from collections import namedtuple
+
 import json
 import logging
 import time
 import urllib.request
 
+from .version import SetupVersion
+
 REPOLOGY_API_URL = 'https://repology.org/api/v1/projects/'
 last_check = 0
 last_data = {}
+
+LegacyData = namedtuple('LegacyData', ['version', 'ignores'])
+use_legacy = {'qt': [LegacyData('5', []),
+                     LegacyData('4', []),
+                     LegacyData('3', [])],
+              'gtk': [LegacyData('3', ['3.9', '+']),
+                      LegacyData('2', [])]}
 
 
 def repology_fetch_versions():
@@ -52,13 +63,37 @@ def repology_fetch_versions():
         for pn in sorted(j.keys()):
             p = j[pn]
 
-            # first, pick out the version which repology has called newest
+            # first, pick out the version which repology has called newest, and
+            # if needed, also pick out latest version for legacy packages
             newest_version = None
+            legacy_versions = {}
+
             for i in p:
+                v = i['version']
                 if i['status'] == 'newest':
-                    newest_version = i['version']
-                    break
-            else:
+                    newest_version = v
+
+                if (pn in use_legacy) and (i['status'] in ['legacy', 'outdated']):
+                    prefix = None
+                    for ld in use_legacy[pn]:
+                        if v.startswith(ld.version):
+                            prefix = ld.version
+                            break
+
+                    if not prefix:
+                        continue
+
+                    # blacklist versions containing substrings (pre-release
+                    # versions etc.)
+                    if any(ignore in v for ignore in ld.ignores):
+                        continue
+
+                    # repology doesn't identify the highest legacy version, so
+                    # we have to that ourselves
+                    if SetupVersion(v) > SetupVersion(legacy_versions.get(prefix, '0')):
+                        legacy_versions[prefix] = v
+
+            if not newest_version:
                 continue
 
             # next, assign that version to all the corresponding cygwin source
@@ -69,6 +104,19 @@ def repology_fetch_versions():
             for i in p:
                 if i['repo'] == "cygwin":
                     source_pn = i['srcname']
+
+                    # if package name contains legacy version
+                    if pn in use_legacy:
+                        prefix = None
+                        for ld in use_legacy[pn]:
+                            if (pn + ld.version) in source_pn:
+                                prefix = ld.version
+
+                        if prefix and prefix in legacy_versions:
+                            upstream_versions[source_pn] = legacy_versions[prefix]
+                            continue
+
+                    # otherwise, just use the newest version
                     upstream_versions[source_pn] = newest_version
 
         if pn == last_pn:
