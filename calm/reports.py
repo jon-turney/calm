@@ -105,7 +105,8 @@ def unmaintained(args, packages, reportsdir):
 
         # some packages are mature. If 'v' is still latest upstream version,
         # then maybe we don't need to worry about this package quite as much...
-        if SetupVersion(v)._V == SetupVersion(up.upstream_v)._V:
+        up.unchanged = (SetupVersion(v)._V == SetupVersion(up.upstream_v)._V)
+        if up.unchanged:
             up.upstream_v += " (unchanged)"
 
         um_list.append(up)
@@ -116,7 +117,7 @@ def unmaintained(args, packages, reportsdir):
     print('<table class="grid">', file=body)
     print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>rdepends</th><th>build_rdepends</th></tr>', file=body)
 
-    for up in sorted(um_list, key=lambda i: (i.rdepends + i.build_rdepends, i.ts), reverse=True):
+    for up in sorted(um_list, key=lambda i: (i.rdepends + i.build_rdepends, not i.unchanged, i.ts), reverse=True):
         print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
               (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.upstream_v, up.rdepends, up.build_rdepends), file=body)
 
