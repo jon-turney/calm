@@ -26,7 +26,7 @@
 #
 
 from collections import defaultdict
-from enum import Enum, unique
+from enum import Enum, IntEnum, unique
 import copy
 import difflib
 import hashlib
@@ -1308,20 +1308,17 @@ def is_in_package_list(ppath, plist):
 # helper function to mark a package version as fresh (not stale)
 #
 
-def mark_package_fresh(packages, p, v):
-    if packages[p].kind == Kind.binary:
-        packages[p].tar(v).fresh = True
 
-    # ... mark any corresponding sibling or external-source package version as also fresh
-    if 'external-source' in packages[p].version_hints[v]:
-        es_p = packages[p].version_hints[v]['external-source']
-    else:
-        es_p = p + '-src'
+@unique
+class Freshness(IntEnum):
+    # ordered most dominant first
+    fresh = 1
+    conditional = 2  # fresh, if other install packages from this source are fresh, stale otherwise
+    stale = 3
 
-    if es_p in packages:
-        if v in packages[es_p].versions():
-            if packages[es_p].kind == Kind.source:
-                packages[es_p].tar(v).fresh = True
+
+def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
+    packages[p].tar(v).fresh = mark
 
 
 #
@@ -1329,8 +1326,24 @@ def mark_package_fresh(packages, p, v):
 #
 
 def stale_packages(packages):
+    # mark install packages for freshness
     for pn, po in packages.items():
-        # mark any versions explicitly listed in the keep: override hint
+        if po.kind != Kind.binary:
+            continue
+
+        # 'conditional' package retention means the package is weakly retained.
+        # This allows total expiry when a source package no longer provides
+        # anything useful e.g. if all we have is a source package and a
+        # debuginfo package, then we shouldn't retain anything.
+        #
+        # XXX: This mechanism could also be used for shared library packages
+        # with len(rdepends) == 0 (which have also been that way for a certain
+        # time?), or obsoleted packages(?)
+        mark = Freshness.fresh
+        if pn.endswith('-debuginfo'):
+            mark = Freshness.conditional
+
+        # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
             if v in po.versions():
                 mark_package_fresh(packages, pn, v)
@@ -1344,7 +1357,7 @@ def stale_packages(packages):
             if 'test' not in po.version_hints[v]:
                 if keep_count <= 0:
                     break
-                mark_package_fresh(packages, pn, v)
+                mark_package_fresh(packages, pn, v, mark)
                 keep_count = keep_count - 1
 
         # mark as fresh the highest n test versions, where n is given by the
@@ -1357,7 +1370,7 @@ def stale_packages(packages):
             if 'test' in po.version_hints[v]:
                 if keep_count <= 0:
                     break
-                mark_package_fresh(packages, pn, v)
+                mark_package_fresh(packages, pn, v, mark)
                 keep_count = keep_count - 1
             else:
                 if 'keep-superseded-test' not in po.override_hints:
@@ -1375,7 +1388,30 @@ def stale_packages(packages):
                     newer = True
 
             if newer:
-                mark_package_fresh(packages, pn, v)
+                mark_package_fresh(packages, pn, v, mark)
+
+    # mark source packages as fresh if any install package which uses it is fresh
+    for po in packages.values():
+        if po.kind == Kind.source:
+            for v in po.versions():
+                mark = Freshness.stale
+                for ip in po.is_used_by:
+                    if v in packages[ip].versions():
+                        mark = min(getattr(packages[ip].tar(v), 'fresh', Freshness.stale), mark)
+
+                # if conditional is the best we could do, mark this source
+                # package as stale, otherwise we are fresh
+                if mark == Freshness.conditional:
+                    mark = Freshness.stale
+
+                po.tar(v).fresh = mark
+
+                # update install packages which use this source package to the
+                # matching state
+                for ip in po.is_used_by:
+                    if v in packages[ip].versions():
+                        if getattr(packages[ip].tar(v), 'fresh', Freshness.stale) == Freshness.conditional:
+                            packages[ip].tar(v).fresh = mark
 
     # build a move list of stale versions
     stale = MoveList()
@@ -1384,7 +1420,7 @@ def stale_packages(packages):
 
         for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
             all_stale[v] = True
-            if not getattr(po.tar(v), 'fresh', False):
+            if getattr(po.tar(v), 'fresh', Freshness.stale) != Freshness.fresh:
                 to = po.tar(v)
                 stale.add(to.path, to.fn)
                 logging.debug("package '%s' version '%s' is stale" % (pn, v))
