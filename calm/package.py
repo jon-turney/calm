@@ -548,6 +548,21 @@ def validate_packages(args, packages):
                             logging.error("package '%s' version '%s' %s source package '%s'" % (p, v, c, r))
                             error = True
 
+            # some old packages are missing needed obsoletes:, add them where
+            # needed, and make sure the uploader is warned if/when package is
+            # updated
+            if p in past_mistakes.missing_obsolete:
+                obsoletes = packages[p].version_hints[v].get('obsoletes', '').split(',')
+                obsoletes = [o.strip() for o in obsoletes]
+                obsoletes = [o for o in obsoletes if o]
+
+                needed = past_mistakes.missing_obsolete[p]
+                for n in needed:
+                    if n not in obsoletes:
+                        obsoletes.append(n)
+                        packages[p].version_hints[v]['obsoletes'] = ','.join(obsoletes)
+                        logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
+
             # if external-source is used, the package must exist
             if 'external-source' in hints:
                 e = hints['external-source']
@@ -923,6 +938,8 @@ def validate_package_maintainers(args, packages):
     # validate that all packages are in the package list
     for p in sorted(packages):
         # ignore obsolete packages
+        if packages[p].obsolete:
+            continue
         if any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints]):
             continue
         # validate that the package is in a path which starts with something in the package list

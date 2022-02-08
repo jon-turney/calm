@@ -174,20 +174,36 @@ mtime_anomalies = [
 
 # packages with maintainer anomalies
 #
-# don't add to this list, fix the package (e.g. by obsoleting it)
+# don't add to this list, fix the package
 maint_anomalies = {
     'libelf0': ['0.8.13-2'],  # libelf is called libelf0 in x86 arch
     'libelf0-devel': ['0.8.13-2'],
-    'ksnapshot-debuginfo': ['15.04.3-1'],  # should be obsoleted by spectacle(-debuginfo)
-    'man-debuginfo': ['1.6g-2'],  # should be obsoleted by man-db(-debuginfo)
-    'procps-debuginfo': ['3.2.8-5'],  # should be obsoleted by procps-ng(-debuginfo)
-    'python-debuginfo': ['2.7.12-1'],  # should be obsoleted by python2(-debuginfo)
-    'transfig-debuginfo': ['3.2.5e-2'],  # should be obsoleted by xfig(-debuginfo)
+}
+
+# packages missing obsoletions
+#
+# don't add to this list, fix the package (e.g. by adding the needed obsoletions)
+# (an enhancement to cygport might be necessary to support doing that for
+# debuginfo packages?)
+missing_obsolete = {
+    'filemanager-actions-debuginfo': ['caja-actions-debuginfo'],
+    'guile2.2-debuginfo': ['guile-debuginfo'],
+    'librsync-debuginfo': ['rdiff-debuginfo'],
+    'man-db-debuginfo': ['man-debuginfo'],        # contain conflicting files
+    'procps-ng-debuginfo': ['procps-debuginfo'],  # contain conflicting files
+    'python2-debuginfo': ['python-debuginfo'],    # contain conflicting files
+    'python-dbus-debuginfo': ['python3-dbus-debuginfo'],
+    'rxvt-unicode-debuginfo': ['rxvt-unicode-X-debuginfo'],
+    'spectacle-debuginfo': ['ksnapshot-debuginfo'],
+    'xfce4-pulseaudio-plugin-debuginfo': ['xfce4-mixer-debuginfo'],
+    'xfig-debuginfo': ['transfig-debuginfo'],     # contain conflicting files
 }
 
 # provides: which don't exist
 nonexistent_provides = [
     'perl5_026',
+    'rdiff-debuginfo',           # not in x86
+    'rxvt-unicode-X-debuginfo',  # not in x86_64
 ]
 
 # empty source packages
