@@ -603,7 +603,7 @@ def validate_packages(args, packages):
             else:
                 packages[p].not_for_output = False
 
-        levels = ['test', 'curr', 'prev']
+        levels = ['test', 'curr']
 
         # assign a version to each stability level
         packages[p].stability = defaultdict()
@@ -1040,6 +1040,14 @@ def write_setup_ini(args, packages, arch):
                 version = po.stability['curr']
                 vs.append((version, 'curr'))
 
+            # purely for compatibility with previous ordering, identify the
+            # 'prev' version (the non-test version before the current version),
+            # if it exists, so we can put it last.
+            prev_version = None
+            nontest_versions = [v for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' not in po.version_hints.get(v, {})]
+            if len(nontest_versions) >= 2:
+                prev_version = nontest_versions[1]
+
             # next put any other versions
             #
             # these [prev] or [test] sections are superseded by the final ones.
@@ -1054,13 +1062,16 @@ def write_setup_ini(args, packages, arch):
 
             for version in sorted(versions, key=lambda v: SetupVersion(v), reverse=True):
                 # skip over versions assigned to stability level: 'curr' has
-                # already be done, and 'prev' and 'test' will be done later
+                # already be done, and 'test' will be done later
                 skip = False
-                for level in ['curr', 'prev', 'test']:
+                for level in ['curr', 'test']:
                     if level in po.stability:
                         if version == po.stability[level]:
                             skip = True
                             break
+
+                if version == prev_version:
+                    skip = True
 
                 if skip:
                     continue
@@ -1072,13 +1083,17 @@ def write_setup_ini(args, packages, arch):
                     level = "prev"
                 vs.append((version, level))
 
-            # finally, add 'prev' and 'test' versions
+            # add the 'prev' version
+            if prev_version:
+                vs.append((prev_version, "prev"))
+
+            # finally, add 'test' version
             #
             # because setup processes version sections in order, these supersede
             # any previous [prev] and [test] sections (hopefully).  i.e. the
             # version in the final [test] section is the one selected when test
             # packages are requested.
-            for level in ['prev', 'test']:
+            for level in ['test']:
                 if level in po.stability:
                     version = po.stability[level]
                     vs.append((version, level))
@@ -1359,7 +1374,7 @@ def mark_package_fresh(packages, p, v):
 def stale_packages(packages):
     for pn, po in packages.items():
         # mark any versions used by stability levels as fresh
-        for level in ['curr', 'prev']:
+        for level in ['curr']:
             if level in po.stability:
                 v = po.stability[level]
                 mark_package_fresh(packages, pn, v)
