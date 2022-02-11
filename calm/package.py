@@ -618,98 +618,40 @@ def validate_packages(args, packages):
             else:
                 packages[p].not_for_output = False
 
-        levels = ['test', 'curr']
-
-        # assign a version to each stability level
-        packages[p].stability = defaultdict()
-
-        # sort in order from highest to lowest version
-        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
-            level_found = False
-
-            while True:
-                # no stability levels left
-                if len(levels) == 0:
-                    break
-
-                l = levels[0]
-
-                # if package is explicitly marked as having that stability level
-                # (only used for test, currently)
-                if (l == 'test') and ('test' in packages[p].version_hints[v]):
-                    logging.debug("package '%s' version '%s' marked as stability '%s'" % (p, v, l))
-                else:
-                    # level 'test' must be explicitly assigned
-                    if l == 'test':
-                        levels.remove(l)
-                        # go around again to check at the new level
-                        continue
-                    else:
-                        # if version is explicitly marked test, it can't be
-                        # assigned to any other stability level
-                        if 'test' in packages[p].version_hints[v]:
-                            logging.debug("package '%s' version '%s' can't be used for stability '%s' as it's marked test" % (p, v, l))
-                            break
-
-                level_found = True
-                logging.log(5, "package '%s' stability '%s' assigned version '%s'" % (p, l, v))
-                break
-
-            if not level_found:
-                continue
-
-            # assign version to level
-            packages[p].stability[l] = v
-            packages[p].version_hints[v][l] = ''
-            # and remove from list of unallocated levels
-            levels.remove(l)
-
-        # lastly, fill in any levels which we skipped over because a higher
-        # stability level was overriden to a lower version
-        for l in levels:
-            if l in packages[p].override_hints:
-                if packages[p].override_hints[l] is not None:
-                    packages[p].stability[l] = packages[p].override_hints[l]
-
-        l = 'test'
-        if l not in packages[p].stability:
-            for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
-                if 'test' in packages[p].version_hints[v]:
-                    packages[p].stability[l] = v
-                    packages[p].version_hints[v][l] = ''
-                    break
-
         # identify a 'best' version to take certain information from: this is
         # the curr version, if we have one, otherwise, the highest version.
-        if ('curr' in packages[p].stability) and (packages[p].stability['curr'] in packages[p].versions()):
-            packages[p].best_version = packages[p].stability['curr']
-        elif len(packages[p].versions()):
-            packages[p].best_version = sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
+        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
+            if 'test' not in packages[p].version_hints[v]:
+                packages[p].best_version = v
+                break
         else:
-            logging.error("package '%s' doesn't have any versions" % (p))
-            packages[p].best_version = None
-            error = True
+            if len(packages[p].versions()):
+                packages[p].best_version = sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
 
-        # the package must have some versions
-        if not packages[p].stability:
-            logging.error("no versions at any stability level for package '%s'" % (p))
-            error = True
-        # it's also probably a really good idea if a curr version exists
-        elif (('curr' not in packages[p].stability) and
-              ('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
-              ('missing-curr' not in getattr(args, 'disable_check', []))):
-            logging.warning("package '%s' doesn't have a curr version" % (p))
+                # warn if no non-test ('curr') version exists
+                if (('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
+                    ('missing-curr' not in getattr(args, 'disable_check', []))):
+                    logging.warning("package '%s' doesn't have any non-test versions (i.e. no curr: version)" % (p))
+
+            else:
+                # the package must have some versions
+                logging.error("package '%s' doesn't have any versions" % (p))
+                packages[p].best_version = None
+                error = True
 
         # error if the curr: version isn't the most recent non-test: version
         mtimes = {}
         for vr in packages[p].versions():
             mtimes[vr] = packages[p].tar(vr).mtime
 
+        cv = None
+        nontest_versions = [v for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' not in packages[p].version_hints.get(v, {})]
+        if len(nontest_versions) >= 1:
+            cv = nontest_versions[0]
+
         for v in sorted(packages[p].versions(), key=lambda v: mtimes[v], reverse=True):
             if 'test' in packages[p].version_hints[v]:
                 continue
-
-            cv = packages[p].stability['curr']
 
             if cv not in packages[p].versions():
                 continue
@@ -882,9 +824,10 @@ def validate_packages(args, packages):
             if re.match(r'^python[23][5678]?-.*', install_p):
                 continue
 
-            # ignore packages which don't have a current version (i.e. are test
-            # only)
-            if 'curr' not in packages[install_p].stability:
+            # ignore packages where best_version is a test version (i.e doesn't
+            # have a current version, is test only), since the check we are
+            # doing here is 'same current version'
+            if 'test' not in packages[install_p].version_hints[packages[install_p].best_version]:
                 continue
 
             # ignore packages which have a different external-source:
@@ -1053,17 +996,24 @@ def write_setup_ini(args, packages, arch):
             # due to a historic bug in setup (fixed in 78e4c7d7), we keep the
             # [curr] version first, to ensure that dependencies are used
             # correctly.
-            if 'curr' in po.stability:
-                version = po.stability['curr']
-                vs.append((version, 'curr'))
+            nontest_versions = [v for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' not in po.version_hints.get(v, {})]
+            curr_version = None
+            if len(nontest_versions) >= 1:
+                curr_version = nontest_versions[0]
+                vs.append((curr_version, 'curr'))
 
             # purely for compatibility with previous ordering, identify the
             # 'prev' version (the non-test version before the current version),
             # if it exists, so we can put it last.
             prev_version = None
-            nontest_versions = [v for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' not in po.version_hints.get(v, {})]
             if len(nontest_versions) >= 2:
                 prev_version = nontest_versions[1]
+
+            # ditto the 'test' version
+            test_version = None
+            test_versions = [v for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' in po.version_hints.get(v, {})]
+            if len(test_versions) >= 1:
+                test_version = test_versions[0]
 
             # next put any other versions
             #
@@ -1078,19 +1028,11 @@ def write_setup_ini(args, packages, arch):
                 versions.update(packages[sibling_src].versions())
 
             for version in sorted(versions, key=lambda v: SetupVersion(v), reverse=True):
-                # skip over versions assigned to stability level: 'curr' has
-                # already be done, and 'test' will be done later
-                skip = False
-                for level in ['curr', 'test']:
-                    if level in po.stability:
-                        if version == po.stability[level]:
-                            skip = True
-                            break
-
-                if version == prev_version:
-                    skip = True
-
-                if skip:
+                # skip over versions which have a special place in the ordering:
+                # 'curr' has already been done, 'prev' and 'test' will be done
+                # later
+                if ((version == curr_version) or (version == prev_version) or
+                    (version == test_version)):
                     continue
 
                 # test versions receive the test label
@@ -1104,16 +1046,14 @@ def write_setup_ini(args, packages, arch):
             if prev_version:
                 vs.append((prev_version, "prev"))
 
-            # finally, add 'test' version
+            # finally, add the 'test' version
             #
             # because setup processes version sections in order, these supersede
             # any previous [prev] and [test] sections (hopefully).  i.e. the
             # version in the final [test] section is the one selected when test
             # packages are requested.
-            for level in ['test']:
-                if level in po.stability:
-                    version = po.stability[level]
-                    vs.append((version, level))
+            if test_version:
+                vs.append((test_version, "test"))
 
             # write the section for each version
             for (version, tag) in vs:
@@ -1390,12 +1330,6 @@ def mark_package_fresh(packages, p, v):
 
 def stale_packages(packages):
     for pn, po in packages.items():
-        # mark any versions used by stability levels as fresh
-        for level in ['curr']:
-            if level in po.stability:
-                v = po.stability[level]
-                mark_package_fresh(packages, pn, v)
-
         # mark any versions explicitly listed in the keep: override hint
         for v in po.override_hints.get('keep', '').split():
             if v in po.versions():
