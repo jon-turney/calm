@@ -61,29 +61,23 @@ def fix_one_hint(dirpath, hintfile, tf):
         logging.error('invalid hints %s' % hintfile)
         return
 
+    annotation = ''
     modified = False
 
-    # if no annotation yet ...
-    if 'notes' not in hints:
-        requires = hints.get('requires', '').split()
-        if requires:
-            # is a perl provide is already present in requires?
-            if any(r.startswith('perl5_') for r in requires):
-                return
+    requires = hints.get('requires', '').split()
+    if requires:
+        # is a perl provide is already present in requires?
+        if any(r.startswith('perl5_') for r in requires):
+            return
 
-            # ... otherwise, add a perl annotation
-            if ('perl_base' in requires) or ('perl' in requires):
-                logging.info("%s has perl in requires and no annotations" % (hintfile))
-                hints['notes'] = 'perl5_032'
-                modified = True
-
-    # fix spelling mistake in 5_26 annotation
-    if hints.get('notes', '') == 'perl5_26':
-        hints['notes'] = 'perl5_026'
+        # ... otherwise, add a perl annotation
+        if ('perl_base' in requires) or ('perl' in requires):
+            logging.info("%s has perl but no perl5_nnn in requires" % (hintfile))
+            annotation = 'perl5_032'
 
     # if annotated, check if this package installs into vendor_perl, and if so,
     # add the annotated perl version to requires, if not already present
-    if hints.get('notes', '').startswith('perl5_0'):
+    if annotation:
         ivp = False
         exe = False
 
@@ -98,11 +92,11 @@ def fix_one_hint(dirpath, hintfile, tf):
 
         if ivp or knwn:
             requires = hints.get('requires', '').split()
-            if hints['notes'] not in requires:
-                requires.append(hints['notes'])
+            if annotation not in requires:
+                requires.append(annotation)
                 requires = sorted(requires)
                 modified = True
-                logging.warning("adding %s to requires in %s" % (hints['notes'], hintfile))
+                logging.warning("adding %s to requires in %s" % (annotation, hintfile))
             hints['requires'] = ' '.join(requires)
         else:
             if exe:
