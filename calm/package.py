@@ -1351,6 +1351,9 @@ def stale_packages(packages):
                 if po.tar(v).sourceless:
                     mark = Freshness.conditional
                     break
+            # XXX: initially only apply to obsolete packages
+            if po.obsolete:
+                mark = Freshness.conditional
 
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
