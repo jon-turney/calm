@@ -77,7 +77,6 @@ DEFAULT_KEEP_DAYS = 0
 # different values to be used when we are not running on sourceware.org, but my
 # test system...
 if os.uname()[1] == 'tambora':
-    FTP = '/var/ftp/pub/cygwin-test'
     EMAILS = 'jon.turney@dronecode.org.uk'
     ALWAYS_BCC = ''
     MAILHOST = 'allegra'
