@@ -486,7 +486,7 @@ def do_output(args, state):
             pass
 
     # write reports
-    if update_json or args.force:
+    if (update_json or args.force) and args.reports:
         repology.annotate_packages(args, state.packages)
         reports.do_reports(args, state.packages)
 
@@ -684,6 +684,7 @@ def main():
     parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
     parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")
     parser.set_defaults(stale=True)
+    parser.add_argument('--reports', action='store_true', dest='reports', help="don't produce reports", default=None)
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
@@ -691,6 +692,9 @@ def main():
 
     if args.email:
         args.email = args.email.split(',')
+
+    if args.reports is None:
+        args.reports = args.daemon
 
     state = CalmState()
 
