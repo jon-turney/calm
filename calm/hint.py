@@ -401,6 +401,8 @@ words = [
     (' examing ', ' examining '),
     (' extremly ', ' extremely '),
     (' interm ', ' interim '),
+    (' immitation ', ' imitation '),
+    (' nlike ', ' Unlike '),
     (' procesors ', ' processors '),
     (' utilitzed ', ' utilized '),
     (' utilties ', ' utilities '),
