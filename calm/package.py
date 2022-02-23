@@ -1345,15 +1345,7 @@ def stale_packages(packages):
         # time?), or obsoleted packages(?)
         mark = Freshness.fresh
         if pn.endswith('-debuginfo'):
-            # XXX: initially only apply to sourceless debuginfo packages (which
-            # must also be empty to be permitted to sourceless)
-            for v in po.versions():
-                if po.tar(v).sourceless:
-                    mark = Freshness.conditional
-                    break
-            # XXX: initially only apply to obsolete packages
-            if po.obsolete:
-                mark = Freshness.conditional
+            mark = Freshness.conditional
 
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
