@@ -820,7 +820,7 @@ def validate_packages(args, packages, valid_requires_extra=None):
 
             # ignore runtime library packages, as we may keep old versions of
             # those
-            if re.match(r'^lib.*\d', install_p):
+            if re.match(common_constants.SOVERSION_PACKAGE_RE, install_p):
                 continue
 
             # ignore Python module packages, as we may keep old versions of

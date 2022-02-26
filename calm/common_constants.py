@@ -84,3 +84,9 @@ if os.uname()[1] == 'tambora':
 # package compressions
 PACKAGE_COMPRESSIONS = ['bz2', 'gz', 'lzma', 'xz', 'zst']
 PACKAGE_COMPRESSIONS_RE = r'\.(' + '|'.join(PACKAGE_COMPRESSIONS) + r')'
+
+# ideally we'd identify soversion packages via some explicit mark, or by
+# inspecting the contents (but that's expensive to do). for the moment, we
+# recognize soversion packages by the simple heuristic of looking at the package
+# name
+SOVERSION_PACKAGE_RE = r'^lib.*[\d_.]+$'

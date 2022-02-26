@@ -27,6 +27,7 @@ import re
 import textwrap
 import types
 
+from . import common_constants
 from . import maintainers
 from . import package
 from . import pkg2html
@@ -141,7 +142,7 @@ def deprecated(args, packages, reportsdir):
         if po.kind != package.Kind.binary:
             continue
 
-        if not re.match(r'^lib.*\d', p):
+        if not re.match(common_constants.SOVERSION_PACKAGE_RE, p):
             continue
 
         bv = po.best_version
