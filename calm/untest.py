@@ -35,7 +35,7 @@ def untest(pvr):
     # split name and vr
     match = re.match(r'^(.+?)-(\d.*)', pvr)
     if not match:
-        logging.error("unable to extract package and version from '%s'" % (pvr))
+        logging.error("unable to determine package and version-release from '%s'" % (pvr))
         return
 
     p = match.group(1)
@@ -84,8 +84,8 @@ def untest(pvr):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='test hint remover')
-    parser.add_argument('package', nargs='*', metavar='PACKAGE')
+    parser = argparse.ArgumentParser(description='remove test: hint')
+    parser.add_argument('package', nargs='*', metavar='PVR')
     (args) = parser.parse_args()
 
     logging.getLogger().setLevel(logging.INFO)
