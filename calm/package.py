@@ -503,6 +503,7 @@ def validate_packages(args, packages, valid_requires_extra=None):
             packages[p].obsolete = False
             packages[p].rdepends = set()
             packages[p].build_rdepends = set()
+            packages[p].orphaned = False
 
     # perform various package validations
     for p in sorted(packages.keys()):
@@ -878,6 +879,7 @@ def validate_package_maintainers(args, packages):
     # read maintainer list
     mlist = {}
     mlist = maintainers.add_packages(mlist, args.pkglist)
+    pkg_maintainers = maintainers.invert(mlist)
 
     # make the list of all packages
     all_packages = maintainers.all_packages(mlist)
@@ -907,6 +909,10 @@ def validate_package_maintainers(args, packages):
                     if bv not in past_mistakes.maint_anomalies.get(p, []):
                         logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
                         error = True
+
+        if 'ORPHANED' in pkg_maintainers[packages[p].orig_name]:
+            # note orphaned packages
+            packages[p].orphaned = True
 
     return error
 
@@ -969,9 +975,13 @@ def write_setup_ini(args, packages, arch):
             if 'ldesc' in po.version_hints[bv]:
                 print("ldesc: %s" % po.version_hints[bv]['ldesc'], file=f)
 
+            # mark orphaned packages with the 'unmaintained' pseudo-category
+            category = po.version_hints[bv]['category']
+            if po.orphaned:
+                category += ' unmaintained'
             # for historical reasons, category names must start with a capital
             # letter
-            category = ' '.join(map(upper_first_character, po.version_hints[bv]['category'].split()))
+            category = ' '.join(map(upper_first_character, category.split()))
             print("category: %s" % category, file=f)
 
             # compute the union of requires for all versions
