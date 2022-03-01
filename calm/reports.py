@@ -145,6 +145,9 @@ def deprecated(args, packages, reportsdir):
         if not re.match(common_constants.SOVERSION_PACKAGE_RE, p):
             continue
 
+        if p.startswith('girepository-'):
+            continue
+
         bv = po.best_version
         es = po.version_hints[bv].get('external-source', None)
         if not es:

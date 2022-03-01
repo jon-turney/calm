@@ -1348,7 +1348,13 @@ def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
 # construct a move list of stale packages
 #
 
+SO_AGE_THRESHOLD_YEARS = 10
+
+
 def stale_packages(packages):
+    certain_age = time.time() - (SO_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    logging.debug("cut-off date for soversion package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
+
     # mark install packages for freshness
     for pn, po in packages.items():
         if po.kind != Kind.binary:
@@ -1356,15 +1362,25 @@ def stale_packages(packages):
 
         # 'conditional' package retention means the package is weakly retained.
         # This allows total expiry when a source package no longer provides
-        # anything useful e.g. if all we have is a source package and a
-        # debuginfo package, then we shouldn't retain anything.
+        # anything useful:
         #
-        # XXX: This mechanism could also be used for shared library packages
-        # with len(rdepends) == 0 (which have also been that way for a certain
-        # time?), or obsoleted packages(?)
+        # - if all we have is a source package and a debuginfo package, then we
+        # shouldn't retain anything.
+        #
+        # - shared library packages which don't come from the current version of
+        # source (i.e. is superseded or removed), have no packages which depend
+        # on them, and are over a certain age
+        #
         mark = Freshness.fresh
         if pn.endswith('-debuginfo'):
             mark = Freshness.conditional
+        if (len(po.rdepends) == 0) and re.match(common_constants.SOVERSION_PACKAGE_RE, pn):
+            bv = po.best_version
+            es = po.version_hints[bv].get('external-source', None)
+            mtime = po.tar(bv).mtime
+            if es and (packages[es].best_version != bv) and (mtime < certain_age):
+                logging.debug("deprecated soversion package '%s' mtime '%s' is over cut-off age" % (pn, time.strftime("%F %T %Z", time.localtime(mtime))))
+                mark = Freshness.conditional
 
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
