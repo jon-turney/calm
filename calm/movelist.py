@@ -23,7 +23,6 @@
 
 import logging
 import os
-import shutil
 
 from collections import defaultdict
 from . import utils
@@ -91,18 +90,3 @@ class MoveList(object):
             if pi:
                 i.movelist[p] = pi
         return i
-
-    # copy the files in a movelist
-    def copy(self, args, fromdir, todir):
-        for p in sorted(self.movelist):
-            logging.debug("mkdir %s" % os.path.join(todir, p))
-            if not args.dryrun:
-                utils.makedirs(os.path.join(todir, p))
-            logging.debug("copy from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
-            for f in sorted(self.movelist[p]):
-                if os.path.exists(os.path.join(fromdir, p, f)):
-                    logging.debug("%s" % (f))
-                    if not args.dryrun:
-                        shutil.copy2(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
-                else:
-                    logging.error("%s can't be copied as it doesn't exist" % (f))
