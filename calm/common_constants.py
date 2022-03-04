@@ -66,9 +66,6 @@ PKGMAINT = '/www/sourceware/htdocs/cygwin/cygwin-pkg-maint'
 # removed files archive directory
 VAULT = '/sourceware/snapshot-tmp/cygwin'
 
-# SMTP smarthost
-MAILHOST = 'localhost'
-
 # defaults for package freshness
 DEFAULT_KEEP_COUNT = 3
 DEFAULT_KEEP_COUNT_TEST = 2
@@ -79,7 +76,6 @@ DEFAULT_KEEP_DAYS = 0
 if os.uname()[1] == 'tambora':
     EMAILS = 'jon.turney@dronecode.org.uk'
     ALWAYS_BCC = ''
-    MAILHOST = 'allegra'
 
 # package compressions
 PACKAGE_COMPRESSIONS = ['bz2', 'gz', 'lzma', 'xz', 'zst']
