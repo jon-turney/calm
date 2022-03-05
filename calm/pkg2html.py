@@ -243,7 +243,7 @@ def update_package_listings(args, packages):
                         if homepage:
                             print('<span class="detail">homepage</span>: <a href="%s">%s</a><br><br>' % (homepage, homepage), file=f)
                     else:
-                        es = po.version_hints[bv].get('external-source', p + '-src')
+                        es = po.srcpackage(bv)
                         print('<span class="detail">source package</span>: %s<br><br>' % linkify_package(es), file=f)
 
                     es_po = arch_package(packages, es)

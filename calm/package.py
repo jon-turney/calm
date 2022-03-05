@@ -79,6 +79,22 @@ class Package(object):
     def versions(self):
         return self.tarfiles.keys()
 
+    def srcpackage(self, vr, suffix=True):
+        if self.kind == Kind.source:
+            spn = self.name
+        else:
+            # source tarfile is in the external-source package, if specified,
+            # otherwise it's in the sibling source package
+            hints = self.version_hints.get(vr, {})
+            spn = hints.get('external-source', self.name + '-src')
+
+        # strip '-src' suffix?
+        if not suffix:
+            if spn.endswith('-src'):
+                spn = spn[:-4]
+
+        return spn
+
 
 # information we keep about a tar file
 class Tar(object):
@@ -419,6 +435,7 @@ def read_one_package(packages, p, relpath, dirpath, files, remove, kind, strict)
             actual_tars[ovr] = tars[vr]
 
     packages[pn] = Package()
+    packages[pn].name = pn
     packages[pn].version_hints = version_hints
     packages[pn].override_hints = override_hints
     packages[pn].tarfiles = actual_tars
@@ -755,12 +772,7 @@ def validate_packages(args, packages, valid_requires_extra=None):
             sourceless = False
             missing_source = True
 
-            # source tarfile is in the external-source package, if specified,
-            # otherwise it's in the sibling source package
-            if 'external-source' in packages[p].version_hints[v]:
-                es_p = packages[p].version_hints[v]['external-source']
-            else:
-                es_p = p + '-src'
+            es_p = packages[p].srcpackage(v)
 
             # mark the source tarfile as being used by an install tarfile
             if es_p in packages:
@@ -837,7 +849,7 @@ def validate_packages(args, packages, valid_requires_extra=None):
 
             # ignore packages which have a different external-source:
             # (e.g. where a different source package supersedes this one)
-            es = packages[install_p].version_hints[packages[install_p].best_version].get('external-source', source_p)
+            es = packages[install_p].srcpackage(packages[install_p].best_version)
             if es != source_p:
                 continue
 
@@ -902,7 +914,7 @@ def validate_package_maintainers(args, packages):
         # validate that the source package has a maintainer
         bv = packages[p].best_version
         if bv:
-            es = packages[p].version_hints[bv].get('external-source', p)
+            es = packages[p].srcpackage(bv)
             if es in packages:
                 es_pn = packages[es].orig_name
                 if es_pn not in all_packages and p not in all_packages:
@@ -1084,12 +1096,9 @@ def write_setup_ini(args, packages, arch):
                 hints = po.version_hints.get(version, {})
 
                 # follow external-source
-                if 'external-source' in hints:
-                    s = hints['external-source']
-                else:
-                    s = sibling_src
-                    if s not in packages:
-                        s = None
+                s = po.srcpackage(version)
+                if s not in packages:
+                    s = None
 
                 # external-source points to a source file in another package
                 if s:
