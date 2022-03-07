@@ -646,6 +646,9 @@ def mail_cb(state, loghandler):
         if m.name == 'ORPHANED':
             email = common_constants.EMAILS.split(',')
 
+        if state.args.email == ['debug']:
+            email = ['debug']
+
         maint_email = BufferingSMTPHandler(email, subject='%s for %s' % (state.subject, m.name))
         threshold = logging.WARNING if m.quiet else logging.INFO
 

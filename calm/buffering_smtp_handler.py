@@ -79,6 +79,9 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
             # if toaddrs consists of the single address 'debug', just dump the mail we would have sent
             if self.toaddrs == ['debug']:
                 print('-' * 40)
+                for k in m:
+                    print('%s: %s' % (k, m[k]))
+                print('-' * 40)
                 print(msg)
                 print('-' * 40)
             else:
