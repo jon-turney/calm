@@ -25,6 +25,7 @@ import logging
 import os
 
 from collections import defaultdict
+from . import logfilters
 from . import utils
 
 
@@ -51,29 +52,32 @@ class MoveList(object):
     def remove(self, relpath):
         del self.movelist[relpath]
 
-    def _move(self, args, fromdir, todir):
+    def _move(self, args, fromdir, todir, verb):
         for p in sorted(self.movelist):
-            logging.debug("mkdir %s" % os.path.join(todir, p))
-            if not args.dryrun:
-                utils.makedirs(os.path.join(todir, p))
-            logging.debug("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
-            for f in sorted(self.movelist[p]):
-                if os.path.exists(os.path.join(fromdir, p, f)):
-                    logging.info("%s" % os.path.join(p, f))
-                    if not args.dryrun:
-                        os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
-                else:
-                    logging.error("%s can't be moved as it doesn't exist" % (f))
+            # a clunky way of determining the package which owns these files
+            package = p.split(os.sep)[2]
+            with logfilters.AttrFilter(package=package):
+                logging.debug("mkdir %s" % os.path.join(todir, p))
+                if not args.dryrun:
+                    utils.makedirs(os.path.join(todir, p))
+                logging.debug("move from '%s' to '%s':" % (os.path.join(fromdir, p), os.path.join(todir, p)))
+                for f in sorted(self.movelist[p]):
+                    if os.path.exists(os.path.join(fromdir, p, f)):
+                        logging.info("%sing %s" % (verb, os.path.join(p, f)))
+                        if not args.dryrun:
+                            os.rename(os.path.join(fromdir, p, f), os.path.join(todir, p, f))
+                    else:
+                        logging.error("can't %s %s, as it doesn't exist" % (verb, f))
 
     def move_to_relarea(self, m, args):
         if self.movelist:
             logging.info("move from %s's upload area to release area:" % (m.name))
-        self._move(args, m.homedir(), args.rel_area)
+        self._move(args, m.homedir(), args.rel_area, 'deploy')
 
     def move_to_vault(self, args):
         if self.movelist:
             logging.info("move from release area to vault:")
-        self._move(args, args.rel_area, args.vault)
+        self._move(args, args.rel_area, args.vault, 'vault')
 
     # apply a function to all files in the movelists
     def map(self, function):

@@ -22,40 +22,25 @@
 #
 
 import logging
-from logging.handlers import BufferingHandler
 
 
-# Loosely based on the "Buffering logging messages and outputting them
-# conditionally" example from the python logging cookbook.
-#
-# AbeyanceHandler holds log output in a BufferingHandler.  When closed, it will
-# pass all log output of retainLevel or higher to the callback.
+# trivial log filter (which can be used as a context manager) to annotate log
+# record with extra attributes.
+class AttrFilter(logging.Filter):
+    def __init__(self, **kwargs):
+        self.attributes = kwargs
 
-class AbeyanceHandler(BufferingHandler):
-    def __init__(self, callback, retainLevel):
-        BufferingHandler.__init__(self, capacity=0)
-        self.callback = callback
-        self.setLevel(retainLevel)
-
-    def shouldFlush(self, record):
-        # the capacity we pass to BufferingHandler is irrelevant since we
-        # override shouldFlush so it never indicates we have reached capacity
-        return False
-
-    def close(self):
-        # allow the callback to process the buffer
-        self.callback(self)
-
-        # discard the buffers contents
-        super().close()
+    def filter(self, record):
+        for a in self.attributes:
+            setattr(record, a, self.attributes[a])
+        return True
 
     def __enter__(self):
-        logging.getLogger().addHandler(self)
+        logging.getLogger().addFilter(self)
         return self
 
-    def __exit__(self, exception_type, exception_value, traceback):
-        self.close()
-        logging.getLogger().removeHandler(self)
+    def __exit__(self, exc_type, exc_value, traceback):
+        logging.getLogger().removeFilter(self)
 
         # process any exception in the with-block normally
         return False

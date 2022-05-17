@@ -442,6 +442,7 @@ class CalmTest(unittest.TestCase):
         args.stale = True
 
         state = calm.calm.CalmState()
+        state.args = args
 
         shutil.copytree('testdata/relarea', args.rel_area)
         shutil.copytree('testdata/homes', args.homedir)

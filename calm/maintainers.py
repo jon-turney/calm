@@ -136,7 +136,7 @@ def add_directories(mlist, homedirs):
 
 # add maintainers from the package maintainers list, with the packages they
 # maintain
-def add_packages(mlist, pkglist, orphanMaint=None):
+def add_packages(mlist, pkglist, orphanMaint=None, prev_maint=True):
     with open(pkglist) as f:
         for (i, l) in enumerate(f):
             l = l.rstrip()
@@ -156,7 +156,7 @@ def add_packages(mlist, pkglist, orphanMaint=None):
                     if status == 'OBSOLETE':
                         continue
 
-                    # orphaned packages get the default maintainer if we
+                    # orphaned packages get the default maintainer(s) if we
                     # have one, otherwise they are assigned to 'ORPHANED'
                     elif status == 'ORPHANED':
                         if orphanMaint is not None:
@@ -164,10 +164,11 @@ def add_packages(mlist, pkglist, orphanMaint=None):
                         else:
                             m = status
 
-                        # also add any previous maintainer(s) listed
-                        prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
-                        if prevm:
-                            m = m + '/' + prevm.group(1)
+                        if prev_maint:
+                            # also add any previous maintainer(s) listed
+                            prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
+                            if prevm:
+                                m = m + '/' + prevm.group(1)
                     else:
                         logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
                         continue
@@ -198,10 +199,10 @@ def add_packages(mlist, pkglist, orphanMaint=None):
 
 
 # create maintainer list
-def read(args, orphanmaint=None):
+def read(args, orphanmaint=None, prev_maint=True):
     mlist = {}
     mlist = add_directories(mlist, args.homedir)
-    mlist = add_packages(mlist, args.pkglist, orphanmaint)
+    mlist = add_packages(mlist, args.pkglist, orphanmaint, prev_maint)
 
     return mlist
 

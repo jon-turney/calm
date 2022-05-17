@@ -52,8 +52,8 @@
 # write setup.ini file
 #
 
-from contextlib import ExitStack
 import argparse
+import functools
 import logging
 import lzma
 import os
@@ -69,6 +69,7 @@ from .movelist import MoveList
 from . import common_constants
 from . import db
 from . import irk
+from . import logfilters
 from . import maintainers
 from . import package
 from . import pkg2html
@@ -132,6 +133,7 @@ def process_relarea(args, state):
 #
 #
 
+
 def process_uploads(args, state):
     # read maintainer list
     mlist = maintainers.read(args, getattr(args, 'orphanmaint', None))
@@ -143,129 +145,132 @@ def process_uploads(args, state):
     for name in sorted(mlist.keys()):
         m = mlist[name]
 
-        # also send a mail to each maintainer about their packages
-        threshold = logging.WARNING if m.quiet else logging.INFO
-        with mail_logs(args.email, toaddrs=m.email, subject='%s for %s' % (state.subject, name), thresholdLevel=threshold, retainLevel=logging.INFO) as maint_email:  # noqa: F841
-
-            # for each arch and noarch
-            scan_result = {}
-            skip_maintainer = False
-            for arch in common_constants.ARCHES + ['noarch', 'src']:
-                logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
-
-                # read uploads
-                scan_result[arch] = uploads.scan(m, all_packages, arch, args)
-
-                # remove triggers
-                uploads.remove(args, scan_result[arch].remove_always)
-
-                if scan_result[arch].error:
-                    logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, name))
-                    skip_maintainer = True
-                    continue
-
-            # if there are no added or removed files for this maintainer, we
-            # don't have anything to do
-            if not any([scan_result[a].to_relarea or scan_result[a].to_vault for a in scan_result]):
-                logging.debug("nothing to do for maintainer %s" % (name))
-                skip_maintainer = True
-
-            if skip_maintainer:
-                continue
-
-            # for each arch
-            merged_packages = {}
-            valid = True
-            for arch in common_constants.ARCHES:
-                logging.debug("merging %s package set with uploads from maintainer %s" % (arch, name))
-
-                # merge package sets
-                merged_packages[arch] = package.merge(state.packages[arch], scan_result[arch].packages, scan_result['noarch'].packages, scan_result['src'].packages)
-                if not merged_packages[arch]:
-                    logging.error("error while merging uploaded %s packages for %s" % (arch, name))
-                    valid = False
-                    break
-
-                # remove files which are to be removed
-                scan_result[arch].to_vault.map(lambda p, f: package.delete(merged_packages[arch], p, f))
-
-            # validate the package set
-            state.valid_provides = db.update_package_names(args, merged_packages)
-            for arch in common_constants.ARCHES:
-                logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
-                if not package.validate_packages(args, merged_packages[arch], state.valid_provides):
-                    logging.error("error while validating merged %s packages for %s" % (arch, name))
-                    valid = False
-
-            # if an error occurred ...
-            if not valid:
-                # ... discard move list and merged_packages
-                continue
-
-            # check for packages which are stale as a result of this upload,
-            # which we will want in the same report
-            if args.stale:
-                stale_to_vault = remove_stale_packages(args, merged_packages, state)
-
-                # if an error occurred ...
-                if not stale_to_vault:
-                    # ... discard move list and merged_packages
-                    logging.error("error while evaluating stale packages for %s" % (name))
-                    continue
-
-            # check for conflicting movelists
-            conflicts = False
-            for arch in common_constants.ARCHES + ['noarch', 'src']:
-                conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, scan_result[arch].to_vault, "manually")
-                if args.stale:
-                    conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, stale_to_vault[arch], "automatically")
-
-            # if an error occurred ...
-            if conflicts:
-                # ... discard move list and merged_packages
-                logging.error("error while validating movelists for %s" % (name))
-                continue
-
-            # for each arch and noarch
-            for arch in common_constants.ARCHES + ['noarch', 'src']:
-                logging.debug("moving %s packages for maintainer %s" % (arch, name))
-
-                # process the move lists
-                if scan_result[arch].to_vault:
-                    logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
-                scan_result[arch].to_vault.move_to_vault(args)
-                uploads.remove(args, scan_result[arch].remove_success)
-                if scan_result[arch].to_relarea:
-                    logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
-                scan_result[arch].to_relarea.move_to_relarea(m, args)
-                # XXX: Note that there seems to be a separate process, not run
-                # from cygwin-admin's crontab, which changes the ownership of
-                # files in the release area to cyguser:cygwin
-
-            # for each arch
-            if args.stale:
-                for arch in common_constants.ARCHES + ['noarch', 'src']:
-                    if stale_to_vault[arch]:
-                        logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
-                        stale_to_vault[arch].move_to_vault(args)
-
-            # for each arch
-            for arch in common_constants.ARCHES:
-                # use merged package list
-                state.packages[arch] = merged_packages[arch]
-
-            # report what we've done
-            added = []
-            for arch in common_constants.ARCHES + ['noarch', 'src']:
-                added.append('%d (%s)' % (len(scan_result[arch].packages), arch))
-            msg = "added %s packages from maintainer %s" % (' + '.join(added), name)
-            logging.debug(msg)
-            irk.irk("calm %s" % msg)
+        with logfilters.AttrFilter(maint=m):
+            process_maintainer_uploads(args, state, all_packages, m)
 
     # record updated reminder times for maintainers
     maintainers.update_reminder_times(mlist)
 
     return state.packages
+
+
+def process_maintainer_uploads(args, state, all_packages, m):
+    name = m.name
+
+    # for each arch and noarch
+    scan_result = {}
+    skip_maintainer = False
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
+
+        # read uploads
+        scan_result[arch] = uploads.scan(m, all_packages, arch, args)
+
+        # remove triggers
+        uploads.remove(args, scan_result[arch].remove_always)
+
+        if scan_result[arch].error:
+            logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, name))
+            skip_maintainer = True
+            continue
+
+    # if there are no added or removed files for this maintainer, we
+    # don't have anything to do
+    if not any([scan_result[a].to_relarea or scan_result[a].to_vault for a in scan_result]):
+        logging.debug("nothing to do for maintainer %s" % (name))
+        skip_maintainer = True
+
+    if skip_maintainer:
+        return
+
+    # for each arch
+    merged_packages = {}
+    valid = True
+    for arch in common_constants.ARCHES:
+        logging.debug("merging %s package set with uploads from maintainer %s" % (arch, name))
+
+        # merge package sets
+        merged_packages[arch] = package.merge(state.packages[arch], scan_result[arch].packages, scan_result['noarch'].packages, scan_result['src'].packages)
+        if not merged_packages[arch]:
+            logging.error("error while merging uploaded %s packages for %s" % (arch, name))
+            valid = False
+            break
+
+        # remove files which are to be removed
+        scan_result[arch].to_vault.map(lambda p, f: package.delete(merged_packages[arch], p, f))
+
+    # validate the package set
+    state.valid_provides = db.update_package_names(args, merged_packages)
+    for arch in common_constants.ARCHES:
+        logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
+        if not package.validate_packages(args, merged_packages[arch], state.valid_provides):
+            logging.error("error while validating merged %s packages for %s" % (arch, name))
+            valid = False
+
+    # if an error occurred ...
+    if not valid:
+        # ... discard move list and merged_packages
+        return
+
+    # check for packages which are stale as a result of this upload,
+    # which we will want in the same report
+    if args.stale:
+        stale_to_vault = remove_stale_packages(args, merged_packages, state)
+
+        # if an error occurred ...
+        if not stale_to_vault:
+            # ... discard move list and merged_packages
+            logging.error("error while evaluating stale packages for %s" % (name))
+            return
+
+    # check for conflicting movelists
+    conflicts = False
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, scan_result[arch].to_vault, "manually")
+        if args.stale:
+            conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, stale_to_vault[arch], "automatically")
+
+    # if an error occurred ...
+    if conflicts:
+        # ... discard move list and merged_packages
+        logging.error("error while validating movelists for %s" % (name))
+        return
+
+    # for each arch and noarch
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        logging.debug("moving %s packages for maintainer %s" % (arch, name))
+
+        # process the move lists
+        if scan_result[arch].to_vault:
+            logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
+        scan_result[arch].to_vault.move_to_vault(args)
+        uploads.remove(args, scan_result[arch].remove_success)
+        if scan_result[arch].to_relarea:
+            logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
+        scan_result[arch].to_relarea.move_to_relarea(m, args)
+        # XXX: Note that there seems to be a separate process, not run
+        # from cygwin-admin's crontab, which changes the ownership of
+        # files in the release area to cyguser:cygwin
+
+    # for each arch
+    if args.stale:
+        for arch in common_constants.ARCHES + ['noarch', 'src']:
+            if stale_to_vault[arch]:
+                logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
+                stale_to_vault[arch].move_to_vault(args)
+
+    # for each arch
+    for arch in common_constants.ARCHES:
+        # use merged package list
+        state.packages[arch] = merged_packages[arch]
+
+    # report what we've done
+    added = []
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        added.append('%d (%s)' % (len(scan_result[arch].packages), arch))
+    msg = "added %s packages from maintainer %s" % (' + '.join(added), name)
+    logging.debug(msg)
+    irk.irk("calm %s" % msg)
 
 
 #
@@ -274,7 +279,7 @@ def process_uploads(args, state):
 
 def process(args, state):
     # send one email per run to leads, if any errors occurred
-    with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:  # noqa: F841
+    with mail_logs(state):
         if args.dryrun:
             logging.warning("--dry-run is in effect, nothing will really be done")
 
@@ -560,7 +565,7 @@ def do_daemon(args, state):
 
         try:
             while running:
-                with mail_logs(args.email, toaddrs=args.email, subject='%s' % (state.subject), thresholdLevel=logging.ERROR) as leads_email:
+                with mail_logs(state):
                     # re-read relarea on SIGALRM or SIGUSR2
                     if read_relarea:
                         if last_signal != signal.SIGALRM:
@@ -607,7 +612,7 @@ def do_daemon(args, state):
                 # cancel any pending alarm
                 signal.alarm(0)
         except Exception as e:
-            with mail_logs(args.email, toaddrs=args.email, subject='calm stopping due to unhandled exception', thresholdLevel=logging.ERROR) as leads_email:  # noqa: F841
+            with BufferingSMTPHandler(toaddrs=args.email, subject='calm stopping due to unhandled exception'):
                 logging.error("exception %s" % (type(e).__name__), exc_info=True)
             irk.irk("calm daemon stopped due to unhandled exception")
         else:
@@ -616,16 +621,43 @@ def do_daemon(args, state):
         logging.info("calm daemon stopped")
 
 
-#
-# we only want to mail the logs if the email option was used
-# (otherwise use ExitStack() as a 'do nothing' context)
-#
+def mail_logs(state):
+    return AbeyanceHandler(functools.partial(mail_cb, state), logging.INFO)
 
-def mail_logs(enabled, toaddrs, subject, thresholdLevel, retainLevel=None):
-    if enabled:
-        return AbeyanceHandler(BufferingSMTPHandler(toaddrs, subject), thresholdLevel, retainLevel)
 
-    return ExitStack()
+def mail_cb(state, loghandler):
+    # we only want to mail the logs if the email option was used
+    if not state.args.email:
+        return
+
+    # if there are any log records of ERROR level or higher, send all records to
+    # leads
+    if any([record.levelno >= logging.ERROR for record in loghandler.buffer]):
+        leads_email = BufferingSMTPHandler(state.args.email, subject='%s' % (state.subject))
+        for record in loghandler.buffer:
+            leads_email.handle(record)
+        leads_email.close()
+
+    # send each maintainer mail containing log entries caused by their actions,
+    # or pertaining to their packages
+    mlist = maintainers.read(state.args, prev_maint=False)
+    for m in mlist.values():
+        email = m.email
+        if m.name == 'ORPHANED':
+            email = common_constants.EMAILS.split(',')
+
+        maint_email = BufferingSMTPHandler(email, subject='%s for %s' % (state.subject, m.name))
+        threshold = logging.WARNING if m.quiet else logging.INFO
+
+        # if there are any log records of thresholdLevel or higher ...
+        if any([record.levelno >= threshold for record in loghandler.buffer]):
+            # ... send all associated records to the maintainer
+            for record in loghandler.buffer:
+                if ((getattr(record, 'maint', None) == m.name) or
+                    (getattr(record, 'package', None) in m.pkgs)):
+                    maint_email.handle(record)
+
+        maint_email.close()
 
 
 #
@@ -697,13 +729,14 @@ def main():
         args.reports = args.daemon
 
     state = CalmState()
+    state.args = args
 
     host = os.uname()[1]
     if 'sourceware.org' not in host:
         host = ' from ' + host
     else:
         host = ''
-    state.subject = 'calm%s: cygwin package upload report%s' % (' [dry-run]' if args.dryrun else '', host)
+    state.subject = 'calm%s: cygwin package report%s' % (' [dry-run]' if args.dryrun else '', host)
 
     status = 0
     if args.daemon:
