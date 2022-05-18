@@ -160,16 +160,6 @@ mtime_anomalies = [
     'libgcj-common',
     'libgcj16',
     'python-gtk2.0',
-    'subversion',  # 1.8 and 1.9 might be built in either order...
-    'subversion-debuginfo',
-    'subversion-devel',
-    'subversion-gnome',
-    'subversion-httpd',
-    'subversion-perl',
-    'subversion-python',
-    'subversion-ruby',
-    'subversion-src',
-    'subversion-tools',
 ]
 
 # packages with maintainer anomalies

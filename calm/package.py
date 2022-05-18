@@ -690,8 +690,7 @@ def validate_packages(args, packages, valid_requires_extra=None):
                 else:
                     lvl = logging.ERROR
                     error = True
-                logging.log(lvl, "package '%s' version '%s' is most recent non-test version, but version '%s' is curr:" % (p, v, cv))
-
+                logging.log(lvl, "package '%s' ordering discrepancy in non-test versions: '%s' has most recent timestamp, but version '%s' is greatest" % (p, v, cv))
             break
 
         if 'replace-versions' in packages[p].override_hints:
