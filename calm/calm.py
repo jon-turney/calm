@@ -145,7 +145,7 @@ def process_uploads(args, state):
     for name in sorted(mlist.keys()):
         m = mlist[name]
 
-        with logfilters.AttrFilter(maint=m):
+        with logfilters.AttrFilter(maint=m.name):
             process_maintainer_uploads(args, state, all_packages, m)
 
     # record updated reminder times for maintainers
