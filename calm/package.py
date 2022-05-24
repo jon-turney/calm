@@ -1348,6 +1348,9 @@ class Freshness(IntEnum):
 
 
 def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
+    if callable(mark):
+        mark = mark(v)
+
     packages[p].tar(v).fresh = mark
 
 
@@ -1384,10 +1387,16 @@ def stale_packages(packages):
         if (len(po.rdepends) == 0) and re.match(common_constants.SOVERSION_PACKAGE_RE, pn):
             bv = po.best_version
             es = po.version_hints[bv].get('external-source', None)
-            mtime = po.tar(bv).mtime
-            if es and (packages[es].best_version != bv) and (mtime < certain_age):
-                logging.debug("deprecated soversion package '%s' mtime '%s' is over cut-off age" % (pn, time.strftime("%F %T %Z", time.localtime(mtime))))
-                mark = Freshness.conditional
+            if es and (packages[es].best_version != bv):
+                def dep_so_age_mark(v):
+                    mtime = po.tar(v).mtime
+                    if mtime < certain_age:
+                        logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
+                        return Freshness.conditional
+                    else:
+                        return Freshness.fresh
+
+                mark = dep_so_age_mark
 
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
