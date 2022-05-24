@@ -780,6 +780,14 @@ def validate_packages(args, packages, valid_requires_extra=None):
                     packages[es_p].is_used_by.add(p)
                     missing_source = False
 
+                    # also check that they match in presence or absence test: label
+                    #
+                    # (this is needed if we are going to compare best_version
+                    # between install and source packages for some information,
+                    # as we do in some places...)
+                    if ('test' in packages[p].version_hints[v]) != ('test' in packages[es_p].version_hints[v]):
+                        logging.error("package '%s' version '%s' test: label mismatches source package '%s'" % (p, v, es_p))
+
             if missing_source:
                 # unless the install tarfile is empty
                 if packages[p].tar(v).is_empty:
