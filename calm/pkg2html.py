@@ -242,6 +242,11 @@ def update_package_listings(args, packages):
                         homepage = po.version_hints[po.best_version].get('homepage', None)
                         if homepage:
                             print('<span class="detail">homepage</span>: <a href="%s">%s</a><br><br>' % (homepage, homepage), file=f)
+                        lic = po.version_hints[po.best_version].get('license', None)
+                        if lic:
+                            print('<span class="detail">license</span>: %s' % (lic), file=f)
+                            print('<span class="smaller">(<a href="https://spdx.org/licenses/">SPDX</a>)</span>', file=f)
+                            print('<br><br>', file=f)
                     else:
                         es = po.srcpackage(bv)
                         print('<span class="detail">source package</span>: %s<br><br>' % linkify_package(es), file=f)

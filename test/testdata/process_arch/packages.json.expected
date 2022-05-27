@@ -51,6 +51,7 @@
  '            "arches": [\n'
  '                "x86"\n'
  '            ],\n'
+ '            "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",\n'
  '            "maintainers": [\n'
  '                "Corinna Vinschen",\n'
  '                "Yaakov Selkowitz"\n'

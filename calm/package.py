@@ -1212,6 +1212,9 @@ def write_repo_json(args, packages, f):
         if 'homepage' in po.version_hints[bv]:
             d['homepage'] = po.version_hints[bv]['homepage']
 
+        if 'license' in po.version_hints[bv]:
+            d['license'] = po.version_hints[bv]['license']
+
         if pkg_maintainers[po.orig_name] and ('ORPHANED' not in pkg_maintainers[po.orig_name]):
             d['maintainers'] = sorted(pkg_maintainers[po.orig_name])
 

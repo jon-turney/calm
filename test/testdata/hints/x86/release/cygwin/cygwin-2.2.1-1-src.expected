@@ -1,1 +1,4 @@
-OrderedDict([('sdesc', '"The UNIX emulation engine"'), ('ldesc', '"The UNIX emulation engine"'), ('category', 'Base')])
+{'sdesc': '"The UNIX emulation engine"',
+ 'ldesc': '"The UNIX emulation engine"',
+ 'category': 'Base',
+ 'license': 'LGPL-3.0-or-later WITH LGPL-3.0-linking-exception'}

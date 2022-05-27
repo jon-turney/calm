@@ -26,8 +26,20 @@
 #
 
 from collections import OrderedDict
-import re
 import argparse
+import license_expression
+import re
+
+# reach inside license_expression to add custom license ids we permit
+json = license_expression.get_license_index()
+extra_licenses = [
+    'Linux-man-pages-copyleft',  # requires SPDX license-list 3.15
+    'Public-Domain',
+    'XVIEW',
+]
+for l in extra_licenses:
+    json.append({"spdx_license_key": l})
+licensing = license_expression.build_spdx_licensing(json)
 
 # types of key:
 # 'multilineval' - always have a value, which may be multiline
@@ -67,6 +79,7 @@ hintkeys[spvr].update({
     'skip': 'noval',   # in all spvr hints, but ignored
     'homepage': 'val',
     'build-depends': 'optval',
+    'license': 'val',
 })
 
 hintkeys[override] = {
@@ -276,6 +289,15 @@ def hint_file_parse(fn, kind, strict=False):
                     if key == 'message':
                         if not re.match(r'(\S+)\s+(\S.*)', value):
                             errors.append('message value must have id and text')
+
+                    # license must be a valid spdx license expression
+                    if key == 'license':
+                        try:
+                            le = licensing.validate(value, strict=True)
+                        except (license_expression.ExpressionParseError, license_expression.ExpressionError) as e:
+                            errors.append('value for key %s not a valid license expression: %s' % (key, e))
+                        if le.original_expression != le.normalized_expression:
+                            errors.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
 
                     # warn if value starts with a quote followed by whitespace
                     if re.match(r'^"[ \t]+', value):
