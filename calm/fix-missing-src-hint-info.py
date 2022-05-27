@@ -32,7 +32,7 @@ from . import common_constants
 from . import fixes
 
 
-def fix_hints(relarea, packages):
+def fix_hints(relarea, packages, fixids):
     for (dirpath, _subdirs, files) in os.walk(relarea):
 
         # only apply to listed packages, if specified
@@ -50,7 +50,7 @@ def fix_hints(relarea, packages):
                     logging.error('hint %s missing' % hf)
                     continue
 
-                fixes.fix_hint(dirpath, hf, f, ['homepage'])
+                fixes.fix_hint(dirpath, hf, f, fixids)
 
 
 #
@@ -62,6 +62,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='src hint improver')
     parser.add_argument('package', nargs='*', metavar='PACKAGE')
+    parser.add_argument('--fix', action='append', help='ids of fixes to perform')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
     (args) = parser.parse_args()
@@ -69,9 +70,12 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.INFO)
 
+    if not args.fix:
+        args.fix = ['homepage', 'license']
+
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
-    fix_hints(args.relarea, args.package)
+    fix_hints(args.relarea, args.package, args.fix)
 
 
 #

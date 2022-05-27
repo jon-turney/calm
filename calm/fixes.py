@@ -63,6 +63,29 @@ def read_cygport(dirpath, tf):
     return content
 
 
+def _parse_cygport_var(dirpath, tf, var):
+    # crack open corresponding -src.tar and parse var out from .cygport
+    logging.debug('examining %s' % tf)
+    content = read_cygport(dirpath, tf)
+
+    value = None
+    if content:
+        for l in content.splitlines():
+            match = re.match(r'^\s*' + var + r'\s*=\s*("|)([^"].*)\1', l)
+            if match:
+                if value:
+                    logging.warning('multiple %s lines in .cygport in srcpkg %s' % (var, tf))
+                pn = os.path.basename(dirpath)
+                value = match.group(2)
+                value = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(}|)', pn, value)
+
+    if value and '$' in value:
+        logging.warning('unknown shell parameter expansions in %s="%s" in .cygport in srcpkg %s' % (var, value, tf))
+        value = None
+
+    return value
+
+
 class NoRedirection(urllib.request.HTTPErrorProcessor):
     def http_response(self, request, response):
         return response
@@ -89,24 +112,7 @@ def _fix_homepage_src_hint(hints, dirpath, _hf, tf):
     if 'homepage' in hints:
         homepage = hints['homepage']
     else:
-        # crack open corresponding -src.tar and parse homepage out from .cygport
-        logging.debug('examining %s' % tf)
-        content = read_cygport(dirpath, tf)
-
-        homepage = None
-        if content:
-            for l in content.splitlines():
-                match = re.match(r'^\s*HOMEPAGE\s*=\s*("|)([^"].*)\1', l)
-                if match:
-                    if homepage:
-                        logging.warning('multiple HOMEPAGE lines in .cygport in srcpkg %s', tf)
-                    pn = os.path.basename(dirpath)
-                    homepage = match.group(2)
-                    homepage = re.sub(r'\$({|)(PN|ORIG_PN|NAME)(}|)', pn, homepage)
-
-        if homepage and '$' in homepage:
-            logging.warning('unknown shell parameter expansions in HOMEPAGE="%s" in .cygport in srcpkg %s' % (homepage, tf))
-            homepage = None
+        homepage = _parse_cygport_var(dirpath, tf, 'HOMEPAGE')
 
         if not homepage:
             logging.info('cannot determine homepage: from srcpkg %s' % tf)
@@ -134,6 +140,63 @@ def _fix_homepage_src_hint(hints, dirpath, _hf, tf):
     # changed?
     if homepage != hints.get('homepage', None):
         hints['homepage'] = homepage
+        return True
+
+    return False
+
+
+# for specific packages, map some human-readable license texts to SPDX expressions
+licmap = [
+    ('Apache License, Version 2',             'Apache-2.0',                             ['meson', 'ninja']),
+    ('BSD 3-Clause',                          'BSD-3-Clause',                           ['libsolv', 'mingw64-i686-libsolv', 'mingw64-x86_64-libsolv']),
+    ('BSD3/GPLv2+',                           'BSD-3-Clause AND GPL-2.0-or-later',      ['dash']),
+    ('CC BY-SA 3.0',                          'CC-BY-SA-3.0',                           ['dmalloc']),
+    ('GNU General Public License, Version 2', 'GPL-2.0-only',                           ['buildbot-slave', 'buildbot-worker']),
+    ('GNU General Public License, Version 3', 'GPL-3.0-or-later',                       ['osslsigncode']),
+    ('GPL',                                   'GPL-2.0-or-later',                       ['cpuid']),
+    ('GPL',                                   'GPL-3.0-or-later',                       ['units']),
+    ('GPLv2+',                                'GPL-2.0-or-later',                       ['grep', 'gzip', 'readline']),
+    ('GPLv2+FontEmbExc/OFL-1.1',              'GPL-2.0-or-later WITH Font-exception-2.0 OR OFL-1.1',
+                                                                                        ['unifont']),
+    ('GPLv3+',                                'GPL-3.0-or-later',                       ['bison', 'wget']),
+    ('LGPLv2.1+/GPLv2+',                      'LGPL-2.1-or-later AND GPL-2.0-or-later', ['libgcrypt']),
+    ('LGPLv3+/GPLv2+/GPLv3+/LGPLv2+',         '(LGPL-3.0-or-later OR GPL-2.0-or-later) AND GPL-3.0-or-later',
+                                                                                        ['libidn', 'mingw64-i686-libidn', 'mingw64-x86_64-libidn']),
+    ('LGPLv3+/GPLv2+/GPLv3+/Unicode2016',     '(LGPL-3.0-or-later OR GPL-2.0-or-later) AND GPL-3.0-or-later AND Unicode-DFS-2016',
+                                                                                        ['libidn2', 'mingw64-i686-libidn2', 'mingw64-x86_64-libidn2']),
+    ('MIT License',                           'MIT',                                    ['python-future']),
+    ('MIT-like',                              'curl',                                   ['curl', 'mingw64-i686-curl', 'mingw64-x86_64-curl']),
+    ('MIT-like',                              'Linux-man-pages-copyleft',               ['man-pages-linux', 'man-pages-posix']),
+    ('MIT-like',                              'BSD-Source-Code',                        ['vttest']),
+    ('Public domain',                         'BSD-3-Clause AND Public-Domain',         ['tzdata', 'tzcode']),
+    ('SGI Free Software License B',           'SGI-B-2.0',                              ['khronos-opengl-registry']),
+    ('Sun OpenLook',                          'XVIEW',                                  ['xview']),
+]
+
+
+def _fix_license_src_hint(hints, dirpath, _hf, tf):
+    # already present?
+    if 'license' in hints:
+        lic = hints['license']
+    else:
+        lic = _parse_cygport_var(dirpath, tf, 'LICENSE')
+
+        if not lic:
+            logging.info('cannot determine license: from srcpkg %s' % tf)
+            return False
+
+        pn = dirpath.split(os.path.sep)[-1]
+        for (human, spdx, pl) in licmap:
+            if (pn in pl) and (lic.lower() == human.lower()):
+                lic = spdx
+                logging.info("converted license text '%s' to SPDX license expression '%s'" % (human, spdx))
+                break
+
+        logging.info('adding license:%s to hints for srcpkg %s' % (lic, tf))
+
+    # changed?
+    if lic != hints.get('license', None):
+        hints['license'] = lic
         return True
 
     return False
@@ -170,6 +233,8 @@ def fix_hint(dirpath, hf, tf, problems):
         changed = _fix_homepage_src_hint(hints, dirpath, hf, tf)
     if 'invalid_keys' in problems:
         changed = _fix_invalid_keys_hint(hints, dirpath, hf, tf) or changed
+    if 'license' in problems:
+        changed = _fix_license_src_hint(hints, dirpath, hf, tf) or changed
 
     # write updated hints
     if changed:
