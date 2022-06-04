@@ -74,7 +74,7 @@ DEFAULT_KEEP_DAYS = 0
 # different values to be used when we are not running on sourceware.org, but my
 # test system...
 if os.uname()[1] == 'tambora':
-    EMAILS = 'jon.turney@dronecode.org.uk'
+    EMAILS = 'debug'
     ALWAYS_BCC = ''
 
 # package compressions
