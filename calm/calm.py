@@ -630,12 +630,13 @@ def mail_cb(state, loghandler):
     if not state.args.email:
         return
 
-    # if there are any log records of ERROR level or higher, send all records to
-    # leads
+    # if there are any log records of ERROR level or higher, send those records
+    # to leads
     if any([record.levelno >= logging.ERROR for record in loghandler.buffer]):
         leads_email = BufferingSMTPHandler(state.args.email, subject='%s' % (state.subject))
         for record in loghandler.buffer:
-            leads_email.handle(record)
+            if record.levelno >= logging.ERROR:
+                leads_email.handle(record)
         leads_email.close()
 
     # send each maintainer mail containing log entries caused by their actions,
