@@ -168,6 +168,8 @@ mtime_anomalies = [
 maint_anomalies = {
     'libelf0': ['0.8.13-2'],  # libelf is called libelf0 in x86 arch
     'libelf0-devel': ['0.8.13-2'],
+    'manlint': ['1.6g-2'],  # unclear why this is under man
+    'python3-h5py-debuginfo': ['2.9.0-1'],  # superceded by python-h5py-debuginfo
 }
 
 # packages missing obsoletions
