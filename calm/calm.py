@@ -126,6 +126,10 @@ def process_relarea(args, state):
             logging.error("error while evaluating stale packages")
             return None
 
+    # clean up any empty directories
+    if not args.dryrun:
+        utils.rmemptysubdirs(args.rel_area)
+
     return packages
 
 
@@ -263,6 +267,10 @@ def process_maintainer_uploads(args, state, all_packages, m):
     for arch in common_constants.ARCHES:
         # use merged package list
         state.packages[arch] = merged_packages[arch]
+
+    # clean up any empty directories
+    if not args.dryrun:
+        utils.rmemptysubdirs(m.homedir())
 
     # report what we've done
     added = []

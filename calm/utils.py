@@ -58,6 +58,22 @@ def makedirs(name):
 
 
 #
+# remove any empty subdirectories
+#
+def rmemptysubdirs(path):
+    for (dirpath, _subdirs, _files) in os.walk(path, topdown=False, followlinks=True):
+        # don't remove the given directory, only subdirectories
+        if os.path.relpath(dirpath, path) == '.':
+            continue
+
+        # check whether the directory is now empty after processing any
+        # subdirectories, and if so, remove it
+        if len(os.listdir(dirpath)) == 0:
+            logging.debug('rmdir %s' % dirpath)
+            os.rmdir(dirpath)
+
+
+#
 # a wrapper for open() which:
 #
 # - atomically changes the file contents (atomic)
