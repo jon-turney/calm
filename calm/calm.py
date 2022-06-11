@@ -150,7 +150,8 @@ def process_uploads(args, state):
         m = mlist[name]
 
         with logfilters.AttrFilter(maint=m.name):
-            process_maintainer_uploads(args, state, all_packages, m)
+            process_maintainer_uploads(args, state, all_packages, m, args.homedir, 'upload')
+            process_maintainer_uploads(args, state, all_packages, m, args.stagingdir, 'staging')
 
     # record updated reminder times for maintainers
     maintainers.update_reminder_times(mlist)
@@ -158,7 +159,7 @@ def process_uploads(args, state):
     return state.packages
 
 
-def process_maintainer_uploads(args, state, all_packages, m):
+def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
     name = m.name
 
     # for each arch and noarch
@@ -168,7 +169,7 @@ def process_maintainer_uploads(args, state, all_packages, m):
         logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
 
         # read uploads
-        scan_result[arch] = uploads.scan(m, all_packages, arch, args)
+        scan_result[arch] = uploads.scan(basedir, m, all_packages, arch, args)
 
         # remove triggers
         uploads.remove(args, scan_result[arch].remove_always)
@@ -251,7 +252,7 @@ def process_maintainer_uploads(args, state, all_packages, m):
         uploads.remove(args, scan_result[arch].remove_success)
         if scan_result[arch].to_relarea:
             logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
-        scan_result[arch].to_relarea.move_to_relarea(m, args)
+        scan_result[arch].to_relarea.move_to_relarea(m, args, desc)
         # XXX: Note that there seems to be a separate process, not run
         # from cygwin-admin's crontab, which changes the ownership of
         # files in the release area to cyguser:cygwin
@@ -270,7 +271,7 @@ def process_maintainer_uploads(args, state, all_packages, m):
 
     # clean up any empty directories
     if not args.dryrun:
-        utils.rmemptysubdirs(m.homedir())
+        utils.rmemptysubdirs(os.path.join(basedir, m.name))
 
     # report what we've done
     added = []
@@ -705,6 +706,7 @@ def logging_setup(args):
 def main():
     htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
     homedir_default = common_constants.HOMEDIR
+    stagingdir_default = common_constants.STAGINGDIR
     orphanmaint_default = common_constants.ORPHANMAINT
     pidfile_default = '/sourceware/cygwin-staging/calm.pid'
     pkglist_default = common_constants.PKGMAINT
@@ -726,6 +728,7 @@ def main():
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
     parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
+    parser.add_argument('--stagingdir', action='store', metavar='DIR', help="automated build staging directory (default: " + stagingdir_default + ")", default=stagingdir_default)
     parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")
     parser.set_defaults(stale=True)
     parser.add_argument('--reports', action='store_true', dest='reports', help="don't produce reports", default=None)

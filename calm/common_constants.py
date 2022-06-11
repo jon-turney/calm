@@ -32,6 +32,9 @@ import os
 # base directory for maintainer upload directories
 HOMEDIR = '/sourceware/cygwin-staging/home'
 
+# base directory for automated build staging directories
+STAGINGDIR = '/sourceware/cygwin-staging/staging'
+
 # the 'release area', contains all released files, which are rsync'ed to mirrors
 FTP = '/var/ftp/pub/cygwin'
 

@@ -48,6 +48,8 @@ import calm.package as package
 import calm.pkg2html as pkg2html
 import calm.uploads as uploads
 
+ARGDIRS = ['rel_area', 'homedir', 'htdocs', 'stagingdir', 'vault']
+
 
 #
 # helper functions
@@ -351,7 +353,7 @@ class CalmTest(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        scan_result = uploads.scan(m, pkglist + ['not-on-maintainer-list'], args.arch, args)
+        scan_result = uploads.scan('testdata/homes', m, pkglist + ['not-on-maintainer-list'], args.arch, args)
 
         os.chdir(oldcwd)
         shutil.rmtree(test_root)
@@ -395,12 +397,13 @@ class CalmTest(unittest.TestCase):
 
         args = types.SimpleNamespace()
 
-        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+        for d in ARGDIRS:
             setattr(args, d, tempfile.mktemp())
             logging.info('%s = %s', d, getattr(args, d))
 
         shutil.copytree('testdata/relarea', args.rel_area)
         shutil.copytree('testdata/homes.conflict', args.homedir)
+        os.mkdir(args.stagingdir)
 
         args.dryrun = False
         args.email = None
@@ -417,7 +420,7 @@ class CalmTest(unittest.TestCase):
         state.packages = calm.calm.process_uploads(args, state)
         self.assertTrue(state.packages)
 
-        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+        for d in ARGDIRS:
             with self.subTest(directory=d):
                 dirlist = capture_dirtree(getattr(args, d))
                 compare_with_expected_file(self, 'testdata/conflict', dirlist, d)
@@ -428,7 +431,7 @@ class CalmTest(unittest.TestCase):
 
         args = types.SimpleNamespace()
 
-        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+        for d in ARGDIRS:
             setattr(args, d, tempfile.mktemp())
             logging.info('%s = %s', d, getattr(args, d))
 
@@ -446,6 +449,7 @@ class CalmTest(unittest.TestCase):
 
         shutil.copytree('testdata/relarea', args.rel_area)
         shutil.copytree('testdata/homes', args.homedir)
+        os.mkdir(args.stagingdir)
 
         # set appropriate !readys
         m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
@@ -472,7 +476,7 @@ class CalmTest(unittest.TestCase):
             results = re.sub('generated at .*', 'generated at 2016-09-13 21:04:40 BST', results, 1)
             compare_with_expected_file(self, 'testdata/process_arch', (results,), 'setup.ini')
 
-        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+        for d in ARGDIRS:
             with self.subTest(directory=d):
                 dirlist = capture_dirtree(getattr(args, d))
                 compare_with_expected_file(self, 'testdata/process_arch', dirlist, d)
@@ -483,7 +487,7 @@ class CalmTest(unittest.TestCase):
             del j['timestamp']
             compare_with_expected_file(self, 'testdata/process_arch', json.dumps(j, sort_keys=True, indent=4), 'packages.json')
 
-        for d in ['rel_area', 'homedir', 'htdocs', 'vault']:
+        for d in ARGDIRS:
             shutil.rmtree(getattr(args, d))
 
     @classmethod

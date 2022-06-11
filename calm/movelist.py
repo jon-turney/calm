@@ -34,10 +34,13 @@ from . import utils
 #
 
 class MoveList(object):
-    def __init__(self):
+    def __init__(self, basedir=None):
         # a movelist is a dict with relative directory paths for keys and a list
         # of filenames for each value
         self.movelist = defaultdict(list)
+        # the directory the paths are relative to (by default the 'relarea')
+        if basedir:
+            self.basedir = basedir
 
     def __len__(self):
         return len(self.movelist)
@@ -69,10 +72,10 @@ class MoveList(object):
                     else:
                         logging.error("can't %s %s, as it doesn't exist" % (verb, f))
 
-    def move_to_relarea(self, m, args):
+    def move_to_relarea(self, m, args, desc):
         if self.movelist:
-            logging.info("move from %s's upload area to release area:" % (m.name))
-        self._move(args, m.homedir(), args.rel_area, 'deploy')
+            logging.info("move from %s's %s area to release area:" % (m.name, desc))
+        self._move(args, self.basedir, args.rel_area, 'deploy')
 
     def move_to_vault(self, args):
         if self.movelist:

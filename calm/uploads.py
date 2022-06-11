@@ -52,11 +52,12 @@ ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove
 #
 #
 
-def scan(m, all_packages, arch, args):
-    basedir = os.path.join(m.homedir(), arch)
+def scan(scandir, m, all_packages, arch, args):
+    homedir = os.path.join(scandir, m.name)
+    basedir = os.path.join(homedir, arch)
 
     packages = defaultdict(package.Package)
-    move = MoveList()
+    move = MoveList(homedir)
     vault = MoveList()
     remove = []
     remove_success = []
@@ -80,7 +81,7 @@ def scan(m, all_packages, arch, args):
 
     # scan package directories
     for (dirpath, _subdirs, files) in os.walk(os.path.join(basedir, 'release')):
-        relpath = os.path.relpath(dirpath, m.homedir())
+        relpath = os.path.relpath(dirpath, homedir)
         removed_files = []
 
         # filter out files we don't need to consider
@@ -277,7 +278,7 @@ def scan(m, all_packages, arch, args):
 
         # read and validate package
         if files:
-            if package.read_package_dir(packages, m.homedir(), dirpath, files, remove=removed_files, upload=True):
+            if package.read_package_dir(packages, homedir, dirpath, files, remove=removed_files, upload=True):
                 error = True
 
     # always consider timestamp as checked during a dry-run, so it is never
