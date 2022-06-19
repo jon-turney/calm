@@ -27,6 +27,7 @@
 
 import copy
 import difflib
+import functools
 import hashlib
 import json
 import logging
@@ -571,11 +572,11 @@ def sort_key(k):
 # generate a record to add an obsoletes: header to the replacement package.
 #
 
-OBSOLETE_AGE_THRESHOLD_YEARS = 20
+OBSOLETE_CONVERT_THRESHOLD_YEARS = 20
 
 
 def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
-    certain_age = time.time() - (OBSOLETE_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    certain_age = time.time() - (OBSOLETE_CONVERT_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for _obsolete package to be considered for conversion is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
 
     for p in sorted(packages):
@@ -603,6 +604,11 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
                             logging.debug('%s is hardcoded as obsoleted by %s ' % (p, o))
 
                         else:
+                            # ignore self-destruct packages
+                            provides = packages[p].version_hints[vr].get('provides', '')
+                            if '_self-destruct' in provides:
+                                continue
+
                             if len(requires) == 0:
                                 # obsolete but has no replacement
                                 logging.warning('%s is obsolete, but has no replacement' % (p))
@@ -1487,11 +1493,15 @@ def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
 #
 
 SO_AGE_THRESHOLD_YEARS = 5
+OBSOLETE_AGE_THRESHOLD_YEARS = 20
 
 
 def stale_packages(packages):
-    certain_age = time.time() - (SO_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
-    logging.debug("cut-off date for soversion package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
+    so_threshold = time.time() - (SO_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    logging.debug("cut-off date for soversion package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(so_threshold))))
+
+    obs_threshold = time.time() - (OBSOLETE_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    logging.debug("cut-off date for obsolete package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(obs_threshold))))
 
     # mark install packages for freshness
     for pn, po in packages.items():
@@ -1502,31 +1512,35 @@ def stale_packages(packages):
         # This allows total expiry when a source package no longer provides
         # anything useful:
         #
-        # - if all we have is a source package and a debuginfo package, then we
-        # shouldn't retain anything.
+        # - if all we have is a source package and a debuginfo package or
+        # obsolete package, then we shouldn't retain anything.
         #
         # - shared library packages which don't come from the current version of
         # source (i.e. is superseded or removed), have no packages from a
         # different source package which depend on them, and are over a certain
         # age
         #
+
+        def age_mark(certain_age, descr, v):
+            mtime = po.tar(v).mtime
+            if mtime < certain_age:
+                logging.debug("%s package '%s' version '%s' mtime '%s' is over cut-off age" % (descr, pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
+                return Freshness.conditional
+            else:
+                return Freshness.fresh
+
+        bv = po.best_version
+        es = po.version_hints[bv].get('external-source', None)
+
         mark = Freshness.fresh
         if pn.endswith('-debuginfo'):
             mark = Freshness.conditional
-        bv = po.best_version
-        es = po.version_hints[bv].get('external-source', None)
-        if (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
-            not any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends)):
+        elif (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
+              not any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends)):
             if es and (packages[es].best_version != bv):
-                def dep_so_age_mark(v):
-                    mtime = po.tar(v).mtime
-                    if mtime < certain_age:
-                        logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
-                        return Freshness.conditional
-                    else:
-                        return Freshness.fresh
-
-                mark = dep_so_age_mark
+                mark = functools.partial(age_mark, so_threshold, 'deprecated soversion')
+        elif po.obsolete:
+            mark = functools.partial(age_mark, obs_threshold, 'obsolete')
 
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():

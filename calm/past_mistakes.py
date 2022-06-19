@@ -175,8 +175,9 @@ empty_source = {
 # additional data for the heuristic for upgrading old-style obsoletion packages
 old_style_obsolete_by = {
     'at-spi2-atk': 'libatk-bridge2.0_0',
-    'qt-gstreamer': 'libQtGStreamer1_0_0',
+    'idle3': 'idle39',
     'lighttpd-mod_trigger_b4_dl': 'lighttpd',
+    'qt-gstreamer': 'libQtGStreamer1_0_0',
     # these are odd and only exist to record an optional dependency on the
     # language runtime (dynamically loaded at runtime), which is also noted in
     # build-requires:
@@ -186,5 +187,8 @@ old_style_obsolete_by = {
     'vim-python3': 'vim',
     'vim-ruby': 'vim',
     # (An empty replacement means "don't apply this heuristic")
-    'libksba': '',
+    # these packages probably should be marked as self-destruct?
+    'mate-utils': '',
+    'texlive-collection-htmlxml': '',
+    'w32api': '',
 }
