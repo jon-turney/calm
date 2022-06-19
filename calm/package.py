@@ -1648,7 +1648,7 @@ def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
 # helper function evaluate if package needs marking for conditional retention
 #
 
-def mark_fn(packages, po, v, certain_age, vault_requests):
+def mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests):
     pn = po.name
     bv = po.best_version
 
@@ -1676,6 +1676,17 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
                 logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
                 return (Freshness.conditional, True)
 
+    # - package is an old-style obsoletion, over a certain age, and not marked
+    # as self-destruct
+    #
+    if '_obsolete' in po.version_hints[v]['category']:
+        mtime = po.tar(v).mtime
+        if mtime < obs_threshold:
+            provides = po.version_hints[v].get('provides', [])
+            if '_self-destruct' not in provides:
+                logging.debug("obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
+                return (Freshness.conditional, False)
+
     # - if package depends on anything in expired_provides
     #
     requires = po.version_hints[v].get('depends', [])
@@ -1700,11 +1711,15 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
 #
 
 SO_AGE_THRESHOLD_YEARS = 5
+OBSOLETE_AGE_THRESHOLD_YEARS = 10
 
 
 def stale_packages(packages, vault_requests):
     certain_age = time.time() - (SO_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for soversion package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
+
+    obs_threshold = time.time() - (OBSOLETE_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    logging.debug("cut-off date for obsolete package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(obs_threshold))))
 
     # mark install packages for freshness
     for pn, po in packages.items():
@@ -1763,7 +1778,7 @@ def stale_packages(packages, vault_requests):
         # overwrite with 'conditional' package retention mark if it meets
         # various criteria
         for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
-            (mark, others) = mark_fn(packages, po, v, certain_age, vault_requests)
+            (mark, others) = mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests)
             if mark != Freshness.fresh:
                 mark_package_fresh(packages, pn, v, mark)
 
