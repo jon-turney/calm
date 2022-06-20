@@ -107,7 +107,7 @@ def process_relarea(args, state):
 
     state.valid_provides = db.update_package_names(args, packages)
     for arch in common_constants.ARCHES:
-        state.missing_obsolete[arch] = package.upgrade_oldstyle_obsoletes(packages[arch])
+        state.missing_obsolete[arch] = db.update_missing_obsolete(args, packages, arch)
 
     # validate the package set for each arch
     for arch in common_constants.ARCHES:
