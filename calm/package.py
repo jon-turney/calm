@@ -587,8 +587,7 @@ def sort_key(k):
 OBSOLETE_CONVERT_THRESHOLD_YEARS = 20
 
 
-def upgrade_oldstyle_obsoletes(packages):
-    missing_obsolete = {}
+def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
     certain_age = time.time() - (OBSOLETE_CONVERT_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for _obsolete package to be considered for conversion is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
 

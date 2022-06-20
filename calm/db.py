@@ -30,6 +30,7 @@ import logging
 import os
 import sqlite3
 
+from . import package
 from . import utils
 
 
@@ -48,6 +49,12 @@ def connect(args):
                      vr TEXT NOT NULL
                     )''')
 
+    conn.execute('''CREATE TABLE IF NOT EXISTS missing_obsolete
+                    (name TEXT NOT NULL,
+                     arch TEXT NOT NULL,
+                     replaces TEXT NOT NULL,
+                     PRIMARY KEY (name, arch)
+                    )''')
     conn.commit()
 
     return conn
@@ -104,3 +111,30 @@ def vault_requests(args):
 def vault_request_add(args, p, v):
     with connect(args) as conn:
         conn.execute('INSERT INTO vault_requests (srcpackage, vr) VALUES (?,?)', (p, v))
+
+
+#
+# this accumulates missing_obsoletes data for packages, so we will remember it
+# even after the obsoleted package has been removed
+#
+def update_missing_obsolete(args, packages, arch):
+    data = {}
+    with connect(args) as conn:
+        conn.row_factory = sqlite3.Row
+
+        # read
+        cur = conn.execute("SELECT name, replaces FROM missing_obsolete WHERE arch = ?", (arch,))
+        for row in cur.fetchall():
+            data[row['name']] = set(row['replaces'].split())
+
+        # update missing obsoletes data
+        missing_obsolete = package.upgrade_oldstyle_obsoletes(packages[arch], data.copy())
+
+        # update
+        for n, r in missing_obsolete.items():
+            if n not in data:
+                conn.execute('INSERT INTO missing_obsolete (name, arch, replaces) VALUES (?, ? , ?)', (n, arch, ' '.join(r)))
+            else:
+                conn.execute('UPDATE missing_obsolete SET replaces = ? WHERE name = ? AND arch = ?', (' '.join(r), n, arch))
+
+    return missing_obsolete
