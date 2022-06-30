@@ -1431,7 +1431,7 @@ def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
 # construct a move list of stale packages
 #
 
-SO_AGE_THRESHOLD_YEARS = 10
+SO_AGE_THRESHOLD_YEARS = 5
 
 
 def stale_packages(packages):
