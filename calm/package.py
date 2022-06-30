@@ -1451,15 +1451,17 @@ def stale_packages(packages):
         # shouldn't retain anything.
         #
         # - shared library packages which don't come from the current version of
-        # source (i.e. is superseded or removed), have no packages which depend
-        # on them, and are over a certain age
+        # source (i.e. is superseded or removed), have no packages from a
+        # different source package which depend on them, and are over a certain
+        # age
         #
         mark = Freshness.fresh
         if pn.endswith('-debuginfo'):
             mark = Freshness.conditional
-        if (len(po.rdepends) == 0) and re.match(common_constants.SOVERSION_PACKAGE_RE, pn):
-            bv = po.best_version
-            es = po.version_hints[bv].get('external-source', None)
+        bv = po.best_version
+        es = po.version_hints[bv].get('external-source', None)
+        if (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
+            not any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends)):
             if es and (packages[es].best_version != bv):
                 def dep_so_age_mark(v):
                     mtime = po.tar(v).mtime
