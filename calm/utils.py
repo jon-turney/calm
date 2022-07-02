@@ -58,12 +58,12 @@ def makedirs(name):
 
 
 #
-# remove any empty subdirectories
+# remove any empty subdirectories below a given depth
 #
-def rmemptysubdirs(path):
+def rmemptysubdirs(path, depth=3):
     for (dirpath, _subdirs, _files) in os.walk(path, topdown=False, followlinks=True):
-        # don't remove the given directory, only subdirectories
-        if os.path.relpath(dirpath, path) == '.':
+        # don't do anything while above the given depth
+        if len(os.path.relpath(dirpath, path).split(os.sep)) < depth:
             continue
 
         # check whether the directory is now empty after processing any
