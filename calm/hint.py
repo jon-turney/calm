@@ -27,19 +27,23 @@
 
 from collections import OrderedDict
 import argparse
-import license_expression
 import re
 
-# reach inside license_expression to add custom license ids we permit
-json = license_expression.get_license_index()
-extra_licenses = [
-    'Linux-man-pages-copyleft',  # requires SPDX license-list 3.15
-    'Public-Domain',
-    'XVIEW',
-]
-for l in extra_licenses:
-    json.append({"spdx_license_key": l})
-licensing = license_expression.build_spdx_licensing(json)
+try:
+    import license_expression
+except ModuleNotFoundError:
+    licensing = None
+else:
+    # reach inside license_expression to add custom license ids we permit
+    json = license_expression.get_license_index()
+    extra_licenses = [
+        'Linux-man-pages-copyleft',  # requires SPDX license-list 3.15
+        'Public-Domain',
+        'XVIEW',
+    ]
+    for l in extra_licenses:
+        json.append({"spdx_license_key": l})
+    licensing = license_expression.build_spdx_licensing(json)
 
 # types of key:
 # 'multilineval' - always have a value, which may be multiline
@@ -291,7 +295,7 @@ def hint_file_parse(fn, kind, strict=False):
                             errors.append('message value must have id and text')
 
                     # license must be a valid spdx license expression
-                    if key == 'license':
+                    if key == 'license' and licensing:
                         try:
                             le = licensing.validate(value, strict=True)
                         except (license_expression.ExpressionParseError, license_expression.ExpressionError) as e:
