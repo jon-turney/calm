@@ -1529,6 +1529,16 @@ def stale_packages(packages):
 
                 mark = dep_so_age_mark
 
+        elif 'noretain' in po.override_hints:
+            def noretain_hint_mark(v):
+                noretain_versions = po.override_hints.get('noretain', '').split()
+                if (v in noretain_versions) or ('all' in noretain_versions):
+                    return Freshness.conditional
+                else:
+                    return Freshness.fresh
+
+            mark = noretain_hint_mark
+
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
             if v in po.versions():
