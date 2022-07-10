@@ -165,7 +165,8 @@ def deprecated(args, packages, reportsdir):
         depp.po = po
         depp.v = bv
         depp.ts = po.tar(bv).mtime
-        depp.rdepends = len(po.rdepends)
+        # number of rdepends which have a different source package
+        depp.rdepends = len(list(p for p in po.rdepends if packages[arch][p].srcpackage(packages[arch][p].best_version) != es))
 
         dep_list.append(depp)
 
