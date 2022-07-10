@@ -182,6 +182,7 @@ missing_obsolete = {
     'guile2.2-debuginfo': ['guile-debuginfo'],
     'librsync-debuginfo': ['rdiff-debuginfo'],
     'man-db-debuginfo': ['man-debuginfo'],        # contain conflicting files
+    'procps-ng': ['procps'],
     'procps-ng-debuginfo': ['procps-debuginfo'],  # contain conflicting files
     'python2-debuginfo': ['python-debuginfo'],    # contain conflicting files
     'python-dbus-debuginfo': ['python3-dbus-debuginfo'],
