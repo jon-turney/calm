@@ -175,12 +175,11 @@ def deprecated(args, packages, reportsdir):
     newer soversion, or has stopped producing this soversion).</p>'''), file=body)
 
     print('<table class="grid">', file=body)
-    print('<tr><th>package</th><th>version</th><th>rdepends</th></tr>', file=body)
+    print('<tr><th>package</th><th>version</th><th>timestamp</th><th>rdepends</th></tr>', file=body)
 
     for depp in sorted(dep_list, key=lambda i: (i.rdepends, i.ts), reverse=True):
-        po = depp.po
-        print('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (linkify(depp.pn, depp.po), depp.v, depp.rdepends), file=body)
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (linkify(depp.pn, depp.po), depp.v, pkg2html.tsformat(depp.ts), depp.rdepends), file=body)
 
     print('</table>', file=body)
 
