@@ -95,3 +95,14 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
         # the capacity we pass to BufferingHandler is irrelevant since we
         # override shouldFlush so it never indicates we have reached capacity
         return False
+
+    def __enter__(self):
+        logging.getLogger().addHandler(self)
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.close()
+        logging.getLogger().removeHandler(self)
+
+        # process any exception in the with-block normally
+        return False
