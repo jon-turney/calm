@@ -297,11 +297,13 @@ def hint_file_parse(fn, kind, strict=False):
                     # license must be a valid spdx license expression
                     if key == 'license' and licensing:
                         try:
+                            licensing.parse(value, strict=True)
                             le = licensing.validate(value, strict=True)
                         except (license_expression.ExpressionParseError, license_expression.ExpressionError) as e:
                             errors.append('value for key %s not a valid license expression: %s' % (key, e))
-                        if le.original_expression != le.normalized_expression:
-                            errors.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
+                        else:
+                            if le.original_expression != le.normalized_expression:
+                                errors.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
 
                     # warn if value starts with a quote followed by whitespace
                     if re.match(r'^"[ \t]+', value):
