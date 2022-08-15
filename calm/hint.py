@@ -215,7 +215,7 @@ def hint_file_parse(fn, kind, strict=False):
     errors = []
     warnings = []
 
-    assert((kind in hintkeys) or (kind is None))
+    assert (kind in hintkeys) or (kind is None)
 
     with open(fn, 'rb') as f:
         c = f.read()
