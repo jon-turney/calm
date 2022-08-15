@@ -299,10 +299,14 @@ def hint_file_parse(fn, kind, strict=False):
                         try:
                             licensing.parse(value, strict=True)
                             le = licensing.validate(value, strict=True)
-                        except (license_expression.ExpressionParseError, license_expression.ExpressionError) as e:
-                            errors.append('value for key %s not a valid license expression: %s' % (key, e))
+                        except license_expression.ExpressionParseError as e:
+                            errors.append('errors parsing license expression: %s' % (e))
+                        except license_expression.ExpressionError as e:
+                            errors.append('errors validating license expression: %s' % (e))
                         else:
-                            if le.original_expression != le.normalized_expression:
+                            if not le.normalized_expression:
+                                errors.append('errors in license expression: %s' % (le.errors))
+                            elif le.original_expression != le.normalized_expression:
                                 errors.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
 
                     # warn if value starts with a quote followed by whitespace
@@ -415,7 +419,7 @@ def main(args):
     status = 0
 
     for fn in args.files:
-        hints = hint_file_parse(fn, pvr)
+        hints = hint_file_parse(fn, spvr if fn.endswith('src.hint') else pvr)
 
         if args.verbose > 1:
             print(hints)
