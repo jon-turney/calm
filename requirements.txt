@@ -2,7 +2,7 @@ flake8
 flake8-blind-except
 flake8-bugbear ; python_version >= "3.5"
 flake8-builtins
-flake8-import-order == 0.14.1
+flake8-import-order
 license_expression
 lockfile
 pycodestyle
