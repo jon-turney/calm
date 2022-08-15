@@ -63,9 +63,6 @@ import sys
 import tempfile
 import time
 
-from .abeyance_handler import AbeyanceHandler
-from .buffering_smtp_handler import BufferingSMTPHandler
-from .movelist import MoveList
 from . import common_constants
 from . import db
 from . import irk
@@ -78,6 +75,9 @@ from . import reports
 from . import setup_exe
 from . import uploads
 from . import utils
+from .abeyance_handler import AbeyanceHandler
+from .buffering_smtp_handler import BufferingSMTPHandler
+from .movelist import MoveList
 
 
 #

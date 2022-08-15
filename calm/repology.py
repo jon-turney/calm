@@ -26,12 +26,11 @@
 # may not exist for some packages, e.g. where upstream doesn't do releases)
 #
 
-from collections import namedtuple
-
 import json
 import logging
 import time
 import urllib.request
+from collections import namedtuple
 
 from .version import SetupVersion
 

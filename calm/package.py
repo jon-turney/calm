@@ -25,8 +25,6 @@
 # utilities for working with a package database
 #
 
-from collections import defaultdict
-from enum import Enum, IntEnum, unique
 import copy
 import difflib
 import hashlib
@@ -37,14 +35,17 @@ import pprint
 import re
 import textwrap
 import time
+from collections import defaultdict
+from enum import Enum, IntEnum, unique
+
 import xtarfile
 
-from .version import SetupVersion
-from .movelist import MoveList
 from . import common_constants
 from . import hint
 from . import maintainers
 from . import past_mistakes
+from .movelist import MoveList
+from .version import SetupVersion
 
 
 # kinds of packages

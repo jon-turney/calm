@@ -25,19 +25,20 @@
 # upload directory processing
 #
 
-from collections import defaultdict, namedtuple
 import filecmp
-import os
 import logging
+import os
 import re
 import shutil
 import time
+from collections import defaultdict, namedtuple
+
 import xtarfile
 
-from .movelist import MoveList
 from . import common_constants
 from . import fixes
 from . import package
+from .movelist import MoveList
 
 # reminders will be issued weekly
 REMINDER_INTERVAL = 60 * 60 * 24 * 7

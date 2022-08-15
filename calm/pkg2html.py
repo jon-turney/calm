@@ -50,13 +50,14 @@ import string
 import sys
 import textwrap
 import time
+
 import xtarfile
 
-from .version import SetupVersion
 from . import common_constants
 from . import maintainers
 from . import package
 from . import utils
+from .version import SetupVersion
 
 
 #

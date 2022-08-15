@@ -25,9 +25,9 @@
 # parser for .hint files
 #
 
-from collections import OrderedDict
 import argparse
 import re
+from collections import OrderedDict
 
 try:
     import license_expression

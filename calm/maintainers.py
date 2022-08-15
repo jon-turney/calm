@@ -40,11 +40,11 @@
 # list (and it's inversion) and accessors, and invalidate that stored list when
 # cygwin-pkg-maint changes...
 
-from collections import defaultdict
 import itertools
 import logging
 import os
 import re
+from collections import defaultdict
 
 from . import utils
 

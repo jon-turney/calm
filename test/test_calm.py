@@ -39,7 +39,6 @@ import tempfile
 import types
 import unittest
 
-from calm.version import SetupVersion
 import calm.calm
 import calm.common_constants as common_constants
 import calm.hint as hint
@@ -47,6 +46,7 @@ import calm.maintainers as maintainers
 import calm.package as package
 import calm.pkg2html as pkg2html
 import calm.uploads as uploads
+from calm.version import SetupVersion
 
 ARGDIRS = ['rel_area', 'homedir', 'htdocs', 'stagingdir', 'vault']
 

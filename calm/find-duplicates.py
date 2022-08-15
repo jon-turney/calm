@@ -23,10 +23,11 @@
 
 import argparse
 import hashlib
-import re
 import os
+import re
 import sys
 import tarfile
+
 import xtarfile
 
 from . import common_constants

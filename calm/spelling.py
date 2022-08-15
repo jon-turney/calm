@@ -22,6 +22,7 @@
 #
 
 import re
+
 from enchant import DictWithPWL
 from enchant.checker import SpellChecker
 from enchant.tokenize import Filter

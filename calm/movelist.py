@@ -23,8 +23,8 @@
 
 import logging
 import os
-
 from collections import defaultdict
+
 from . import logfilters
 from . import utils
 

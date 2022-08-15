@@ -28,8 +28,9 @@ import re
 import shutil
 import socket
 import tarfile
-import urllib.request
 import urllib.error
+import urllib.request
+
 import xtarfile
 
 from . import hint

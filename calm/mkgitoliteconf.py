@@ -25,9 +25,9 @@
 # mkgitoliteconf - creates a gitolite conf file fragment from cygwin-pkg-maint
 #
 
-from collections import defaultdict
 import argparse
 import sys
+from collections import defaultdict
 
 from . import common_constants
 from . import maintainers
