@@ -336,7 +336,7 @@
  'ef15790d8dc8163ed15dfca37565558203ed8b7569d586e0bc949f25282f44a1c059a60a7502863312b41cda649e3a9e2516d354eec9d54829e3ac1a3547097c\n'
  'source: noarch/release/test-c/test-c-1.0-1-src.tar.xz 256 '
  'ef15790d8dc8163ed15dfca37565558203ed8b7569d586e0bc949f25282f44a1c059a60a7502863312b41cda649e3a9e2516d354eec9d54829e3ac1a3547097c\n'
- 'depends2: test-d, test-e\n'
+ 'depends2: test-d (>= 1.0), test-e\n'
  'obsoletes: obs-a, obs-b\n'
  '\n'
  '@ test-d\n'

@@ -350,9 +350,6 @@ def hint_file_parse(fn, kind, strict=False):
                     warnings.append('sdesc is much longer than ldesc')
 
             # sort these hints, as differences in ordering are uninteresting
-            if 'requires' in hints:
-                hints['requires'] = split_trim_sort_join(hints['requires'], None, ' ')
-
             if 'build-depends' in hints:
                 if ',' in hints['build-depends']:
                     hints['build-depends'] = split_trim_sort_join(hints['build-depends'], ',')
@@ -425,7 +422,7 @@ def main(args):
     for fn in args.files:
         hints = hint_file_parse(fn, spvr if fn.endswith('src.hint') else pvr)
 
-        if args.verbose > 1:
+        if args.verbose >= 1:
             print(hints)
 
         if 'parse-warnings' in hints:

@@ -1,4 +1,4 @@
 category: Devel
 sdesc: "test package C"
 obsoletes: obs-a obs-b
-requires: test-d test-e
+requires: test-d (>= 1.0), test-e

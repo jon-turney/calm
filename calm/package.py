@@ -152,6 +152,41 @@ def sha512_file(fn, block_size=256 * 128):
     return sha512.hexdigest()
 
 
+# process a list of package version-constraints
+def process_package_constraint_list(pcl):
+    # split, keeping optional version-relation, trim and sort
+    deplist = {}
+
+    if ',' in pcl:
+        # already comma separated is simple
+        for r in pcl.split(','):
+            r = r.strip()
+            item = re.sub(r'(.*)\s+\(.*?\)', r'\1', r)
+            deplist[item] = r
+    else:
+        # otherwise, split into a sequence of package names, version-relation
+        # constraints and white-space, and group package name with any following
+        # constraint
+        item = None
+        for r in re.split(r'(\(.*?\)|\s+)', pcl):
+            r = r.strip()
+            if not r:
+                continue
+            if r.startswith('('):
+                if not item:
+                    logging.warning("constraint '%s' before any package" % (r))
+                elif '(' in deplist[item]:
+                    logging.warning("multiple constraints after package %s" % (item))
+                else:
+                    deplist[item] = item + ' ' + r
+            else:
+                item = r
+                deplist[item] = item
+
+    # return a sorted list of package names with an optional version constraint.
+    return sorted(deplist.values())
+
+
 # helper function to read hints
 def read_hints(p, fn, kind, strict=False):
     hints = hint.hint_file_parse(fn, kind, strict)
@@ -167,7 +202,9 @@ def read_hints(p, fn, kind, strict=False):
             logging.info("package '%s': %s" % (p, l))
 
     # generate depends: from requires:
-    hints['depends'] = ', '.join(hints.get('requires', '').split())
+    # XXX: store this as a list, rather than splitting it into one everywhere we
+    # use it
+    hints['depends'] = ', '.join(process_package_constraint_list(hints.get('requires', '')))
     # erase requires:, to ensure there is nothing using it
     hints.pop('requires', None)
 

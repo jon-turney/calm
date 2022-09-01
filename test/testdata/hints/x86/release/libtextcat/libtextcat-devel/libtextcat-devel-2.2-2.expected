@@ -7,6 +7,6 @@
           'BSD License.\n'
           'http://software.wise-guys.nl/libtextcat/"',
  'category': 'Devel Text',
- 'requires': 'libtextcat libtextcat0',
+ 'requires': 'libtextcat0 libtextcat',
  'external-source': 'libtextcat',
  'parse-errors': ['embedded quote at line 7']}
