@@ -1,7 +1,7 @@
 {'sdesc': '"The UNIX emulation engine"',
  'ldesc': '"The UNIX emulation engine"',
  'category': 'Base',
- 'requires': 'base-cygwin',
+ 'requires': 'base-cygwin _windows ( >= 6.0 )',
  'provides': 'cygwin-api0_291',
  'conflicts': 'fruit-juice',
  'test': ''}

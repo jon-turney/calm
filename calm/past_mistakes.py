@@ -194,6 +194,7 @@ missing_obsolete = {
 
 # provides: which don't exist
 nonexistent_provides = [
+    '_windows',
     'perl5_026',
     'rdiff-debuginfo',           # not in x86
     'rxvt-unicode-X-debuginfo',  # not in x86_64
