@@ -73,7 +73,6 @@ hintkeys[pvr].update({
     'external-source': 'val',
     'requires': 'optval',
     'obsoletes': 'optval',
-    'depends': 'optval',
     'provides': 'val',
     'conflicts': 'val',
 })
@@ -359,9 +358,6 @@ def hint_file_parse(fn, kind, strict=False):
                     hints['build-depends'] = split_trim_sort_join(hints['build-depends'], ',')
                 else:
                     hints['build-depends'] = split_trim_sort_join(hints['build-depends'], None, ', ')
-
-            if 'depends' in hints:
-                hints['depends'] = split_trim_sort_join(hints['depends'], ',')
 
             if 'obsoletes' in hints:
                 # obsoletes is specified as comma separated, but cygport writes it space separated at the moment...
