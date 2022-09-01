@@ -147,10 +147,12 @@ def update_package_listings(args, packages):
 
     toremove = glob.glob(os.path.join(summaries, '*'))
 
-    def linkify_package(p):
+    def linkify_package(pkg):
+        p = re.sub(r'(.*)\s+\(.*\)', r'\1', pkg)
         if p in package_list:
             pn = arch_package(packages, p).orig_name
-            return '<a href="%s.html">%s</a>' % (p, pn)
+            text = re.sub(re.escape(p), pn, pkg)
+            return '<a href="%s.html">%s</a>' % (p, text)
         logging.debug('package linkification failed for %s' % p)
         return p
 
