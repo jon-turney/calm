@@ -167,8 +167,9 @@ def read_hints(p, fn, kind, strict=False):
             logging.info("package '%s': %s" % (p, l))
 
     # generate depends: from requires:
-    if ('requires' in hints) and ('depends' not in hints):
-        hints['depends'] = ', '.join(hints['requires'].split())
+    hints['depends'] = ', '.join(hints.get('requires', '').split())
+    # erase requires:, to ensure there is nothing using it
+    hints.pop('requires', None)
 
     return hints
 
@@ -521,7 +522,8 @@ def upgrade_oldstyle_obsoletes(packages):
 
                 if packages[p].tar(vr).is_empty:
                     if '_obsolete' in packages[p].version_hints[vr]['category']:
-                        requires = packages[p].version_hints[vr].get('requires', '').split()
+                        requires = packages[p].version_hints[vr].get('depends', '').split(', ')
+                        requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
 
                         if p in past_mistakes.old_style_obsolete_by:
                             o = past_mistakes.old_style_obsolete_by[p]
@@ -590,7 +592,6 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
 
         for (v, hints) in packages[p].version_hints.items():
             for (c, okmissing, splitchar) in [
-                    ('requires', 'missing-required-package', None),
                     ('depends', 'missing-depended-package', ','),
                     ('obsoletes', 'missing-obsoleted-package', ',')
             ]:
@@ -605,7 +606,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
                         if splitchar:
                             r = re.sub(r'(.*) +\(.*\)', r'\1', r)
 
-                        if c == 'requires':
+                        if c == 'depends':
                             # don't count cygwin-debuginfo for the purpose of
                             # checking if this package has any requires, as
                             # cygport always makes debuginfo packages require
