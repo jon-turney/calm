@@ -94,7 +94,7 @@ def do_main(args):
 
         print("repo git/cygwin-packages/%s" % (p))
         print("C  = %s @leads" % (users))
-        print("RW = %s" % (users))
+        print("RW master$ = %s" % (users))
         print("owner = %s" % (owner))
         print("")
 
