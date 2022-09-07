@@ -1000,9 +1000,9 @@ def validate_package_maintainers(args, packages):
                         logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
                         error = True
 
-        if 'ORPHANED' in pkg_maintainers[packages[p].orig_name]:
-            # note orphaned packages
-            packages[p].orphaned = True
+                if 'ORPHANED' in pkg_maintainers[es_pn]:
+                    # note orphaned packages
+                    packages[p].orphaned = True
 
     return error
 
