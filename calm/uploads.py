@@ -206,9 +206,8 @@ def scan(scandir, m, all_packages, arch, args):
             rel_fn = os.path.join(relpath, f)
             logging.debug("processing %s" % rel_fn)
 
-            # ignore !packages (which we no longer use)
             # ignore !mail and !email (which we have already read)
-            if f in ['!packages', '!mail', '!email']:
+            if f in ['!mail', '!email']:
                 files.remove(f)
                 continue
 
