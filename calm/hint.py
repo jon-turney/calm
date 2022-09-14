@@ -333,6 +333,14 @@ def hint_file_parse(fn, kind, strict=False):
                     if k not in hints:
                         errors.append("required key '%s' missing" % (k))
 
+                suggested = []
+                if (kind == spvr) and strict:
+                    suggested.append('license')
+
+                for k in suggested:
+                    if k not in hints:
+                        warnings.append("key '%s' missing" % (k))
+
             # warn if ldesc and sdesc seem transposed
             #
             # (Unfortunately we can't be totally strict about this, as some
