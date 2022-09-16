@@ -278,7 +278,7 @@ def scan(scandir, m, all_packages, arch, args):
 
         # read and validate package
         if files:
-            if package.read_package_dir(packages, homedir, dirpath, files, remove=removed_files, upload=True):
+            if package.read_package_dir(packages, homedir, dirpath, files, upload=True):
                 error = True
 
     # always consider timestamp as checked during a dry-run, so it is never

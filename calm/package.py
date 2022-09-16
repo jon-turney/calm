@@ -206,10 +206,7 @@ def clean_hints(p, hints, warnings):
 # (return True if problems, False otherwise)
 #
 
-def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=False):
-    if remove is None:
-        remove = []
-
+def read_package_dir(packages, basedir, dirpath, files, upload=False):
     relpath = os.path.relpath(dirpath, basedir)
 
     # the package name is always the directory name
@@ -260,7 +257,7 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
     for kind in Kind:
         # only create a package if there's archives for it to contain
         if fl[kind]:
-            result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], remove, kind, upload) or result
+            result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], kind, upload) or result
 
     # warn about unexpected files, including tarfiles which don't match the
     # package name
@@ -274,7 +271,7 @@ def read_package_dir(packages, basedir, dirpath, files, remove=None, upload=Fals
 #
 # read a single package
 #
-def read_one_package(packages, p, relpath, dirpath, files, remove, kind, strict):
+def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
     warnings = False
 
     if not re.match(r'^[\w\-._+]*$', p):
