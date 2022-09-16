@@ -194,6 +194,10 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
         # remove triggers
         uploads.remove(args, scan_result[arch].remove_always)
 
+        # check upload is authorized
+        if not scan_result[arch].error:
+            uploads.auth_check(args, m, scan_result[arch], state.packages)
+
         if scan_result[arch].error:
             logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, m.name))
             success = False

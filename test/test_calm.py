@@ -391,6 +391,7 @@ class CalmTest(unittest.TestCase):
         args.force = False
         args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
         args.stale = True
+        args.trustedmaint = ''
 
         # set appropriate !ready
         m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
@@ -425,6 +426,7 @@ class CalmTest(unittest.TestCase):
         args.repodir = 'testdata/repodir'
         args.setup_version = '3.1415'
         args.stale = True
+        args.trustedmaint = ''
 
         state = calm.calm.CalmState()
         state.args = args

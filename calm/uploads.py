@@ -31,7 +31,6 @@ import os
 import re
 import shutil
 import time
-from collections import defaultdict, namedtuple
 
 import xtarfile
 
@@ -45,8 +44,16 @@ REMINDER_INTERVAL = 60 * 60 * 24 * 7
 # reminders don't start to be issued until an hour after upload
 REMINDER_GRACE = 60 * 60
 
-# a named tuple type to hold the result of scan
-ScanResult = namedtuple('ScanResult', 'error,packages,to_relarea,to_vault,remove_always,remove_success')
+
+# a type to hold the result of scan
+class ScanResult:
+    def __init__(self, error, packages, move, vault, remove, remove_success):
+        self.error = error
+        self.packages = packages
+        self.to_relarea = move
+        self.to_vault = vault
+        self.remove_always = remove
+        self.remove_success = remove_success
 
 
 #
@@ -57,7 +64,7 @@ def scan(scandir, m, all_packages, arch, args):
     homedir = os.path.join(scandir, m.name)
     basedir = os.path.join(homedir, arch)
 
-    packages = defaultdict(package.Package)
+    packages = {}
     move = MoveList(homedir)
     vault = MoveList()
     remove = []
@@ -137,15 +144,21 @@ def scan(scandir, m, all_packages, arch, args):
         if not files:
             continue
 
+        # two quick checks if the upload is allowed
+        #
+        # (removal is only controlled by these checks, uploads are more complex,
+        # with the full auth check in auth_check() below)
+
         # package doesn't appear in package list at all
         (_, _, pkgpath) = relpath.split(os.sep, 2)
-        if not package.is_in_package_list(pkgpath, all_packages):
-            logging.error("package '%s' is not in the package list" % relpath)
+        superpackage = pkgpath.split(os.sep, 1)[0]
+        if superpackage not in all_packages:
+            logging.error("package '%s' is not in the package list" % superpackage)
             continue
 
         # only process packages for which we are listed as a maintainer, or we are a trusted maintainer
-        if not (package.is_in_package_list(pkgpath, m.pkgs) or (m.name in args.trustedmaint.split('/'))):
-            logging.warning("package '%s' is not in the package list for maintainer '%s'" % (relpath, m.name))
+        if not ((superpackage in m.pkgs) or (m.name in args.trustedmaint.split('/'))):
+            logging.warning("package '%s' is not in the package list for maintainer '%s'" % (superpackage, m.name))
             continue
 
         # see if we can fix-up any setup.hint files
@@ -261,6 +274,7 @@ def scan(scandir, m, all_packages, arch, args):
                 continue
 
             # does file already exist in release area?
+            # XXX: this needs to be done later to be multipath aware
             dest = os.path.join(args.rel_area, relpath, f)
             if os.path.isfile(dest):
                 if not f.endswith('.hint'):
@@ -285,7 +299,17 @@ def scan(scandir, m, all_packages, arch, args):
 
         # read and validate package
         if files:
-            if package.read_package_dir(packages, homedir, dirpath, files, upload=True):
+            collected = {}
+            result = package.collect_files_package_dir(collected, homedir, dirpath, files)
+            for p in collected:
+                fl = collected[p]
+                for kind in package.Kind:
+                    if not fl[kind]:
+                        continue
+
+                    result = package.read_one_package(packages, p, homedir, fl[kind] + fl['all'], kind, strict=True) or result
+
+            if result:
                 error = True
 
     # always consider timestamp as checked during a dry-run, so it is never
@@ -316,3 +340,35 @@ def remove(args, remove):
                 os.unlink(f)
             except FileNotFoundError:
                 logging.error("%s can't be deleted as it doesn't exist" % (f))
+
+
+#
+# upload authorization check
+#
+# We want to avoid the need to have to explicitly list foo, foo_autorebase,
+# foo-devel, foo-doc, foo-debuginfo, libfoo0, girepository-foo, etc. instead of
+# just foo in the package list
+#
+# To prevent arbitrary package upload, we need to check that for all packages
+# uploaded, the uploader is authorized for all the existing places (auth_paths)
+# the package exists as well...
+#
+def auth_check(args, m, scan_result, packages):
+    # if uploader is a trusted maintainer, it's ok
+    if m.name in args.trustedmaint.split('/'):
+        return
+
+    # A package upload (perhaps at a new path (= from a different source
+    # package)) is only allowed if the maintainer is also allowed to upload to
+    # all of the auth_paths (= source packages) for the existing
+    # package. (i.e. you can upload a new version of a package in a different
+    # place, if you are allowed to upload in the old place as well)
+    for p in scan_result.packages:
+        for arch in packages:
+            if p in packages[arch]:
+                for ap in packages[arch][p].auth_path:
+                    if ap not in m.pkgs:
+                        logging.error("package '%s' needs authorization '%s' not in the package list for maintainer '%s'" % (p, ap, m.name))
+                        scan_result.error = True
+                    else:
+                        logging.debug("package '%s' has authorization '%s' in the package list for maintainer '%s'" % (p, ap, m.name))

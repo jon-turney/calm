@@ -73,6 +73,11 @@ class RepoPath():
         self.path = _path
         self.fn = _fn
 
+    def __eq__(self, other):
+        return (self.arch == other.arch and
+                self.path == other.path and
+                self.fn == other.fn)
+
     # convert to a path, absolute if given a base directory
     def abspath(self, basedir=None):
         pc = [self.arch, 'release', self.path, self.fn]
@@ -91,17 +96,17 @@ class RepoPath():
 # information we keep about a package
 class Package(object):
     def __init__(self):
-        self.pkgpath = ''  # path to package, relative to arch
         self.tarfiles = {}
         self.hints = {}
         self.is_used_by = set()
         self.version_hints = {}
         self.override_hints = {}
         self.not_for_output = False
+        self.auth_path = set()
 
     def __repr__(self):
         return "Package('%s', %s, %s, %s, %s)" % (
-            self.pkgpath,
+            self.name,
             pprint.pformat(self.tarfiles),
             pprint.pformat(self.version_hints),
             pprint.pformat(self.override_hints),
@@ -154,22 +159,32 @@ class Hint(object):
 # read a packages from a directory hierarchy
 #
 def read_packages(rel_area, arch):
-    error = False
-    packages = {}
+    result = False
 
+    # first collect all package files
     # <arch>/ noarch/ and src/ directories are considered
+    collected = {}
     for root in ['noarch', 'src', arch]:
-        packages[root] = {}
-
         releasedir = os.path.join(rel_area, root)
-        logging.debug('reading packages from %s' % releasedir)
 
         for (dirpath, _subdirs, files) in os.walk(releasedir, followlinks=True):
-            error = read_package_dir(packages[root], rel_area, dirpath, files) or error
+            result = collect_files_package_dir(collected, rel_area, dirpath, files) or result
 
-        logging.debug("%d packages read from %s" % (len(packages[root]), releasedir))
+    # then read each package
+    logging.debug('reading packages from %s' % rel_area)
 
-    return (merge({}, *packages.values()), error)
+    packages = {}
+    for p in collected:
+        fl = collected[p]
+        for kind in Kind:
+            if not fl[kind]:
+                continue
+
+            result = read_one_package(packages, p, rel_area, fl[kind] + fl['all'], kind, strict=False) or result
+
+    logging.debug("%d packages read from %s" % (len(packages), rel_area))
+
+    return (packages, result)
 
 
 # helper function to compute sha512 for a particular file
@@ -319,14 +334,21 @@ def clean_hints(p, hints, warnings):
 
 
 #
-# read a single package directory
+# collect package files from a single package directory
 #
 # (may contain at most one source package and one binary package)
-# (return True if problems, False otherwise)
+# (updates collected, and returns True if problems, False otherwise)
 #
 
-def read_package_dir(packages, basedir, dirpath, files, upload=False):
+def collect_files_package_dir(collected, basedir, dirpath, files):
     relpath = os.path.relpath(dirpath, basedir)
+
+    # skip over arch/release/ directories
+    if relpath.count(os.sep) < 2:
+        return
+
+    (arch, release, pkgpath) = relpath.split(os.sep, 2)
+    assert release == 'release'
 
     # the package name is always the directory name
     p = os.path.basename(dirpath)
@@ -345,48 +367,45 @@ def read_package_dir(packages, basedir, dirpath, files, upload=False):
 
         return False
 
-    # classify files for which kind of package they belong to
-    fl = {}
-    for kind in list(Kind) + ['all']:
-        fl[kind] = []
+    # initialize package in collected
+    if p not in collected:
+        collected[p] = {}
+        for kind in list(Kind) + ['all']:
+            collected[p][kind] = []
 
+    fl = collected[p]
+
+    # classify files for which kind of package they belong to
     for f in files[:]:
         if f == 'override.hint':
-            fl['all'].append(f)
+            fl['all'].append(RepoPath(arch, pkgpath, f))
             files.remove(f)
         elif re.match(r'^' + re.escape(p) + r'.*\.hint$', f):
             if f.endswith('-src.hint'):
-                fl[Kind.source].append(f)
+                fl[Kind.source].append(RepoPath(arch, pkgpath, f))
             else:
-                fl[Kind.binary].append(f)
+                fl[Kind.binary].append(RepoPath(arch, pkgpath, f))
             files.remove(f)
         elif re.match(r'^' + re.escape(p) + r'.*\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f):
             if '-src.tar' in f:
-                fl[Kind.source].append(f)
+                fl[Kind.source].append(RepoPath(arch, pkgpath, f))
             else:
-                fl[Kind.binary].append(f)
+                fl[Kind.binary].append(RepoPath(arch, pkgpath, f))
             files.remove(f)
-
-    # read package
-    result = False
-    for kind in Kind:
-        # only create a package if there's archives for it to contain
-        if fl[kind]:
-            result = read_one_package(packages, p, relpath, dirpath, fl[kind] + fl['all'], kind, upload) or result
 
     # warn about unexpected files, including tarfiles which don't match the
     # package name
     if files:
         logging.error("unexpected files in %s: %s" % (p, ', '.join(files)))
-        result = True
+        return True
 
-    return result
+    return False
 
 
 #
 # read a single package
 #
-def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
+def read_one_package(packages, p, basedir, files, kind, strict):
     warnings = False
 
     if not re.match(r'^[\w\-._+]*$', p):
@@ -405,40 +424,55 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
         logging.error("package '%s' name ends with '-src'" % p)
         return True
 
-    # check for duplicate package names at different paths
-    (arch, release, pkgpath) = relpath.split(os.sep, 2)
-    assert release == 'release'
     pn = p + ('-src' if kind == Kind.source else '')
 
     if pn in packages:
-        logging.error("duplicate package name at paths %s and %s" %
-                      (relpath, packages[p].pkgpath))
+        logging.error("duplicate package name %s" % (pn))
         return True
 
-    if 'override.hint' in files:
-        # read override.hint
-        override_hints = read_hints(p, os.path.join(dirpath, 'override.hint'), hint.override)
-        if override_hints is None:
-            logging.error("error parsing %s" % (os.path.join(dirpath, 'override.hint')))
-            return True
-        files.remove('override.hint')
-    else:
-        override_hints = {}
+    # collecting multiple copies of any filename is an error
+    # (we could easily do this by accident with override.hint)
+    duplicates = set()
+    seen = set()
+    for f in files:
+        if f.fn in seen:
+            duplicates.add(f.fn)
+        seen.add(f.fn)
+
+    if duplicates:
+        for d in duplicates:
+            logging.error("Multiple %s files for package '%s'.  I can't handle that!" % (d, p))
+        return True
+
+    # read any override.hint
+    override_hints = {}
+    for rp in list(files):
+        if rp.fn == 'override.hint':
+            override_hints = read_hints(p, rp.abspath(basedir), hint.override)
+            if override_hints is None:
+                logging.error("error parsing %s" % (rp.fn))
+                return True
+            files.remove(rp)
+            break
 
     # build a list of version-releases (since replacement pvr.hint files are
     # allowed to be uploaded, we must consider both .tar and .hint files for
     # that), and collect the attributes for each tar file
     tars = {}
+    hint_files = {}
     vr_list = set()
+    auth_path = set()
 
-    for f in list(files):
+    for rp in list(files):
+        f = rp.fn
+
         # warn if filename doesn't follow P-V-R naming convention
         #
         # P must match the package name, V can contain anything, R must
         # start with a number and can't include a hyphen
         match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z._+]*)(-src|)\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
         if not match:
-            logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
+            logging.error("file '%s' in package '%s' doesn't follow naming convention" % (rp.fn, p))
             return True
         else:
             v = match.group(1)
@@ -491,33 +525,40 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
 
             # collect the attributes for each tar file
             t = Tar()
-            t.repopath.arch = arch
-            t.repopath.path = pkgpath
-            t.repopath.fn = f
-            t.size = os.path.getsize(os.path.join(dirpath, f))
-            t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
-            t.mtime = os.path.getmtime(os.path.join(dirpath, f))
-            t.sha512 = sha512_file(os.path.join(dirpath, f))
+            t.repopath = rp
+            t.size = os.path.getsize(rp.abspath(basedir))
+            t.is_empty = tarfile_is_empty(rp.abspath(basedir))
+            t.mtime = os.path.getmtime(rp.abspath(basedir))
+            t.sha512 = sha512_file(rp.abspath(basedir))
 
             tars[vr] = t
+
+            # it's an error to not have a corresponding pvr.hint in the same directory
+            hint_fn = '%s-%s%s.hint' % (p, vr, '-src' if kind == Kind.source else '')
+            hrp = RepoPath(rp.arch, rp.path, hint_fn)
+            if hrp not in files:
+                logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
+                return True
+
+        else:
+            hint_files[vr] = rp
+
+        # collect the superpackage names for authorization purposes
+        auth_path.add(rp.path.split(os.sep, 1)[0])
 
     # determine hints for each version we've encountered
     version_hints = {}
     hints = {}
     actual_tars = {}
     for vr in vr_list:
-        hint_fn = '%s-%s%s.hint' % (p, vr, '-src' if kind == Kind.source else '')
-        if hint_fn in files:
-            # is there a PVR.hint file?
-            pvr_hint = read_hints(p, os.path.join(dirpath, hint_fn), hint.pvr if kind == Kind.binary else hint.spvr, strict)
-            if not pvr_hint:
-                logging.error("error parsing %s" % (os.path.join(dirpath, hint_fn)))
-                return True
-            warnings = clean_hints(p, pvr_hint, warnings)
-        else:
-            # it's an error to not have a pvr.hint
-            logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
+        rp = hint_files[vr]
+
+        # is there a PVR.hint file?
+        pvr_hint = read_hints(p, rp.abspath(basedir), hint.pvr if kind == Kind.binary else hint.spvr, strict)
+        if not pvr_hint:
+            logging.error("error parsing %s" % (rp.fn))
             return True
+        warnings = clean_hints(p, pvr_hint, warnings)
 
         # apply a version override
         if 'version' in pvr_hint:
@@ -532,9 +573,7 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
             pvr_hint['external-source'] += '-src'
 
         hintobj = Hint()
-        hintobj.repopath.arch = arch
-        hintobj.repopath.path = pkgpath
-        hintobj.repopath.fn = hint_fn
+        hintobj.repopath = rp
         hintobj.hints = pvr_hint
 
         version_hints[ovr] = pvr_hint
@@ -548,7 +587,7 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
     packages[pn].override_hints = override_hints
     packages[pn].tarfiles = actual_tars
     packages[pn].hints = hints
-    packages[pn].pkgpath = pkgpath
+    packages[pn].auth_path = auth_path
     packages[pn].kind = kind
     # since we are kind of inventing the source package names, and don't
     # want to report them, keep track of the real name
@@ -692,6 +731,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
     error = False
 
     if packages is None:
+        logging.error("package set is empty")
         return False
 
     if missing_obsolete_extra is None:
@@ -1146,10 +1186,11 @@ def validate_package_maintainers(args, packages):
             continue
         if any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints]):
             continue
-        # validate that the package is in a path which starts with something in the package list
-        if not is_in_package_list(packages[p].pkgpath, all_packages):
-            logging.error("package '%s' on path '%s', which doesn't start with a package in the package list" % (p, packages[p].pkgpath))
-            error = True
+        # validate that the package's auth_paths are all in the package list
+        for a in packages[p].auth_path:
+            if a not in all_packages:
+                logging.error("package '%s' exists in '%s', which isn't in the package list" % (p, a))
+                error = True
         # source which is superseded by a different package, but retained due to
         # old install versions can be unmaintained and non-obsolete
         if packages[p].kind == Kind.source:
@@ -1504,11 +1545,7 @@ def merge(a, *l):
                     logging.error("package '%s' is of more than one kind" % (p))
                     return None
 
-                # package must exist at same relative path
-                if c[p].pkgpath != b[p].pkgpath:
-                    logging.error("package '%s' is at paths %s and %s" % (p, c[p].pkgpath, b[p].pkgpath))
-                    return None
-                else:
+                if True:
                     for vr in b[p].tarfiles:
                         if vr in c[p].tarfiles:
                             logging.error("package '%s' has duplicate tarfile for version %s" % (p, vr))
@@ -1534,6 +1571,9 @@ def merge(a, *l):
                     # merge hint file lists
                     c[p].hints.update(b[p].hints)
 
+                    # merge auth_path sets
+                    c[p].auth_path.update(b[p].auth_path)
+
     return c
 
 
@@ -1542,11 +1582,16 @@ def merge(a, *l):
 #
 
 def delete(packages, path, fn):
+    logging.debug("removing: %s/%s" % (path, fn))
+
     ex_packages = []
-    (_, _, pkgpath) = path.split(os.sep, 2)
+
+    # a clunky way of determining the package which owns these files
+    # (which still doesn't know if it's the source or binary package)
+    pn = path.split(os.sep)[-1]
 
     for p in packages:
-        if packages[p].pkgpath == pkgpath:
+        if packages[p].orig_name == pn:
             for vr in packages[p].tarfiles:
                 if packages[p].tarfiles[vr].repopath.fn == fn:
                     del packages[p].tarfiles[vr]
@@ -1569,30 +1614,8 @@ def delete(packages, path, fn):
 
 
 #
-# verify that the package path starts with a package in the list of packages
-#
-# (This means that a maintainer can upload a package with any name, provided the
-# path contains one allowed for that maintainer)
-#
-# This avoids the need to have to explicitly list foo, foo_autorebase,
-# foo-devel, foo-doc, foo-debuginfo, libfoo0, girepository-foo, etc. instead of
-# just foo in the package list
-#
-# But means only the rule that a package can't exist in multiple paths prevents
-# arbitrary package upload.
-#
-
-
-def is_in_package_list(ppath, plist):
-    superpackage = ppath.split(os.sep, 1)[0]
-    return superpackage in plist
-
-
-#
 # helper function to mark a package version as fresh (not stale)
 #
-
-
 @unique
 class Freshness(IntEnum):
     # ordered most dominant first

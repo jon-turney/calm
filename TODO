@@ -3,10 +3,8 @@
 * use ./setup.hint inside the tar file, avoiding all the hint/tar coherence problems
 * mksetupini should write to stdout if --inifile not specified
 * check packages for path collisions
-* don't do upload authorization by path, then remove unique path constraint
 * mksetupini should be able to verify requires: contains valid package names using a provided list of packages (or a cygwin-pkg-maint file?)
 * make override.hint (optionally?) apply recursively?
 * atomically update .ini/.sig (rename of containing directory, if we put release/ was somewhere else?)
 * report changes in override.hint like we used to for setup.hint
-* maintainers.py should only re-read cygwin-pkg-maint if it's changed
 * empty install packages should only come in two variants: no dependencies and in _obsolete category, or with dependencies and in 'meta' category
