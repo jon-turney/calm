@@ -44,6 +44,7 @@ from . import common_constants
 from . import hint
 from . import maintainers
 from . import past_mistakes
+from . import utils
 from .movelist import MoveList
 from .version import SetupVersion
 
@@ -159,7 +160,7 @@ def read_packages(rel_area, arch):
 
 # helper function to compute sha512 for a particular file
 # (block_size should be some multiple of sha512 block size which can be efficiently read)
-def sha512_file(fn, block_size=256 * 128):
+def sha512_file_hash(fn, block_size=256 * 128):
     sha512 = hashlib.sha512()
 
     with open(fn, 'rb') as f:
@@ -167,6 +168,41 @@ def sha512_file(fn, block_size=256 * 128):
             sha512.update(chunk)
 
     return sha512.hexdigest()
+
+
+# helper function to parse a sha512.sum file
+@utils.mtime_cache
+def sha512sum_file_read(sum_fn):
+    sha512 = {}
+    with open(sum_fn) as fo:
+        for l in fo:
+            match = re.match(r'^(\S+)\s+(?:\*|)(\S+)$', l)
+            if match:
+                sha512[match.group(2)] = match.group(1)
+            else:
+                logging.warning("bad line '%s' in checksum file %s" % (l.strip(), sum_fn))
+
+    return sha512
+
+
+# helper function to determine sha512 for a particular file
+#
+# read sha512 checksum from a sha512.sum file, if present, otherwise compute it
+def sha512_file(fn):
+    (dirname, basename) = os.path.split(fn)
+    sum_fn = os.path.join(dirname, 'sha512.sum')
+    if os.path.exists(sum_fn):
+        sha512 = sha512sum_file_read(sum_fn)
+        if basename in sha512:
+            return sha512[basename]
+        else:
+            logging.debug("no line for file %s in checksum file %s" % (basename, sum_fn))
+    else:
+        logging.debug("no sha512.sum in %s" % dirname)
+
+    sha512 = sha512_file_hash(fn)
+    logging.debug("computed sha512 hash for %s is %s" % (basename, sha512))
+    return sha512
 
 
 # process a list of package version-constraints
@@ -264,23 +300,19 @@ def read_package_dir(packages, basedir, dirpath, files, upload=False):
     # the package name is always the directory name
     p = os.path.basename(dirpath)
 
+    # ignore dotfiles, backup files and checksum files
+    for f in files[:]:
+        if f.startswith('.') or f.endswith('.bak') or f == 'sha512.sum':
+            files.remove(f)
+
     # no .hint files
     if not any([f.endswith('.hint') for f in files]):
         if (relpath.count(os.path.sep) > 1):
-            for s in ['sha512.sum']:
-                if s in files:
-                    files.remove(s)
-
             if len(files) > 0:
                 logging.error("no .hint files in %s but has files: %s" % (dirpath, ', '.join(files)))
                 return True
 
         return False
-
-    # ignore dotfiles and backup files
-    for f in files[:]:
-        if f.startswith('.') or f.endswith('.bak'):
-            files.remove(f)
 
     # classify files for which kind of package they belong to
     fl = {}
@@ -288,7 +320,7 @@ def read_package_dir(packages, basedir, dirpath, files, upload=False):
         fl[kind] = []
 
     for f in files[:]:
-        if f == 'sha512.sum' or f == 'override.hint':
+        if f == 'override.hint':
             fl['all'].append(f)
             files.remove(f)
         elif re.match(r'^' + re.escape(p) + r'.*\.hint$', f):
@@ -358,21 +390,6 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
     else:
         override_hints = {}
 
-    # read sha512.sum
-    sha512 = {}
-    if 'sha512.sum' not in files:
-        logging.debug("no sha512.sum for package '%s'" % p)
-    else:
-        files.remove('sha512.sum')
-
-        with open(os.path.join(dirpath, 'sha512.sum')) as fo:
-            for l in fo:
-                match = re.match(r'^(\S+)\s+(?:\*|)(\S+)$', l)
-                if match:
-                    sha512[match.group(2)] = match.group(1)
-                else:
-                    logging.warning("bad line '%s' in sha512.sum for package '%s'" % (l.strip(), p))
-
     # build a list of version-releases (since replacement pvr.hint files are
     # allowed to be uploaded, we must consider both .tar and .hint files for
     # that), and collect the attributes for each tar file
@@ -437,12 +454,7 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
             t.size = os.path.getsize(os.path.join(dirpath, f))
             t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
             t.mtime = os.path.getmtime(os.path.join(dirpath, f))
-
-            if f in sha512:
-                t.sha512 = sha512[f]
-            else:
-                t.sha512 = sha512_file(os.path.join(dirpath, f))
-                logging.debug("no sha512.sum line for file %s in package '%s', computed sha512 hash is %s" % (f, p, t.sha512))
+            t.sha512 = sha512_file(os.path.join(dirpath, f))
 
             tars[vr] = t
 
