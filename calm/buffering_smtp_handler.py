@@ -34,11 +34,13 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
     def __init__(self,
                  toaddrs,
                  subject,
-                 fromaddr='cygwin-apps@cygwin.com',
+                 fromaddr='cygwin-no-reply@cygwin.com',
+                 replytoaddr='cygwin-apps@cygwin.com',
                  logging_format='%(levelname)s: %(message)s'):
         logging.handlers.BufferingHandler.__init__(self, capacity=0)
         self.fromaddr = fromaddr
         self.toaddrs = toaddrs
+        self.replytoaddr = replytoaddr
         self.subject = subject
         self.formatter = logging_format
         self.setFormatter(logging.Formatter(logging_format))
@@ -62,6 +64,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
             m = email.message.Message()
             m['From'] = self.fromaddr
             m['To'] = ','.join(self.toaddrs)
+            m['Reply-To'] = self.replytoaddr
             m['Bcc'] = common_constants.ALWAYS_BCC
             m['Subject'] = self.subject
             m['Message-Id'] = email.utils.make_msgid()
