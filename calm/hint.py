@@ -304,7 +304,7 @@ def hint_file_parse(fn, kind, strict=False):
                             errors.append('errors validating license expression: %s' % (e))
                         else:
                             if not le.normalized_expression:
-                                errors.append('errors in license expression: %s' % (le.errors))
+                                warnings.append('errors in license expression: %s' % (le.errors))
                             elif le.original_expression != le.normalized_expression:
                                 errors.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
 
