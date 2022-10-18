@@ -306,7 +306,7 @@ def hint_file_parse(fn, kind, strict=False):
                             if not le.normalized_expression:
                                 warnings.append('errors in license expression: %s' % (le.errors))
                             elif le.original_expression != le.normalized_expression:
-                                errors.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
+                                warnings.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
 
                     # warn if value starts with a quote followed by whitespace
                     if re.match(r'^"[ \t]+', value):
