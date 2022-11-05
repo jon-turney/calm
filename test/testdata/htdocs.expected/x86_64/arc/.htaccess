@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/x86_64/arc/$ /packages/summary/arc.html
+ForceType text/html

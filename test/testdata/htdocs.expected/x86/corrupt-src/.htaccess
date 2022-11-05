@@ -1,2 +1,0 @@
-RedirectMatch temp /packages/x86/corrupt-src/$ /packages/summary/corrupt-src.html
-ForceType text/html

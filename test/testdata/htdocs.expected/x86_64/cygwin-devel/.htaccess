@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/x86_64/cygwin-devel/$ /packages/summary/cygwin-devel.html
+ForceType text/html

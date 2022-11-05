@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/x86_64/libdns_sd-devel/$ /packages/summary/libdns_sd-devel.html
+ForceType text/html

@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/x86_64/corrupt/$ /packages/summary/corrupt.html
+ForceType text/html

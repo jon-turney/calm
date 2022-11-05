@@ -154,9 +154,9 @@ class CalmTest(unittest.TestCase):
                             compare_with_expected_file(self, expected, results, name)
 
 #
-# something like "find -name results -exec sh -c 'cd `dirname {}` ; cp results
-# expected' \;" can be used to update the expected output (after you have
-# checked it to make sure it is really correct, of course :) )
+# something like "find -name results -execdir cp results expected \;" can be
+# used to update the expected output (after you have checked it to make sure it
+# is really correct, of course :) )
 #
 
     def test_html_writer(self):
@@ -164,7 +164,7 @@ class CalmTest(unittest.TestCase):
 
         htdocs = 'testdata/htdocs'
         args = types.SimpleNamespace()
-        args.arch = 'x86'
+        args.arch = 'x86_64'
         args.htdocs = htdocs
         args.rel_area = 'testdata/relarea'
         args.homedir = 'testdata/homes'
@@ -330,7 +330,7 @@ class CalmTest(unittest.TestCase):
         logging.info('test_root = %s', test_root)
 
         args = types.SimpleNamespace()
-        args.arch = 'x86'
+        args.arch = 'x86_64'
         args.rel_area = 'testdata/relarea'
         args.dryrun = False
 
@@ -345,11 +345,11 @@ class CalmTest(unittest.TestCase):
         m = mlist['Blooey McFooey']
         m.pkgs.extend(pkglist + ['not-on-package-list'])
 
-        ready_fns = [(os.path.join(m.homedir(), 'x86', 'release', 'testpackage', '!ready'), ''),
-                     (os.path.join(m.homedir(), 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
-                     (os.path.join(m.homedir(), 'x86', 'release', 'testpackage-zstd', '!ready'), ''),
-                     (os.path.join(m.homedir(), 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
-                     (os.path.join(m.homedir(), 'x86', 'release', 'corrupt', '!ready'), '')]
+        ready_fns = [(os.path.join(m.homedir(), 'x86_64', 'release', 'testpackage', '!ready'), ''),
+                     (os.path.join(m.homedir(), 'x86_64', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
+                     (os.path.join(m.homedir(), 'x86_64', 'release', 'testpackage-zstd', '!ready'), ''),
+                     (os.path.join(m.homedir(), 'x86_64', 'release', 'after-ready', '!ready'), '-t 198709011700'),
+                     (os.path.join(m.homedir(), 'x86_64', 'release', 'corrupt', '!ready'), '')]
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
@@ -360,9 +360,9 @@ class CalmTest(unittest.TestCase):
 
         self.assertEqual(scan_result.error, False)
         compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.to_relarea.movelist), 'move')
-        self.assertCountEqual(scan_result.to_vault.movelist, {'x86/release/testpackage': ['x86/release/testpackage/testpackage-0.1-1.tar.bz2']})
+        self.assertCountEqual(scan_result.to_vault.movelist, {'x86_64/release/testpackage': ['x86_64/release/testpackage/testpackage-0.1-1.tar.bz2']})
         self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
-        self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86/release/testpackage/-testpackage-0.1-1.tar.bz2'])
+        self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86_64/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86_64/release/testpackage/-testpackage-0.1-1.tar.bz2'])
         with pprint_patch():
             compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.packages), 'pkglist')
 
@@ -370,7 +370,7 @@ class CalmTest(unittest.TestCase):
         self.maxDiff = None
 
         args = types.SimpleNamespace()
-        args.arch = 'x86'
+        args.arch = 'x86_64'
         args.dryrun = False
         args.force = True
         args.inifile = 'testdata/inifile/setup.ini'
@@ -380,7 +380,7 @@ class CalmTest(unittest.TestCase):
         args.setup_version = '4.321'
 
         packages = package.read_packages(args.rel_area, args.arch)
-        package.delete(packages, 'x86/release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
+        package.delete(packages, 'x86_64/release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
         self.assertEqual(package.validate_packages(args, packages), True)
         package.write_setup_ini(args, packages, args.arch)
         with open(args.inifile) as inifile:
@@ -413,7 +413,7 @@ class CalmTest(unittest.TestCase):
 
         # set appropriate !ready
         m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
-        os.system('touch "%s"' % (os.path.join(m_homedir, 'x86', 'release', 'staleversion', '!ready')))
+        os.system('touch "%s"' % (os.path.join(m_homedir, 'x86_64', 'release', 'staleversion', '!ready')))
 
         state = calm.calm.CalmState()
         state.packages = calm.calm.process_relarea(args, state)
@@ -453,13 +453,13 @@ class CalmTest(unittest.TestCase):
 
         # set appropriate !readys
         m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
-        ready_fns = [(os.path.join(m_homedir, 'x86', 'release', 'testpackage', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'after-ready', '!ready'), '-t 198709011700'),
+        ready_fns = [(os.path.join(m_homedir, 'x86_64', 'release', 'testpackage', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86_64', 'release', 'testpackage2', 'testpackage2-subpackage', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86_64', 'release', 'after-ready', '!ready'), '-t 198709011700'),
                      (os.path.join(m_homedir, 'noarch', 'release', 'perl-Net-SMTP-SSL', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'corrupt', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'per-version', '!ready'), ''),
-                     (os.path.join(m_homedir, 'x86', 'release', 'per-version-replacement-hint-only', '!ready'), '')]
+                     (os.path.join(m_homedir, 'x86_64', 'release', 'corrupt', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86_64', 'release', 'per-version', '!ready'), ''),
+                     (os.path.join(m_homedir, 'x86_64', 'release', 'per-version-replacement-hint-only', '!ready'), '')]
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
@@ -467,7 +467,7 @@ class CalmTest(unittest.TestCase):
         self.assertTrue(packages)
 
         pkg2html.update_package_listings(args, packages)
-        package.write_setup_ini(args, packages['x86'], 'x86')
+        package.write_setup_ini(args, packages['x86_64'], 'x86_64')
 
         with open(os.path.join(args.rel_area, 'setup.ini')) as inifile:
             results = inifile.read()
@@ -496,9 +496,9 @@ class CalmTest(unittest.TestCase):
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
         # ensure sha512.sum files exist
-        os.system("find testdata/relarea/x86 testdata/relarea/noarch -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \\;")
+        os.system("find testdata/relarea/x86_64 testdata/relarea/noarch -type d -exec sh -c 'cd {} ; sha512sum * >sha512.sum 2>/dev/null' \\;")
         # should remove a sha512.sum file so that we test functioning when it's absent
-        os.unlink('testdata/relarea/x86/release/arc/sha512.sum')
+        os.unlink('testdata/relarea/x86_64/release/arc/sha512.sum')
         # remove !ready files
         os.system("find testdata/homes -name !ready -exec rm {} \\;")
 
@@ -512,36 +512,36 @@ class CalmTest(unittest.TestCase):
                 os.system('touch "%s" -d %s' % (os.path.join(dirpath, f), '2018-03-02'))
 
         # then adjust packages where we need highest version to also be latest
-        relarea_x86 = os.path.join('testdata', 'relarea', 'x86', 'release')
+        relarea_arch = os.path.join('testdata', 'relarea', 'x86_64', 'release')
         relarea_noarch = os.path.join('testdata', 'relarea', 'noarch', 'release')
-        home_conflict = os.path.join('testdata', 'homes.conflict', 'Blooey McFooey', 'x86', 'release')
-        touches = [(os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.0-1.tar.xz'), '2016-11-01'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.0-1-src.tar.xz'), '2016-11-01'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.1-1.tar.xz'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-2.2.1-1-src.tar.xz'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-debuginfo', 'cygwin-debuginfo-2.2.0-1.tar.xz'), '2016-11-01'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-debuginfo', 'cygwin-debuginfo-2.2.1-1.tar.xz'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-devel', 'cygwin-devel-2.2.0-1.tar.xz'), '2016-11-01'),
-                   (os.path.join(relarea_x86, 'cygwin', 'cygwin-devel', 'cygwin-devel-2.2.1-1.tar.xz'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'base-cygwin', 'base-cygwin-3.6-1.tar.xz'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'per-version', 'per-version-4.0-1.tar.xz'), '2017-04-09'),
-                   (os.path.join(relarea_x86, 'per-version', 'per-version-4.0-1-src.tar.xz'), '2017-04-09'),
-                   (os.path.join(relarea_x86, 'rpm-doc', 'rpm-doc-4.1-2.tar.bz2'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'rpm-doc', 'rpm-doc-4.1-2-src.tar.bz2'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-240-1.tar.xz'), '2017-04-07'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-240-1-src.tar.xz'), '2017-04-07'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-242-0.tar.xz'), '2017-04-08'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-242-0-src.tar.xz'), '2017-04-08'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-243-0.tar.xz'), '2017-04-09'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-243-0-src.tar.xz'), '2017-04-09'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-250-0.tar.xz'), '2017-04-10'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-250-0-src.tar.xz'), '2017-04-10'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-251-0.tar.xz'), '2017-04-09'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-251-0-src.tar.xz'), '2017-04-09'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-260-0.tar.xz'), '2017-04-12'),
-                   (os.path.join(relarea_x86, 'staleversion', 'staleversion-260-0-src.tar.xz'), '2017-04-12'),
-                   (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1.tar.bz2'), '2016-11-02'),
-                   (os.path.join(relarea_x86, 'keychain', 'keychain-2.6.8-1-src.tar.bz2'), '2016-11-02'),
+        home_conflict = os.path.join('testdata', 'homes.conflict', 'Blooey McFooey', 'x86_64', 'release')
+        touches = [(os.path.join(relarea_arch, 'cygwin', 'cygwin-2.2.0-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-2.2.0-1-src.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-2.2.1-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-2.2.1-1-src.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-debuginfo', 'cygwin-debuginfo-2.2.0-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-debuginfo', 'cygwin-debuginfo-2.2.1-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-devel', 'cygwin-devel-2.2.0-1.tar.xz'), '2016-11-01'),
+                   (os.path.join(relarea_arch, 'cygwin', 'cygwin-devel', 'cygwin-devel-2.2.1-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'base-cygwin', 'base-cygwin-3.6-1.tar.xz'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'per-version', 'per-version-4.0-1.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_arch, 'per-version', 'per-version-4.0-1-src.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_arch, 'rpm-doc', 'rpm-doc-4.1-2.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'rpm-doc', 'rpm-doc-4.1-2-src.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-240-1.tar.xz'), '2017-04-07'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-240-1-src.tar.xz'), '2017-04-07'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-242-0.tar.xz'), '2017-04-08'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-242-0-src.tar.xz'), '2017-04-08'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-243-0.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-243-0-src.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-250-0.tar.xz'), '2017-04-10'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-250-0-src.tar.xz'), '2017-04-10'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-251-0.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-251-0-src.tar.xz'), '2017-04-09'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-260-0.tar.xz'), '2017-04-12'),
+                   (os.path.join(relarea_arch, 'staleversion', 'staleversion-260-0-src.tar.xz'), '2017-04-12'),
+                   (os.path.join(relarea_arch, 'keychain', 'keychain-2.6.8-1.tar.bz2'), '2016-11-02'),
+                   (os.path.join(relarea_arch, 'keychain', 'keychain-2.6.8-1-src.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.01-1.tar.xz'), '2016-09-01'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.01-1-src.tar.xz'), '2016-09-01'),
                    (os.path.join(relarea_noarch, 'perl-Net-SMTP-SSL', 'perl-Net-SMTP-SSL-1.02-1.tar.xz'), '2016-10-01'),
