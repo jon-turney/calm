@@ -58,7 +58,7 @@ ORPHANMAINT = '/'.join([
 ])
 
 # architectures we support
-ARCHES = ['x86', 'x86_64']
+ARCHES = ['x86_64']
 
 # architectures we no longer support
 ARCHIVED_ARCHES = ['x86']

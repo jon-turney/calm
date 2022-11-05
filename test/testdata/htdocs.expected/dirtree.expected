@@ -38,7 +38,6 @@
              'test-e.html',
              'testpackage-src.html',
              'testpackage.html'],
- 'x86': ['.htaccess'],
  'x86_64': ['.htaccess'],
  'x86_64/arc': ['.htaccess', 'arc-4.32.7-10'],
  'x86_64/arc-src': ['.htaccess', 'arc-4.32.7-10-src'],

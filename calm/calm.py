@@ -169,7 +169,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
     # for each arch and noarch
     scan_result = {}
     skip_maintainer = False
-    for arch in common_constants.ARCHES + ['noarch', 'src']:
+    for arch in common_constants.ARCHES + ['noarch', 'src'] + common_constants.ARCHIVED_ARCHES:
         logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
 
         # read uploads
