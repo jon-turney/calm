@@ -464,7 +464,7 @@ def write_arch_listing(args, packages, arch):
             listings = []
 
         for to in packages[p].tarfiles.values():
-            tn = to.fn
+            tn = to.repopath.fn
             fver = re.sub(r'\.tar.*$', '', tn)
             listing = os.path.join(dirpath, fver)
 
@@ -492,7 +492,7 @@ def write_arch_listing(args, packages, arch):
                                                  <h1><a href="/packages/summary/%s.html">%s</a>: %s</h1>
                                                  <pre>''' % (p, desc, p, p, desc)), file=f)
 
-                        tf = os.path.join(args.rel_area, to.path, to.fn)
+                        tf = to.repopath.abspath(args.rel_area)
                         if not os.path.exists(tf):
                             # this shouldn't happen with a full mirror
                             logging.error("tarfile %s not found" % (tf))

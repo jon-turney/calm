@@ -55,6 +55,25 @@ class Kind(Enum):
     source = 2
 
 
+# a path inside a package repository (e.g relative to relarea)
+class RepoPath():
+    def __init__(self, _arch=None, _path=None, _fn=None):
+        self.arch = _arch
+        self.path = _path
+        self.fn = _fn
+
+    # convert to a path, absolute if given a base directory
+    def abspath(self, basedir=None):
+        pc = [self.arch, 'release', self.path, self.fn]
+        if basedir:
+            pc.insert(0, basedir)
+        return os.path.join(*pc)
+
+    # convert to a MoveList tuple
+    def move(self):
+        return (os.path.join(self.arch, 'release', self.path), self.fn)
+
+
 # information we keep about a package
 class Package(object):
     def __init__(self):
@@ -100,22 +119,20 @@ class Package(object):
 # information we keep about a tar file
 class Tar(object):
     def __init__(self):
-        self.path = None  # path to tar, relative to release area
-        self.fn = None    # filename
+        self.repopath = RepoPath()  # pathname of tar archive
         self.sha512 = ''
         self.size = 0
         self.is_empty = False
         self.is_used = False
 
     def __repr__(self):
-        return "Tar('%s', '%s', '%s', %d, %s)" % (self.fn, self.path, self.sha512, self.size, self.is_empty)
+        return "Tar('%s', '%s', '%s', %d, %s)" % (self.repopath.fn, os.path.join(self.repopath.arch, 'release', self.repopath.path), self.sha512, self.size, self.is_empty)
 
 
 # information we keep about a hint file
 class Hint(object):
     def __init__(self):
-        self.path = None  # path to hint, relative to release area
-        self.fn = None    # filename of hint
+        self.repopath = RepoPath()  # pathname of hint file
         self.hints = {}   # XXX: duplicates version_hints, for the moment
 
 
@@ -322,7 +339,8 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
         return True
 
     # check for duplicate package names at different paths
-    (_, _, pkgpath) = relpath.split(os.sep, 2)
+    (arch, release, pkgpath) = relpath.split(os.sep, 2)
+    assert release == 'release'
     pn = p + ('-src' if kind == Kind.source else '')
 
     if pn in packages:
@@ -413,8 +431,9 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
 
             # collect the attributes for each tar file
             t = Tar()
-            t.path = relpath
-            t.fn = f
+            t.repopath.arch = arch
+            t.repopath.path = pkgpath
+            t.repopath.fn = f
             t.size = os.path.getsize(os.path.join(dirpath, f))
             t.is_empty = tarfile_is_empty(os.path.join(dirpath, f))
             t.mtime = os.path.getmtime(os.path.join(dirpath, f))
@@ -458,8 +477,9 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
             pvr_hint['external-source'] += '-src'
 
         hintobj = Hint()
-        hintobj.path = relpath
-        hintobj.fn = hint_fn
+        hintobj.repopath.arch = arch
+        hintobj.repopath.path = pkgpath
+        hintobj.repopath.fn = hint_fn
         hintobj.hints = pvr_hint
 
         version_hints[ovr] = pvr_hint
@@ -1245,7 +1265,7 @@ def write_setup_ini(args, packages, arch):
 # helper function to output details for a particular tar file
 def tar_line(p, category, v, f):
     to = p.tar(v)
-    fn = os.path.join(to.path, to.fn)
+    fn = to.repopath.abspath()
     sha512 = to.sha512
     size = to.size
     print("%s: %s %d %s" % (category, fn, size, sha512), file=f)
@@ -1391,12 +1411,12 @@ def delete(packages, path, fn):
     for p in packages:
         if packages[p].pkgpath == pkgpath:
             for vr in packages[p].tarfiles:
-                if packages[p].tarfiles[vr].fn == fn:
+                if packages[p].tarfiles[vr].repopath.fn == fn:
                     del packages[p].tarfiles[vr]
                     break
 
             for h in packages[p].hints:
-                if packages[p].hints[h].fn == fn:
+                if packages[p].hints[h].repopath.fn == fn:
                     del packages[p].hints[h]
                     del packages[p].version_hints[h]
                     break
@@ -1576,7 +1596,7 @@ def stale_packages(packages):
             all_stale[v] = True
             if getattr(po.tar(v), 'fresh', Freshness.stale) != Freshness.fresh:
                 to = po.tar(v)
-                stale.add(to.path, to.fn)
+                stale.add(*to.repopath.move())
                 logging.debug("package '%s' version '%s' is stale" % (pn, v))
             else:
                 all_stale[v] = False
@@ -1586,7 +1606,7 @@ def stale_packages(packages):
             # same version (including version: overrides), move it as well
             ov = po.hints[v].hints.get('original-version', v)
             if all_stale.get(v, True) and all_stale.get(ov, True):
-                stale.add(po.hints[v].path, po.hints[v].fn)
+                stale.add(*po.hints[v].repopath.move())
                 logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
 
         # clean up freshness mark
