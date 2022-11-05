@@ -60,6 +60,9 @@ ORPHANMAINT = '/'.join([
 # architectures we support
 ARCHES = ['x86', 'x86_64']
 
+# architectures we no longer support
+ARCHIVED_ARCHES = ['x86']
+
 # base directory for HTML output
 HTDOCS = '/www/sourceware/htdocs/cygwin/'
 

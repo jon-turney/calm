@@ -253,6 +253,13 @@ def scan(scandir, m, all_packages, arch, args):
                     files.remove(f)
                     continue
 
+            # ignore uploads for archived arches
+            if arch in common_constants.ARCHIVED_ARCHES:
+                logging.warning("discarding %s, %s architecture is archived and read-only" % (fn, arch))
+                files.remove(f)
+                remove.append(fn)
+                continue
+
             # does file already exist in release area?
             dest = os.path.join(args.rel_area, relpath, f)
             if os.path.isfile(dest):
