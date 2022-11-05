@@ -33,16 +33,10 @@ hyphen_in_version = {
     'email': ['3.2.1-git', '3.2.3-git'],
     'email-debuginfo': ['3.2.1-git', '3.2.3-git'],
     'fdupes': ['1.50-PR2'],
-    'fftw3': ['3.3.6-pl1'],
-    'fftw3-debuginfo': ['3.3.6-pl1'],
-    'fftw3-doc': ['3.3.6-pl1'],
     'gendef': ['1.0-svn2931'],
     'gendef-debuginfo': ['1.0-svn2931'],
     'hidapi': ['0.8.0-rc1'],
     'hidapi-debuginfo': ['0.8.0-rc1'],
-    'libfftw3_3': ['3.3.6-pl1'],
-    'libfftw3-devel': ['3.3.6-pl1'],
-    'libfftw3-omp3': ['3.3.6-pl1'],
     'libhidapi-devel': ['0.8.0-rc1'],
     'libhidapi0': ['0.8.0-rc1'],
     'libmangle': ['1.0-svn2930'],
@@ -54,15 +48,12 @@ hyphen_in_version = {
     'mingw64-x86_64-hidapi-debuginfo': ['0.8.0-rc1'],
     'recode': ['3.7-beta2'],
     'recode-debuginfo': ['3.7-beta2'],
-    'tack': ['1.07-20130713', '1.07-20150606'],
-    'tack-debuginfo': ['1.07-20130713', '1.07-20150606'],
-    'xemacs-mule-sumo': ['2007-04-27'],
-    'xemacs-sumo': ['2007-04-27'],
-    'xview': ['3.2p1.4-28'],
-    'xview-devel': ['3.2p1.4-28'],
+    'tack': ['1.07-20150606'],
+    'tack-debuginfo': ['1.07-20150606'],
 }
 
-# cygport places this into the requires of every debuginfo package
+# cygport places this into the requires of every debuginfo package, including
+# cygwin-debuginfo itself
 self_requires = [
     'cygwin-debuginfo'
 ]
@@ -73,29 +64,8 @@ self_source = [
     'R_autorebase',
     '_update-info-dir',
     'base-cygwin',
-    'base-files',  # older versions were self-source, but current one isn't
     'chere',
     'cygcheck-dep',
-    'gcc4-core',
-    'gcc4-g++',
-    'tesseract-ocr-deu',  # unclear how these are delivered by upstream and how they are packaged
-    'tesseract-ocr-deu-f',
-    'tesseract-ocr-eng',
-    'tesseract-ocr-fra',
-    'tesseract-ocr-ita',
-    'tesseract-ocr-nld',
-    'tesseract-ocr-por',
-    'tesseract-ocr-spa',
-    'tesseract-ocr-vie',
-    'tesseract-training-core',
-    'tesseract-training-deu',
-    'tesseract-training-eng',
-    'tesseract-training-fra',
-    'tesseract-training-ita',
-    'tesseract-training-nld',
-    'tesseract-training-por',
-    'tesseract-training-spa',
-    'tesseract-training-vie',
 ]
 
 # these are packages which currently have versions different to all the other
@@ -139,7 +109,6 @@ nonunique_versions = [
 #
 # don't add to this list, use 'disable-check: empty-obsolete' in pvr.hint instead
 empty_but_not_obsolete = {
-    'freeglut-doc': ['3.0.0-1', '3.2.1-1'],                # should be obsoleted by libglut-devel which contains doc now
     'isl': ['0.16.1-1'],                                   # useless empty package, not autosupressed as it has depends
     'libpopt-devel': ['1.16-1'],                           # version 1.16-1 was empty (x86_64)
     'libpopt0': ['1.16-1'],                                # version 1.16-1 was empty
@@ -153,21 +122,14 @@ empty_but_not_obsolete = {
 #
 # don't add to this list, use 'disable-check: curr-most-recent' in override.hint instead
 mtime_anomalies = [
-    'gcc-java',
     'gcc-tools-epoch2-autoconf',
     'gcc-tools-epoch2-autoconf-src',
-    'gv-debuginfo',
-    'libgcj-common',
-    'libgcj16',
-    'python-gtk2.0',
 ]
 
 # packages with maintainer anomalies
 #
 # don't add to this list, fix the package
 maint_anomalies = {
-    'libelf0': ['0.8.13-2'],  # libelf is called libelf0 in x86 arch
-    'libelf0-devel': ['0.8.13-2'],
     'manlint': ['1.6g-2'],  # unclear why this is under man
     'python3-h5py-debuginfo': ['2.9.0-1'],  # superceded by python-h5py-debuginfo
 }
@@ -196,8 +158,8 @@ missing_obsolete = {
 nonexistent_provides = [
     '_windows',
     'perl5_026',
-    'rdiff-debuginfo',           # not in x86
-    'rxvt-unicode-X-debuginfo',  # not in x86_64
+    'rdiff-debuginfo',
+    'rxvt-unicode-X-debuginfo',
     'xfce4-mixer-debuginfo',
     'python3-dbus-debuginfo',
 ]
@@ -208,19 +170,8 @@ nonexistent_provides = [
 # depends on it's replacement, and so are a lingering remnant of something not
 # properly obsoleted)
 empty_source = {
-    'SuiteSparse-src': ['4.0.2-1'],
-    'ash-src': ['20040127-5'],                   # obsoleted by dash
-    'checkx-src': ['0.2.1-1'],                   # obsoleted by run2
-    'db4.8-src': ['4.8.30-2'],                   # obsoleted by db
-    'gcc-tools-autoconf-src': ['2.59-11'],       # obsoleted by gcc-tools-epoch{1,2}-autoconf
-    'gcc-tools-automake-src': ['1.9.6-11'],      # obsoleted by gcc-tools-epoch{1,2}-automake
-    'lzma-src': ['4.32.7-10'],                   # obsoleted by xz
-    'mlcscope-src': ['99-1'],                    # obsoleted by cscope
-    'octave-forge-src': ['20140215-1'],
     'octave-octcdf-src': ['1.1.7-99'],
     'perl-File-Slurp-Unicode-src': ['0.7.1-2'],  # obsoleted by perl-File-Slurp
-    'pinentry-qt3-src': ['0.7.6-3'],             # obsoleted by pinentry-qt
-    'xerces-c-devel-src': ['2.8.0-1'],           # obsoleted by libxerces-c-devel
 }
 
 # additional data for the heuristic for upgrading old-style obsoletion packages
@@ -228,10 +179,6 @@ old_style_obsolete_by = {
     'at-spi2-atk': 'libatk-bridge2.0_0',
     'qt-gstreamer': 'libQtGStreamer1_0_0',
     'lighttpd-mod_trigger_b4_dl': 'lighttpd',
-    # these require: both epoch1 and epoch2 replacements, but epoch1 contains
-    # the same version
-    'gcc-tools-autoconf': 'gcc-tools-epoch1-autoconf',
-    'gcc-tools-automake': 'gcc-tools-epoch1-automake',
     # these are odd and only exist to record an optional dependency on the
     # language runtime (dynamically loaded at runtime), which is also noted in
     # build-requires:
@@ -240,21 +187,6 @@ old_style_obsolete_by = {
     'vim-python': 'vim',
     'vim-python3': 'vim',
     'vim-ruby': 'vim',
-    # (An empty replacement means "don't apply this heuristic". We use that to
-    # not bother with some x86-only packages which have complex replacements,
-    # since they will be going away relatively soon anyhow...)
-    'SuiteSparse': '',
-    'libSuiteSparse-devel': '',
+    # (An empty replacement means "don't apply this heuristic")
     'libksba': '',
-    'libstdc++6-devel': '',
-    'octave-forge': '',
-    'plotutils-devel': '',
-    'rpm-doc': '',
-    'tetex-base': '',
-    'tetex-bin': '',
-    'tetex-extra': '',
-    'tetex-tiny': '',
-    'tetex-x11': '',
-    'texlive-collection-langtibetan': '',
-    'texlive-collection-texinfo': '',
 }
