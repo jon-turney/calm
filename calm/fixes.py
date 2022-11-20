@@ -98,8 +98,8 @@ class NoRedirection(urllib.request.HTTPErrorProcessor):
 def follow_redirect(homepage):
     opener = urllib.request.build_opener(NoRedirection)
     opener.addheaders = [('User-Agent', 'calm')]
-    request = urllib.request.Request(homepage, method='HEAD')
     try:
+        request = urllib.request.Request(homepage, method='HEAD')
         response = opener.open(request, timeout=60)
         if response.code in [301, 308]:
             return response.headers['Location']
