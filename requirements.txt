@@ -1,4 +1,4 @@
-flake8
+flake8<6
 flake8-blind-except
 flake8-bugbear ; python_version >= "3.5"
 flake8-builtins
