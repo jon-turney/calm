@@ -90,7 +90,7 @@ hintkeys[override] = {
     'keep-count': 'val',
     'keep-count-test': 'val',
     'keep-days': 'val',
-    'keep-superseded-versions': 'noval',
+    'keep-superseded-test': 'noval',
     'disable-check': 'val',
     'replace-versions': 'val',
 }
