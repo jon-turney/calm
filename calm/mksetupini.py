@@ -131,7 +131,7 @@ def main():
     disable_check_choices = choiceList(['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package', 'curr-most-recent'])
 
     parser = argparse.ArgumentParser(description='Make setup.ini')
-    parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
+    parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES + common_constants.ARCHIVED_ARCHES)
     parser.add_argument('--disable-check', action=flatten_append, help='checks to disable', type=disable_check_choices, default=[], metavar=disable_check_choices.help())
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--okmissing', action='append', help='superseded by --disable-check', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
