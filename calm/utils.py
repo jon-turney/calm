@@ -125,3 +125,36 @@ def system(args):
     else:
         for l in output.decode().splitlines():
             logging.info(l)
+
+
+#
+# This provides a simple wrapper around a function which takes a pathname as
+# it's only parameter.  The result is cached as long as the mtime of the
+# pathname is unchanged.
+#
+def mtime_cache(user_function):
+    sentinel = object()          # unique object used to signal cache misses
+    cache = {}
+
+    def wrapper(key):
+        # make sure path is absolute
+        key = os.path.abspath(key)
+
+        (result, mtime) = cache.get(key, (sentinel, 0))
+
+        new_mtime = os.path.getmtime(key)
+
+        # cache hit
+        if result is not sentinel:
+            # cache valid
+            if new_mtime == mtime:
+                return result
+            else:
+                logging.debug('%s cache invalidated by mtime change' % key)
+
+        # cache miss
+        result = user_function(key)
+        cache[key] = (result, new_mtime)
+        return result
+
+    return wrapper
