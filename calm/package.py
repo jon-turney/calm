@@ -620,6 +620,11 @@ def upgrade_oldstyle_obsoletes(packages):
                                 logging.warning('%s %s is obsoleted by %d packages (%s)' % (p, vr, len(requires), requires))
                                 continue
 
+                        # ignore if o it's blacklisted
+                        if o in ['cygwin-debuginfo', 'calligra-libs']:
+                            logging.debug("not adding 'obsoletes: %s' to '%s' as blacklisted" % (p, o))
+                            continue
+
                         if o in packages:
                             if o not in missing_obsolete:
                                 missing_obsolete[o] = set()
