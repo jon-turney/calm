@@ -579,8 +579,20 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
     certain_age = time.time() - (OBSOLETE_CONVERT_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for _obsolete package to be considered for conversion is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
 
+    explicitly_obsoleted = set()
+    for p in packages:
+        for vr in packages[p].versions():
+            obsoletes = packages[p].version_hints[vr].get('obsoletes', '').split(',')
+            obsoletes = [o.strip() for o in obsoletes]
+            obsoletes = [o for o in obsoletes if o]
+            explicitly_obsoleted.update(obsoletes)
+
     for p in sorted(packages):
         if packages[p].kind == Kind.binary:
+            # skip packages which are already obsoleted by another package
+            if p in explicitly_obsoleted:
+                continue
+
             for vr in packages[p].versions():
                 # initially apply to a subset over a certain age, to gradually
                 # introduce this change
