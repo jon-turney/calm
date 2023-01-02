@@ -735,7 +735,7 @@ def main():
     parser.add_argument('--stagingdir', action='store', metavar='DIR', help="automated build staging directory (default: " + stagingdir_default + ")", default=stagingdir_default)
     parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")
     parser.set_defaults(stale=True)
-    parser.add_argument('--reports', action='store_true', dest='reports', help="don't produce reports", default=None)
+    parser.add_argument('--reports', action='store_true', dest='reports', help="produce reports (default: off unless daemonized)", default=None)
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('--vault', action='store', metavar='DIR', help="vault directory (default: " + vault_default + ")", default=vault_default, dest='vault')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')

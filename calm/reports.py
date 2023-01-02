@@ -173,7 +173,7 @@ def deprecated(args, packages, reportsdir):
     body = io.StringIO()
     print(textwrap.dedent('''\
     <p>Packages for old soversions. (The corresponding source package produces a
-    newer soversion, or has stopped producing this soversion).</p>'''), file=body)
+    newer soversion, or has stopped producing this solib).</p>'''), file=body)
 
     print('<table class="grid">', file=body)
     print('<tr><th>package</th><th>version</th><th>timestamp</th><th>rdepends</th></tr>', file=body)

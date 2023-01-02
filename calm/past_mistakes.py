@@ -84,12 +84,10 @@ nonunique_versions = [
     'kexi',                       # split out from calligra
     'kfilereplace',               # split out from kdewebdev
     'libcaca-doc',                # dropped pending fix for current doxygen
-    'libflint',                   # no number means it isn't considered an old soversion
     'libfltk-doc',
     'libgcj-common',              # dropped from gcc 6
     'libical_cxx-devel',
     'libquota-devel',             # no longer provided by e2fsprogs
-    'libturbojpeg',               # no number means it isn't considered an old soversion
     'libtxc_dxtn',                # split out from s2tc
     'mingw64-i686-poppler-qt4',   # dropped since 0.62.0
     'mingw64-i686-spice-gtk2.0',  # gtk2 dropped from spice-gtk
