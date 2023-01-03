@@ -91,4 +91,4 @@ PACKAGE_COMPRESSIONS_RE = r'\.(' + '|'.join(PACKAGE_COMPRESSIONS) + r')'
 # inspecting the contents (but that's expensive to do). for the moment, we
 # recognize soversion packages by the simple heuristic of looking at the package
 # name
-SOVERSION_PACKAGE_RE = r'^(lib|girepository-).*[\d_.]+$|^libflint$|^libturbojpeg$'
+SOVERSION_PACKAGE_RE = r'^(lib|girepository-).*[\d_.]+$|^libflint$'
