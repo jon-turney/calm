@@ -593,7 +593,20 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
             if p in explicitly_obsoleted:
                 continue
 
-            for vr in packages[p].versions():
+            for vr in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
+                # we only really want to consider packages where the current
+                # version is obsolete.
+                #
+                # (if older versions are obsolete and we were somehow
+                # un-obsoleted, we'd need to somehow infer version constraints
+                # on the obsoletions, or something)
+                #
+                # as a proxy for that, stop considering versions of this package
+                # when one isn't obsolete, don't consider older versions
+                if not (packages[p].tar(vr).is_empty and
+                        '_obsolete' in packages[p].version_hints[vr]['category']):
+                    break
+
                 # initially apply to a subset over a certain age, to gradually
                 # introduce this change
                 mtime = packages[p].tar(vr).mtime
@@ -601,43 +614,41 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
                     continue
                 logging.debug("_obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (p, vr, time.strftime("%F %T %Z", time.localtime(mtime))))
 
-                if packages[p].tar(vr).is_empty:
-                    if '_obsolete' in packages[p].version_hints[vr]['category']:
-                        requires = packages[p].version_hints[vr].get('depends', '').split(', ')
-                        requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
+                requires = packages[p].version_hints[vr].get('depends', '').split(', ')
+                requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
 
-                        if p in past_mistakes.old_style_obsolete_by:
-                            o = past_mistakes.old_style_obsolete_by[p]
+                if p in past_mistakes.old_style_obsolete_by:
+                    o = past_mistakes.old_style_obsolete_by[p]
 
-                            # empty replacement means "ignore"
-                            if not o:
-                                continue
+                    # empty replacement means "ignore"
+                    if not o:
+                        continue
 
-                            logging.debug('%s is hardcoded as obsoleted by %s ' % (p, o))
+                    logging.debug('%s is hardcoded as obsoleted by %s ' % (p, o))
 
-                        else:
-                            # ignore self-destruct packages
-                            provides = packages[p].version_hints[vr].get('provides', '')
-                            if '_self-destruct' in provides:
-                                continue
+                else:
+                    # ignore self-destruct packages
+                    provides = packages[p].version_hints[vr].get('provides', '')
+                    if '_self-destruct' in provides:
+                        continue
 
-                            if len(requires) == 0:
-                                # obsolete but has no replacement
-                                logging.warning('%s is obsolete, but has no replacement' % (p))
-                                continue
-                            elif len(requires) == 1:
-                                o = requires[0]
-                            elif len(requires) >= 2:
-                                # obsolete with multiple replacements (pick one?)
-                                logging.warning('%s %s is obsoleted by %d packages (%s)' % (p, vr, len(requires), requires))
-                                continue
+                    if len(requires) == 0:
+                        # obsolete but has no replacement
+                        logging.warning('%s is obsolete, but has no replacement' % (p))
+                        continue
+                    elif len(requires) == 1:
+                        o = requires[0]
+                    elif len(requires) >= 2:
+                        # obsolete with multiple replacements (pick one?)
+                        logging.warning('%s %s is obsoleted by %d packages (%s)' % (p, vr, len(requires), requires))
+                        continue
 
-                        if o in packages:
-                            if o not in missing_obsolete:
-                                missing_obsolete[o] = set()
+                if o in packages:
+                    if o not in missing_obsolete:
+                        missing_obsolete[o] = set()
 
-                            missing_obsolete[o].add(p)
-                            logging.info("converting from empty, _obsolete category package '%s' to 'obsoletes: %s' in package '%s'" % (p, p, o))
+                    missing_obsolete[o].add(p)
+                    logging.info("converting from empty, _obsolete category package '%s' to 'obsoletes: %s' in package '%s'" % (p, p, o))
 
     return missing_obsolete
 
