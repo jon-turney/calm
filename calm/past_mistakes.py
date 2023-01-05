@@ -168,6 +168,7 @@ nonexistent_provides = [
 # depends on it's replacement, and so are a lingering remnant of something not
 # properly obsoleted)
 empty_source = {
+    'catgets-src': ['2.10.0-1'],
     'octave-octcdf-src': ['1.1.7-99'],
     'perl-File-Slurp-Unicode-src': ['0.7.1-2'],  # obsoleted by perl-File-Slurp
 }
