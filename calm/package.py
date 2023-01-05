@@ -605,9 +605,13 @@ def upgrade_oldstyle_obsoletes(packages):
                 requires = packages[p].version_hints[vr].get('depends', '').split(', ')
                 requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
 
-                if p in past_mistakes.old_style_obsolete_by:
-                    o = past_mistakes.old_style_obsolete_by[p]
+                o = None
+                for oso_re, oso_o in past_mistakes.old_style_obsolete_by.items():
+                    if re.match(r'^' + oso_re + r'$', p):
+                        o = oso_o
+                        break
 
+                if o is not None:
                     # empty replacement means "ignore"
                     if not o:
                         continue

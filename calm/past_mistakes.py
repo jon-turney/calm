@@ -188,6 +188,8 @@ old_style_obsolete_by = {
     'vim-python3': 'vim',
     'vim-ruby': 'vim',
     # (An empty replacement means "don't apply this heuristic")
+    # we have other plans for 'python3-*' packages, they will become virtuals
+    'python3-.*': '',
     # these packages probably should be marked as self-destruct?
     'mate-utils': '',
     'texlive-collection-htmlxml': '',
