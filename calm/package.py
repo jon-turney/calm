@@ -674,6 +674,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
             valid_requires.update(hints.get('provides', '').split())
 
             # reset computed package state
+            packages[p].has_requires = False
             packages[p].obsolete = False
             packages[p].rdepends = set()
             packages[p].build_rdepends = set()
@@ -681,9 +682,6 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
 
     # perform various package validations
     for p in sorted(packages.keys()):
-        logging.log(5, "validating package '%s'" % (p))
-        has_requires = False
-
         for (v, hints) in packages[p].version_hints.items():
             for (c, okmissing, splitchar) in [
                     ('depends', 'missing-depended-package', ','),
@@ -706,7 +704,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
                             # cygport always makes debuginfo packages require
                             # that, even if they are empty
                             if r != 'cygwin-debuginfo':
-                                has_requires = True
+                                packages[p].has_requires = True
 
                         # a package should not appear in it's own hint
                         if r == p:
@@ -726,29 +724,38 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
                             logging.error("package '%s' version '%s' %s source package '%s'" % (p, v, c, r))
                             error = True
 
-            # some old packages are missing needed obsoletes:, add them where
-            # needed, and make sure the uploader is warned if/when package is
-            # updated
-            for mo in [past_mistakes.missing_obsolete, missing_obsolete_extra]:
-                if p in mo:
-                    obsoletes = packages[p].version_hints[v].get('obsoletes', '').split(',')
-                    obsoletes = [o.strip() for o in obsoletes]
-                    obsoletes = [o for o in obsoletes if o]
-
-                    # XXX: this needs to recurse so we don't drop transitive missing obsoletes?
-                    needed = mo[p]
-                    for n in sorted(needed):
-                        if n not in obsoletes:
-                            obsoletes.append(n)
-                            packages[p].version_hints[v]['obsoletes'] = ', '.join(obsoletes)
-                            logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
-
             # if external-source is used, the package must exist
             if 'external-source' in hints:
                 e = hints['external-source']
                 if e not in packages:
                     logging.error("package '%s' version '%s' refers to non-existent or errored external-source '%s'" % (p, v, e))
                     error = True
+
+            # some old packages are missing needed obsoletes:, add them where
+            # needed, and make sure the uploader is warned if/when package is
+            # updated
+    for mo in [past_mistakes.missing_obsolete, missing_obsolete_extra]:
+        for p in mo:
+            if p in packages:
+                for v in packages[p].version_hints:
+
+                    obsoletes = packages[p].version_hints[v].get('obsoletes', '').split(',')
+                    obsoletes = [o.strip() for o in obsoletes]
+                    obsoletes = [o for o in obsoletes if o]
+
+                    def add_needed_obsoletes(needed):
+                        for n in sorted(needed):
+                            if n not in obsoletes:
+                                obsoletes.append(n)
+                                packages[p].version_hints[v]['obsoletes'] = ', '.join(obsoletes)
+                                logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
+
+                            # recurse so we don't drop transitive missing obsoletes
+                            if n in mo:
+                                logging.debug("recursing to examine obsoletions of '%s' for adding to '%s'" % (n, p))
+                                add_needed_obsoletes(mo[n])
+
+                    add_needed_obsoletes(mo[p])
 
         # If package A is obsoleted by package B, B should appear in the
         # requires: for A (so the upgrade occurs with pre-depends: aware
@@ -757,6 +764,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
         # versions of setup, which should just install B).  This condition can
         # occur since we might have synthesized the depends: from the requires:
         # in read_hints(), so fix that up here.
+    for p in sorted(packages):
         for hints in packages[p].version_hints.values():
             obsoletes = hints.get('obsoletes', '')
             if obsoletes:
@@ -791,7 +799,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
         # list is just confusing), so if it's not obsolete, mark it as
         # 'not_for_output'
         if packages[p].kind == Kind.binary:
-            if not has_nonempty_install and not has_requires and not obsolete:
+            if not has_nonempty_install and not packages[p].has_requires and not obsolete:
                 if not packages[p].not_for_output:
                     packages[p].not_for_output = True
                     logging.info("package '%s' has no non-empty install tarfiles and no dependencies, marking as 'not for output'" % (p))
