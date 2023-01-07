@@ -571,12 +571,12 @@ def sort_key(k):
 # generate a record to add an obsoletes: header to the replacement package.
 #
 
-OBSOLETE_AGE_THRESHOLD_YEARS = 20
+OBSOLETE_CONVERT_THRESHOLD_YEARS = 20
 
 
 def upgrade_oldstyle_obsoletes(packages):
     missing_obsolete = {}
-    certain_age = time.time() - (OBSOLETE_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
+    certain_age = time.time() - (OBSOLETE_CONVERT_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for _obsolete package to be considered for conversion is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
 
     for p in sorted(packages):
