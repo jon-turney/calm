@@ -604,6 +604,11 @@ def upgrade_oldstyle_obsoletes(packages):
                             logging.debug('%s is hardcoded as obsoleted by %s ' % (p, o))
 
                         else:
+                            # ignore self-destruct packages
+                            provides = packages[p].version_hints[vr].get('provides', '')
+                            if '_self-destruct' in provides:
+                                continue
+
                             if len(requires) == 0:
                                 # obsolete but has no replacement
                                 logging.warning('%s is obsolete, but has no replacement' % (p))
