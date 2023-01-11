@@ -678,6 +678,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
             packages[p].obsolete = False
             packages[p].rdepends = set()
             packages[p].build_rdepends = set()
+            packages[p].obsoleted_by = set()
             packages[p].orphaned = False
 
     # perform various package validations
@@ -910,13 +911,16 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
                         lvl = logging.ERROR
                     logging.log(lvl, "package '%s' version '%s' has empty source tar file" % (p, vr))
 
-    # build the set of packages which depends: on this package (rdepends), and
-    # the set of packages which build-depends: on it (build_rdepends)
+    # build inverted relations:
+    # the set of packages which depends: on this package (rdepends),
+    # the set of packages which build-depends: on it (build_rdepends), and
+    # the set of packages which obsoletes: it (obsoleted_by)
     for p in packages:
         for hints in packages[p].version_hints.values():
             for k, a in [
                     ('depends', 'rdepends'),
-                    ('build-depends', 'build_rdepends')
+                    ('build-depends', 'build_rdepends'),
+                    ('obsoletes', 'obsoleted_by'),
             ]:
                 if k in hints:
                     dpl = hints[k].split(',')
@@ -925,6 +929,11 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
                         dp = re.sub(r'(.*)\s+\(.*\)', r'\1', dp)
                         if dp in packages:
                             getattr(packages[dp], a).add(p)
+
+    # warn about multiple obsoletes of same package
+    for p in sorted(packages.keys()):
+        if len(packages[p].obsoleted_by) >= 2:
+            logging.debug("package '%s' is obsoleted by more than one package: %s" % (p, ','.join(packages[p].obsoleted_by)))
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
