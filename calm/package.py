@@ -714,7 +714,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
 
                         # all packages listed in a hint must exist (unless the
                         # disable-check option says that's ok)
-                        if (r not in valid_requires) and (r not in past_mistakes.nonexistent_provides):
+                        if (r not in valid_requires) and (r not in past_mistakes.nonexistent_provides + past_mistakes.expired_provides):
                             if okmissing not in getattr(args, 'disable_check', []):
                                 logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, v, c, r))
                                 error = True
@@ -1541,6 +1541,8 @@ def stale_packages(packages):
         if po.kind != Kind.binary:
             continue
 
+        mark = Freshness.fresh
+
         # 'conditional' package retention means the package is weakly retained.
         # This allows total expiry when a source package no longer provides
         # anything useful:
@@ -1548,14 +1550,14 @@ def stale_packages(packages):
         # - if all we have is a source package and a debuginfo package, then we
         # shouldn't retain anything.
         #
+        if pn.endswith('-debuginfo'):
+            mark = Freshness.conditional
+
         # - shared library packages which don't come from the current version of
         # source (i.e. is superseded or removed), have no packages from a
         # different source package which depend on them, and are over a certain
         # age
         #
-        mark = Freshness.fresh
-        if pn.endswith('-debuginfo'):
-            mark = Freshness.conditional
         bv = po.best_version
         es = po.version_hints[bv].get('external-source', None)
         if (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
@@ -1571,7 +1573,28 @@ def stale_packages(packages):
 
                 mark = dep_so_age_mark
 
-        elif 'noretain' in po.override_hints:
+        # - if package depends on anything in expired_provides
+        #
+        all_reqs = set.union(*(set(po.version_hints[v].get('depends', '').split(', ')) for v in po.versions()))
+        if all_reqs.intersection(set(past_mistakes.expired_provides)):
+            def expired_provides_mark(v):
+                requires = po.version_hints[v].get('depends', '').split(', ')
+                if any(ep in requires for ep in past_mistakes.expired_provides):
+                    # XXX: for the moment, don't allow this to expire the
+                    # current version, though!
+                    if v != po.best_version:
+                        logging.info("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
+                        return Freshness.conditional
+                    else:
+                        logging.info("package '%s' version '%s' requires a provide known to be expired, but not expired as it's the current version" % (pn, v))
+
+                return Freshness.fresh
+
+            mark = expired_provides_mark
+
+        # - explicitly marked as 'noretain'
+        #
+        if 'noretain' in po.override_hints:
             def noretain_hint_mark(v):
                 noretain_versions = po.override_hints.get('noretain', '').split()
                 if (v in noretain_versions) or ('all' in noretain_versions):

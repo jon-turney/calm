@@ -163,6 +163,10 @@ nonexistent_provides = [
     'python3-dbus-debuginfo',
 ]
 
+# provides: which don't exist and packages which require them should be expired
+expired_provides = [
+]
+
 # empty source packages
 #
 # (these usually have a corresponding hand-built empty install package, which
