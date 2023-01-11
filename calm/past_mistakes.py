@@ -156,6 +156,7 @@ missing_obsolete = {
 nonexistent_provides = [
     '_windows',
     'perl5_026',
+    'python26',
     'rdiff-debuginfo',
     'rxvt-unicode-X-debuginfo',
     'xfce4-mixer-debuginfo',
