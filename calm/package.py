@@ -362,6 +362,10 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
         logging.error("package '%s' name contains illegal characters" % p)
         return True
 
+    if re.search(r'-\d', p):
+        logging.error("package '%s' name contains hyphen followed a digit" % p)
+        return True
+
     # assumption: no real package names end with '-src'
     #
     # enforce this, because source and install package names exist in a
