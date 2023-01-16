@@ -665,7 +665,7 @@ def upgrade_oldstyle_obsoletes(packages):
 #
 # validate the package database
 #
-def validate_packages(args, packages, valid_requires_extra=None, missing_obsolete_extra=None):
+def validate_packages(args, packages, valid_provides_extra=None, missing_obsolete_extra=None):
     error = False
 
     if packages is None:
@@ -674,11 +674,8 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
     if missing_obsolete_extra is None:
         missing_obsolete_extra = {}
 
-    # build the set of valid things to requires: etc.
+    # build the set of valid things to depends: on
     valid_requires = set()
-
-    if valid_requires_extra:
-        valid_requires.update(valid_requires_extra)
 
     for p in packages:
         valid_requires.add(p)
@@ -693,23 +690,27 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
             packages[p].obsoleted_by = set()
             packages[p].orphaned = False
 
+    # it's also valid to obsoletes: packages which have been removed
+    valid_obsoletes = set(valid_requires)
+    if valid_provides_extra:
+        valid_obsoletes.update(valid_provides_extra)
+
     # perform various package validations
     for p in sorted(packages.keys()):
         for (v, hints) in packages[p].version_hints.items():
-            for (c, okmissing, splitchar) in [
-                    ('depends', 'missing-depended-package', ','),
-                    ('obsoletes', 'missing-obsoleted-package', ',')
+            for (c, okmissing, valid) in [
+                    ('depends', 'missing-depended-package', valid_requires),
+                    ('obsoletes', 'missing-obsoleted-package', valid_obsoletes)
             ]:
                 # if c is in hints, and not the empty string
                 if hints.get(c, ''):
-                    for r in hints[c].split(splitchar):
+                    for r in hints[c].split(','):
                         # remove any extraneous whitespace
                         r = r.strip()
 
                         # strip off any version relation enclosed in '()'
                         # following the package name
-                        if splitchar:
-                            r = re.sub(r'(.*) +\(.*\)', r'\1', r)
+                        r = re.sub(r'(.*) +\(.*\)', r'\1', r)
 
                         if c == 'depends':
                             # don't count cygwin-debuginfo for the purpose of
@@ -726,7 +727,7 @@ def validate_packages(args, packages, valid_requires_extra=None, missing_obsolet
 
                         # all packages listed in a hint must exist (unless the
                         # disable-check option says that's ok)
-                        if (r not in valid_requires) and (r not in past_mistakes.nonexistent_provides + past_mistakes.expired_provides):
+                        if (r not in valid) and (r not in past_mistakes.nonexistent_provides + past_mistakes.expired_provides):
                             if okmissing not in getattr(args, 'disable_check', []):
                                 logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, v, c, r))
                                 error = True
