@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Jon Turney
+# Copyright (c) 2023 Jon Turney
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,15 @@
 import argparse
 import logging
 import os
-import re
 import sys
+import types
 
 from . import common_constants
+from . import db
 from . import tool_util
 
 
-def untest(pvr):
+def vault(pvr):
     p, vr = tool_util.split(pvr)
     if not p:
         return
@@ -39,44 +40,22 @@ def untest(pvr):
     if not tool_util.permitted(p):
         return
 
-    # remove '^test:' lines from any package and subpackage hints
-    removed = 0
-    total = 0
-    for arch in common_constants.ARCHES + ['noarch']:
-        for (dirpath, _subdirs, files) in os.walk(os.path.join(common_constants.FTP, arch, 'release', p)):
-            for f in files:
-                if re.match(r'.*-' + re.escape(vr) + '(|-src).hint$', f):
-                    total = total + 1
-                    fn = os.path.join(dirpath, f)
+    args = types.SimpleNamespace()
+    args.htdocs = os.path.join(common_constants.HTDOCS, 'packages')
 
-                    with open(fn) as fh:
-                        content = fh.read()
-
-                    if re.search(r'^test:', content, re.MULTILINE):
-                        content = re.sub(r'^test:\s*$', '', content, 0, re.MULTILINE)
-
-                        with open(fn, 'w') as fh:
-                            fh.write(content)
-
-                        logging.info("Removed test: label from %s" % os.path.relpath(fn, common_constants.FTP))
-                        removed = removed + 1
-
-    if removed == 0:
-        logging.error("'%s' is not marked test" % pvr)
-    else:
-        logging.info("%d out of %d hints for '%s' version '%s' modified" % (removed, total, p, vr))
+    db.vault_request_add(args, p, vr)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='remove test: hint')
+    parser = argparse.ArgumentParser(description='mark packages for vaulting')
     parser.add_argument('package', nargs='+', metavar='SPVR')
     (args) = parser.parse_args()
 
     logging.getLogger().setLevel(logging.INFO)
-    logging.basicConfig(format='untest: %(message)s')
+    logging.basicConfig(format='vault: %(message)s')
 
     for p in args.package:
-        untest(p)
+        vault(p)
 
 
 if __name__ == "__main__":

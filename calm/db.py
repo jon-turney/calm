@@ -42,6 +42,12 @@ def connect(args):
     conn.execute('''CREATE TABLE IF NOT EXISTS historic_package_names
                     (name TEXT NOT NULL PRIMARY KEY
                     )''')
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS vault_requests
+                    (srcpackage TEXT NOT NULL,
+                     vr TEXT NOT NULL
+                    )''')
+
     conn.commit()
 
     return conn
@@ -71,3 +77,30 @@ def update_package_names(args, packages):
     # - names which the removed package provide:d
     # - other packages which might provide: the name of a removed package
     return (historic_names - current_names)
+
+
+#
+# vault requests made via 'calm-tool vault'
+#
+def vault_requests(args):
+    requests = {}
+
+    with connect(args) as conn:
+        conn.row_factory = sqlite3.Row
+
+        cur = conn.execute("SELECT * FROM vault_requests")
+        for row in cur.fetchall():
+            spkg = row['srcpackage']
+            if spkg not in requests:
+                requests[spkg] = set()
+            requests[spkg].add(row['vr'])
+
+        # remove all rows
+        cur = conn.execute("DELETE FROM vault_requests")
+
+    return requests
+
+
+def vault_request_add(args, p, v):
+    with connect(args) as conn:
+        conn.execute('INSERT INTO vault_requests (srcpackage, vr) VALUES (?,?)', (p, v))

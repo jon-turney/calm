@@ -1545,7 +1545,7 @@ def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
 SO_AGE_THRESHOLD_YEARS = 5
 
 
-def stale_packages(packages):
+def stale_packages(packages, vault_requests):
     certain_age = time.time() - (SO_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for soversion package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
 
@@ -1616,6 +1616,19 @@ def stale_packages(packages):
                     return Freshness.fresh
 
             mark = noretain_hint_mark
+
+        # - marked via 'calm-tool vault'
+        #
+        es = po.srcpackage(bv, suffix=False)
+        if es in vault_requests:
+            def vault_requests_mark(v):
+                if v in vault_requests[es]:
+                    logging.info("package '%s' version '%s' not retained due vault request" % (pn, v))
+                    return Freshness.conditional
+                else:
+                    return Freshness.fresh
+
+            mark = vault_requests_mark
 
         # mark any versions explicitly listed in the keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():

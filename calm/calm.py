@@ -314,11 +314,13 @@ def remove_stale_packages(args, packages, state):
     to_vault['noarch'] = MoveList()
     to_vault['src'] = MoveList()
 
+    vault_requests = db.vault_requests(args)
+
     for arch in common_constants.ARCHES:
         logging.debug("checking for stale packages for arch %s" % (arch))
 
         # find stale packages
-        to_vault[arch] = package.stale_packages(packages[arch])
+        to_vault[arch] = package.stale_packages(packages[arch], vault_requests)
 
         # remove stale packages from package set
         to_vault[arch].map(lambda p, f: package.delete(packages[arch], p, f))
