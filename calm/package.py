@@ -1086,13 +1086,11 @@ def validate_package_maintainers(args, packages):
     if not args.pkglist:
         return error
 
-    # read maintainer list
-    mlist = {}
-    mlist = maintainers.add_packages(mlist, args.pkglist)
-    pkg_maintainers = maintainers.invert(mlist)
+    # read package maintainer list
+    pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     # make the list of all packages
-    all_packages = maintainers.all_packages(mlist)
+    all_packages = pkg_maintainers.keys()
 
     # validate that all packages are in the package list
     for p in sorted(packages):
@@ -1120,7 +1118,7 @@ def validate_package_maintainers(args, packages):
                         logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
                         error = True
 
-                if 'ORPHANED' in pkg_maintainers[es_pn]:
+                if (es_pn in pkg_maintainers) and (pkg_maintainers[es_pn].is_orphaned()):
                     # note orphaned packages
                     packages[p].orphaned = True
 
@@ -1353,8 +1351,7 @@ def write_repo_json(args, packages, f):
     for arch in packages:
         package_list.update(packages[arch])
 
-    mlist = maintainers.read(args, None)
-    pkg_maintainers = maintainers.invert(mlist)
+    pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     pl = []
     for pn in sorted(package_list):
@@ -1397,8 +1394,8 @@ def write_repo_json(args, packages, f):
         if 'license' in po.version_hints[bv]:
             d['license'] = po.version_hints[bv]['license']
 
-        if pkg_maintainers[po.orig_name] and ('ORPHANED' not in pkg_maintainers[po.orig_name]):
-            d['maintainers'] = sorted(pkg_maintainers[po.orig_name])
+        if (po.orig_name in pkg_maintainers) and (not pkg_maintainers[po.orig_name].is_orphaned()):
+            d['maintainers'] = sorted(pkg_maintainers[po.orig_name].maintainers())
 
         pl.append(d)
 

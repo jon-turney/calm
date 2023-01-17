@@ -142,8 +142,7 @@ def update_package_listings(args, packages):
     summaries = os.path.join(args.htdocs, 'summary')
     ensure_dir_exists(args, summaries)
 
-    mlist = maintainers.read(args, None)
-    pkg_maintainers = maintainers.invert(mlist)
+    pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     toremove = glob.glob(os.path.join(summaries, '*'))
 
@@ -262,11 +261,14 @@ def update_package_listings(args, packages):
                     es_po = arch_package(packages, es)
                     if not es_po:
                         es_po = po
+
                     m_pn = es_po.orig_name
-                    if 'ORPHANED' in pkg_maintainers[m_pn]:
+                    if m_pn not in pkg_maintainers:
+                        m = None
+                    elif pkg_maintainers[m_pn].is_orphaned():
                         m = 'ORPHANED'
                     else:
-                        m = ', '.join(sorted(pkg_maintainers[m_pn]))
+                        m = ', '.join(sorted(pkg_maintainers[m_pn].maintainers()))
 
                     if m:
                         print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)

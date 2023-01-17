@@ -150,10 +150,10 @@ def process_relarea(args, state):
 
 def process_uploads(args, state):
     # read maintainer list
-    mlist = maintainers.read(args)
+    mlist = maintainers.maintainer_list(args)
 
     # make the list of all packages
-    all_packages = maintainers.all_packages(mlist)
+    all_packages = maintainers.all_packages(args.pkglist)
 
     # for each maintainer
     for name in sorted(mlist.keys()):
@@ -662,13 +662,13 @@ def mail_cb(state, loghandler):
 
     # send each maintainer mail containing log entries caused by their actions,
     # or pertaining to their packages
-    #
-    # XXX: prev_maint=False here is a kind of wrong: it prevents the previous
-    # maintainer of an orphaned package from getting mails about it being
-    # altered by a trusted maintainer, but also stops them getting mails if the
-    # do something themselves...
-    mlist = maintainers.read(state.args, prev_maint=False)
+    mlist = maintainers.maintainer_list(state.args)
     for m in mlist.values():
+        # may happen for previous maintainers who orphaned all their packages
+        # before an email became mandatory
+        if not m.email:
+            continue
+
         email = m.email
         if m.name == 'ORPHANED':
             email = common_constants.EMAILS.split(',')

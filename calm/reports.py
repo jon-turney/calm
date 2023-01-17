@@ -65,8 +65,7 @@ def linkify(pn, po):
 # produce a report of unmaintained packages
 #
 def unmaintained(args, packages, reportsdir):
-    mlist = maintainers.read(args, None)
-    pkg_maintainers = maintainers.invert(mlist)
+    pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     um_list = []
 
@@ -78,7 +77,7 @@ def unmaintained(args, packages, reportsdir):
         if po.kind != package.Kind.source:
             continue
 
-        if 'ORPHANED' not in pkg_maintainers[po.orig_name]:
+        if (po.orig_name not in pkg_maintainers) or (not pkg_maintainers[po.orig_name].is_orphaned()):
             continue
 
         # the highest version we have

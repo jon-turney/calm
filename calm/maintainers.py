@@ -35,18 +35,32 @@
 # - the timestamp when 'ignoring' warnings were last emitted
 #
 
-# XXX: Rather than this implementing an object which reads cygwin-pkg-maint when
-# constructed at specific places in the code, perhaps this needs to contain the
-# list (and it's inversion) and accessors, and invalidate that stored list when
-# cygwin-pkg-maint changes...
-
-import itertools
 import logging
 import os
 import re
-from collections import defaultdict
+from collections import UserString
 
 from . import utils
+
+
+#
+# MaintainerPackage object behaves like a string of the package name, but also
+# supports is_orphaned() and maintainers() methods
+#
+class MaintainerPackage(UserString):
+    def __init__(self, name, maintainers, orphaned):
+        super().__init__(name)
+        self._maintainers = maintainers
+        self._orphaned = orphaned
+
+    # XXX: for historical reasons, 'ORPHANED' still appears in the maintainer
+    # list, when this is True.  Probably should fix that...
+    def is_orphaned(self):
+        return self._orphaned
+
+    def maintainers(self):
+        return self._maintainers
+
 
 #
 #
@@ -128,17 +142,19 @@ def add_directories(mlist, homedirs):
                             m.quiet = True
                         elif l:
                             m.email.append(l)
-        if not m.email:
-            logging.error("no email address known for maintainer '%s'" % (m.name))
 
     return mlist
 
 
 # add maintainers from the package maintainers list, with the packages they
 # maintain
-def add_packages(mlist, pkglist, prev_maint=True):
+@utils.mtime_cache
+def _read_pkglist(pkglist):
+    mpkgs = {}
+
     with open(pkglist) as f:
         for (i, l) in enumerate(f):
+            orphaned = False
             l = l.rstrip()
 
             # match lines of the form '<package> <maintainer(s)|status>'
@@ -159,12 +175,12 @@ def add_packages(mlist, pkglist, prev_maint=True):
                     # orphaned packages are assigned to 'ORPHANED'
                     elif status == 'ORPHANED':
                         m = status
+                        orphaned = True
 
-                        if prev_maint:
-                            # also add any previous maintainer(s) listed
-                            prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
-                            if prevm:
-                                m = m + '/' + prevm.group(1)
+                        # also add any previous maintainer(s) listed
+                        prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
+                        if prevm:
+                            m = m + '/' + prevm.group(1)
                     else:
                         logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
                         continue
@@ -172,6 +188,7 @@ def add_packages(mlist, pkglist, prev_maint=True):
                     m = rest
 
                 # joint maintainers are separated by '/'
+                maintainers = list()
                 for name in m.split('/'):
                     name = name.strip()
 
@@ -185,35 +202,46 @@ def add_packages(mlist, pkglist, prev_maint=True):
                         logging.error("non-ascii maintainer name '%s' in line %s:%d, skipped" % (rest, pkglist, i))
                         continue
 
-                    m = Maintainer._find(mlist, name)
-                    m.pkgs.append(pkg)
+                    maintainers.append(name)
+
+                mpkgs[pkg] = MaintainerPackage(pkg, maintainers, orphaned)
 
             else:
                 logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
 
-    return mlist
+    return mpkgs
+
+
+#
+def pkg_list(pkglist):
+    return _read_pkglist(pkglist)
 
 
 # create maintainer list
-def read(args, prev_maint=True):
+def maintainer_list(args):
     mlist = {}
+
+    # add all maintainers for all packages
+    for p in pkg_list(args.pkglist).values():
+        for m in p.maintainers():
+            Maintainer._find(mlist, m).pkgs.append(p)
+
+    # read information from homedirs
     mlist = add_directories(mlist, args.homedir)
-    mlist = add_packages(mlist, args.pkglist, prev_maint)
+
+    # check all maintainers have an email
+    for m in mlist.values():
+        if m.name == 'ORPHANED':
+            continue
+
+        # not required if only a previous maintainer for some orphaned packages
+        if all(p.is_orphaned() for p in m.pkgs):
+            continue
+
+        if not m.email:
+            logging.error("no email address known for maintainer '%s'" % (m.name))
 
     return mlist
-
-
-# invert to a per-package list of maintainers
-def invert(mlist):
-    _pkgs = defaultdict(list)
-    # for each maintainer
-    for m in mlist.values():
-        # for each package
-        for p in m.pkgs:
-            # add the maintainer name
-            _pkgs[p].append(m.name)
-
-    return _pkgs
 
 
 def update_reminder_times(mlist):
@@ -222,5 +250,5 @@ def update_reminder_times(mlist):
 
 
 # a list of all packages
-def all_packages(mlist):
-    return list(itertools.chain.from_iterable(mlist[m].pkgs for m in mlist))
+def all_packages(pkglist):
+    return pkg_list(pkglist).keys()

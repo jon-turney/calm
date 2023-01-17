@@ -317,9 +317,11 @@ class CalmTest(unittest.TestCase):
     def test_maint_pkglist(self):
         self.maxDiff = None
 
+        args = types.SimpleNamespace()
+        args.homedir = 'testdata/homes'
+        args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
         mlist = {}
-        mlist = maintainers.add_directories(mlist, 'testdata/homes')
-        mlist = maintainers.add_packages(mlist, 'testdata/pkglist/cygwin-pkg-maint')
+        mlist = maintainers.maintainer_list(args)
 
         compare_with_expected_file(self, 'testdata/pkglist', mlist)
 
