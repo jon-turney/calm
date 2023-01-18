@@ -27,14 +27,16 @@
 # uses.
 #
 
-# packages with historical versions containing a hyphen
-hyphen_in_version = {
+# packages with historical versions containing a hyphen, or other illegal
+# character
+illegal_char_in_version = {
     'ctorrent': ['1.3.4-dnh3.2'],
     'email': ['3.2.1-git', '3.2.3-git'],
     'email-debuginfo': ['3.2.1-git', '3.2.3-git'],
     'fdupes': ['1.50-PR2'],
     'gendef': ['1.0-svn2931'],
     'gendef-debuginfo': ['1.0-svn2931'],
+    'gt5': ['1.5.0~20111220+bzr29'],
     'hidapi': ['0.8.0-rc1'],
     'hidapi-debuginfo': ['0.8.0-rc1'],
     'libhidapi-devel': ['0.8.0-rc1'],
@@ -48,8 +50,6 @@ hyphen_in_version = {
     'mingw64-x86_64-hidapi-debuginfo': ['0.8.0-rc1'],
     'recode': ['3.7-beta2'],
     'recode-debuginfo': ['3.7-beta2'],
-    'tack': ['1.07-20150606'],
-    'tack-debuginfo': ['1.07-20150606'],
 }
 
 # cygport places this into the requires of every debuginfo package, including

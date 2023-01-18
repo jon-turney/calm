@@ -404,8 +404,8 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
         # warn if filename doesn't follow P-V-R naming convention
         #
         # P must match the package name, V can contain anything, R must
-        # start with a number
-        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z.]*)(-src|)\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
+        # start with a number and can't include a hyphen
+        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z._+]*)(-src|)\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
         if not match:
             logging.error("file '%s' in package '%s' doesn't follow naming convention" % (f, p))
             return True
@@ -417,7 +417,7 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
             # we already know P to split unambiguously), but this is a bad
             # idea.
             if '-' in v:
-                if v in past_mistakes.hyphen_in_version.get(p, []):
+                if v in past_mistakes.illegal_char_in_version.get(p, []):
                     lvl = logging.INFO
                 else:
                     lvl = logging.ERROR
@@ -427,6 +427,14 @@ def read_one_package(packages, p, relpath, dirpath, files, kind, strict):
             if not v[0].isdigit():
                 logging.error("file '%s' in package '%s' has a version which doesn't start with a digit" % (f, p))
                 warnings = True
+
+            if not re.match(r'^[\w\-._+]*$', v):
+                if v in past_mistakes.illegal_char_in_version.get(p, []):
+                    lvl = logging.INFO
+                else:
+                    lvl = logging.ERROR
+                    warnings = True
+                logging.log(lvl, "file '%s' in package '%s' has a version which contains illegal characters" % (f, p))
 
             # if not there already, add to version-release list
             vr = '%s-%s' % (v, r)
