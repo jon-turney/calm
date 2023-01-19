@@ -39,10 +39,10 @@ else:
     extra_licenses = [
         'Linux-man-pages-copyleft',  # requires SPDX license-list 3.15
         'Public-Domain',
-        'XVIEW',
     ]
     for l in extra_licenses:
-        json.append({"spdx_license_key": l})
+        if not any(j["spdx_license_key"] == l for j in json):
+            json.append({"spdx_license_key": l})
     licensing = license_expression.build_spdx_licensing(json)
 
 # types of key:
