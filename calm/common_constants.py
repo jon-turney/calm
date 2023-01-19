@@ -44,17 +44,22 @@ EMAILS = ','.join(list(map(lambda m: m[0] + '@' + m[1], zip(['corinna', 'Stromek
 # every email we send is bcc'd to these addresses
 ALWAYS_BCC = 'jturney@sourceware.org'
 
-# these maintainers can upload orphaned packages as well
+# these maintainers are 'trusted'
+#
+# they can:
+# - git push to any package repo
+# - upload any package
+# - untest any package
+# - vault any package
 #
 # (these people have sourceware shell access and cygwin group membership, so
 # they can do whatever they like directly, anyhow)
-ORPHANMAINT = '/'.join([
+TRUSTEDMAINT = '/'.join([
     'Corinna Vinschen',
     'Eric Blake',
     'Jon Turney',
     'Ken Brown',
     'Marco Atzeri',
-    'Yaakov Selkowitz',
 ])
 
 # architectures we support

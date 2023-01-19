@@ -143,8 +143,8 @@ def scan(scandir, m, all_packages, arch, args):
             logging.error("package '%s' is not in the package list" % relpath)
             continue
 
-        # only process packages for which we are listed as a maintainer
-        if not package.is_in_package_list(pkgpath, m.pkgs):
+        # only process packages for which we are listed as a maintainer, or we are a trusted maintainer
+        if not (package.is_in_package_list(pkgpath, m.pkgs) or (m.name in args.trustedmaint.split('/'))):
             logging.warning("package '%s' is not in the package list for maintainer '%s'" % (relpath, m.name))
             continue
 

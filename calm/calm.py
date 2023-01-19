@@ -144,7 +144,7 @@ def process_relarea(args, state):
 
 def process_uploads(args, state):
     # read maintainer list
-    mlist = maintainers.read(args, getattr(args, 'orphanmaint', None))
+    mlist = maintainers.read(args)
 
     # make the list of all packages
     all_packages = maintainers.all_packages(mlist)
@@ -656,6 +656,11 @@ def mail_cb(state, loghandler):
 
     # send each maintainer mail containing log entries caused by their actions,
     # or pertaining to their packages
+    #
+    # XXX: prev_maint=False here is a kind of wrong: it prevents the previous
+    # maintainer of an orphaned package from getting mails about it being
+    # altered by a trusted maintainer, but also stops them getting mails if the
+    # do something themselves...
     mlist = maintainers.read(state.args, prev_maint=False)
     for m in mlist.values():
         email = m.email
@@ -713,7 +718,7 @@ def main():
     htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
     homedir_default = common_constants.HOMEDIR
     stagingdir_default = common_constants.STAGINGDIR
-    orphanmaint_default = common_constants.ORPHANMAINT
+    trustedmaint_default = common_constants.TRUSTEDMAINT
     pidfile_default = '/sourceware/cygwin-staging/calm.pid'
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
@@ -729,7 +734,7 @@ def main():
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--key', action='append', metavar='KEYID', help="key to use to sign setup.ini", default=[], dest='keys')
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
-    parser.add_argument('--orphanmaint', action='store', metavar='NAMES', help="orphan package maintainers (default: '" + orphanmaint_default + "')", default=orphanmaint_default)
+    parser.add_argument('--trustedmaint', action='store', metavar='NAMES', help="trusted package maintainers (default: '" + trustedmaint_default + "')", default=trustedmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')

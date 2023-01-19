@@ -51,7 +51,7 @@ def transform_username(name):
 def do_main(args):
     # read maintainer list
     mlist = {}
-    mlist = maintainers.add_packages(mlist, args.pkglist, getattr(args, 'orphanmaint', None))
+    mlist = maintainers.add_packages(mlist, args.pkglist)
 
     # make the list of all packages
     maintainers.all_packages(mlist)
@@ -70,7 +70,7 @@ def do_main(args):
 
     # global configuration
     print('')
-    print('@leads = %s' % ' '.join(map(transform_username, common_constants.ORPHANMAINT.split('/'))))
+    print('@leads = %s' % ' '.join(map(transform_username, common_constants.TRUSTEDMAINT.split('/'))))
     print('')
     print('repo @all')
     print('    RW = @leads')

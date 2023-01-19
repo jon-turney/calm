@@ -47,14 +47,19 @@ def permitted(p):
     cygname = os.environ.get('CYGNAME', None)
 
     mlist = {}
-    mlist = maintainers.add_packages(mlist, common_constants.PKGMAINT, orphanMaint=common_constants.ORPHANMAINT)
+    mlist = maintainers.add_packages(mlist, common_constants.PKGMAINT, trustedMaint=common_constants.TRUSTEDMAINT)
+
+    # CYGNAME is a maintainer for package
+    if p in mlist[cygname].pkgs:
+        return True
+
+    # CYGNAME is a trusted maintainer
+    if cygname in common_constants.TRUSTEDMAINT.split('/'):
+        return True
 
     if cygname not in mlist:
         logging.error("'%s' is not a package maintainer" % (cygname))
         return False
 
-    if p not in mlist[cygname].pkgs:
-        logging.error("package '%s' is not in the package list for maintainer '%s'" % (p, cygname))
-        return False
-
-    return True
+    logging.error("package '%s' is not in the package list for maintainer '%s'" % (p, cygname))
+    return False
