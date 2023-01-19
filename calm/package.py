@@ -141,6 +141,7 @@ class Hint(object):
 # read a packages from a directory hierarchy
 #
 def read_packages(rel_area, arch):
+    error = False
     packages = {}
 
     # <arch>/ noarch/ and src/ directories are considered
@@ -151,11 +152,11 @@ def read_packages(rel_area, arch):
         logging.debug('reading packages from %s' % releasedir)
 
         for (dirpath, _subdirs, files) in os.walk(releasedir, followlinks=True):
-            read_package_dir(packages[root], rel_area, dirpath, files)
+            error = read_package_dir(packages[root], rel_area, dirpath, files) or error
 
         logging.debug("%d packages read from %s" % (len(packages[root]), releasedir))
 
-    return merge({}, *packages.values())
+    return (merge({}, *packages.values()), error)
 
 
 # helper function to compute sha512 for a particular file
@@ -1738,5 +1739,5 @@ def stale_packages(packages, vault_requests):
 
 if __name__ == "__main__":
     for arch in common_constants.ARCHES:
-        packages = read_packages(common_constants.FTP, arch)
+        packages, _ = read_packages(common_constants.FTP, arch)
         print("arch %s has %d packages" % (arch, len(packages)))

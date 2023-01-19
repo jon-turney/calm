@@ -180,7 +180,7 @@ class CalmTest(unittest.TestCase):
         packages = {}
         for arch in common_constants.ARCHES:
             packages[arch] = {}
-        packages[args.arch] = package.read_packages(args.rel_area, args.arch)
+        packages[args.arch], _ = package.read_packages(args.rel_area, args.arch)
         package.validate_packages(args, packages[args.arch])
         pkg2html.update_package_listings(args, packages)
 
@@ -379,7 +379,7 @@ class CalmTest(unittest.TestCase):
         args.release = 'testing'
         args.setup_version = '4.321'
 
-        packages = package.read_packages(args.rel_area, args.arch)
+        packages, _ = package.read_packages(args.rel_area, args.arch)
         package.delete(packages, 'x86_64/release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
         self.assertEqual(package.validate_packages(args, packages), True)
         package.write_setup_ini(args, packages, args.arch)

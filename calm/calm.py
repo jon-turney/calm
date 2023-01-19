@@ -103,7 +103,7 @@ def process_relarea(args, state):
     # read the package list for each arch
     for arch in common_constants.ARCHES:
         logging.debug("reading existing packages for arch %s" % (arch))
-        packages[arch] = package.read_packages(args.rel_area, arch)
+        packages[arch], _ = package.read_packages(args.rel_area, arch)
 
     state.valid_provides = db.update_package_names(args, packages)
     for arch in common_constants.ARCHES:

@@ -48,7 +48,11 @@ except ImportError:
 #
 def do_main(args):
     # build package list
-    packages = package.read_packages(args.rel_area, args.arch)
+    packages, error = package.read_packages(args.rel_area, args.arch)
+
+    if not error:
+        logging.error("errors reading package set, not writing setup.ini")
+        return 1
 
     # spellcheck text hints
     if args.spell:
