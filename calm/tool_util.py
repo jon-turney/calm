@@ -45,9 +45,12 @@ def split(pvr):
 def permitted(p):
     # check CYGNAME is a maintainer for package
     cygname = os.environ.get('CYGNAME', None)
+    if not cygname:
+        logging.error("who are you?")
+        return False
 
     mlist = {}
-    mlist = maintainers.add_packages(mlist, common_constants.PKGMAINT, trustedMaint=common_constants.TRUSTEDMAINT)
+    mlist = maintainers.add_packages(mlist, common_constants.PKGMAINT)
 
     # CYGNAME is a maintainer for package
     if p in mlist[cygname].pkgs:
