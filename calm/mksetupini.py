@@ -50,7 +50,7 @@ def do_main(args):
     # build package list
     packages, error = package.read_packages(args.rel_area, args.arch)
 
-    if not error:
+    if error:
         logging.error("errors reading package set, not writing setup.ini")
         return 1
 
