@@ -44,6 +44,7 @@ def vault(pvr):
     args.htdocs = os.path.join(common_constants.HTDOCS, 'packages')
 
     db.vault_request_add(args, p, vr)
+    logging.info("package '%s' version '%s' marked as expirable" % (p, vr))
 
 
 def main():
