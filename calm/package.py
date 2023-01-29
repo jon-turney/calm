@@ -1305,9 +1305,6 @@ def write_setup_ini(args, packages, arch):
         for pn in sorted(packages, key=sort_key):
             po = packages[pn]
 
-            if po.kind == Kind.source:
-                continue
-
             # do nothing if not_for_output
             if po.not_for_output:
                 continue
@@ -1377,9 +1374,10 @@ def write_setup_ini(args, packages, arch):
             # exist as a source package)
             #
             versions = set(po.versions())
-            sibling_src = pn + '-src'
-            if sibling_src in packages:
-                versions.update(packages[sibling_src].versions())
+            if po.kind != Kind.source:
+                sibling_src = pn + '-src'
+                if sibling_src in packages:
+                    versions.update(packages[sibling_src].versions())
 
             for version in sorted(versions, key=lambda v: SetupVersion(v), reverse=True):
                 # skip over versions which have a special place in the ordering:
@@ -1416,6 +1414,25 @@ def write_setup_ini(args, packages, arch):
                     print("[%s]" % tag, file=f)
                 print("version: %s" % version, file=f)
 
+                if po.kind == Kind.source:
+                    tar_line(po, 'source', version, f)
+
+                    src_hints = po.version_hints.get(version, {})
+                    bd = src_hints.get('build-depends', [])
+
+                    # Ideally, we'd transform dependency atoms which aren't
+                    # cygwin package names into package names. For the moment,
+                    # we don't have the information to do that, so filter them
+                    # all out.
+                    bd = [atom for atom in bd if '(' not in atom]
+
+                    if bd:
+                        print("build-depends: %s" % ', '.join(bd), file=f)
+
+                    continue
+
+                # otherwise, Kind.binary
+
                 is_empty = False
                 if version in po.versions():
                     tar_line(po, 'install', version, f)
@@ -1431,15 +1448,17 @@ def write_setup_ini(args, packages, arch):
                 # external-source points to a source file in another package
                 if s:
                     if version in packages[s].versions():
+                        # emit 'source:' line for the benefit of setup versions
+                        # which don't understand 'srcpkg:'
                         tar_line(packages[s], 'source', version, f)
+
+                        # (After that) emit a 'srcpkg:' line referencing the
+                        # source package (the source package must also be
+                        # emitted).
+                        print("srcpkg: %s" % s, file=f)
                     else:
                         if not (is_empty or packages[s].orig_name in past_mistakes.self_source):
                             logging.warning("package '%s' version '%s' has no source in '%s'" % (pn, version, packages[s].orig_name))
-
-                # external-source should also be capable of pointing to a 'real'
-                # source package (if cygport could generate such a thing), in
-                # which case we should emit a 'Source:' line, and the package is
-                # also itself emitted.
 
                 if version in po.versions():
                     if hints.get('depends', ''):
@@ -1453,19 +1472,6 @@ def write_setup_ini(args, packages, arch):
 
                     if hints.get('conflicts', ''):
                         print("conflicts: %s" % ', '.join(hints['conflicts']), file=f)
-
-                if s:
-                    src_hints = packages[s].version_hints.get(version, {})
-                    bd = src_hints.get('build-depends', [])
-
-                    # Ideally, we'd transform dependency atoms which aren't
-                    # cygwin package names into package names. For the moment,
-                    # we don't have the information to do that, so filter them
-                    # all out.
-                    bd = [atom for atom in bd if '(' not in atom]
-
-                    if bd:
-                        print("build-depends: %s" % ', '.join(bd), file=f)
 
 
 # helper function to output details for a particular tar file
