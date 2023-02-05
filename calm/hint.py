@@ -38,6 +38,7 @@ else:
     json = license_expression.get_license_index()
     extra_licenses = [
         'Linux-man-pages-copyleft',  # requires SPDX license-list 3.15
+        'OFSFDL',                    # "Old FSF documentation license"
         'Public-Domain',
     ]
     for l in extra_licenses:
