@@ -161,7 +161,7 @@ def process_uploads(args, state):
 
         with logfilters.AttrFilter(maint=m.name):
             process_maintainer_uploads(args, state, all_packages, m, args.homedir, 'upload')
-            process_maintainer_uploads(args, state, all_packages, m, args.stagingdir, 'staging')
+            process_maintainer_uploads(args, state, all_packages, m, args.stagingdir, 'staging', scrub=True)
 
     # record updated reminder times for maintainers
     maintainers.update_reminder_times(mlist)
@@ -169,14 +169,12 @@ def process_uploads(args, state):
     return state.packages
 
 
-def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
-    name = m.name
-
+def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False):
     # for each arch and noarch
     scan_result = {}
-    skip_maintainer = False
+    success = True
     for arch in common_constants.ARCHES + ['noarch', 'src'] + common_constants.ARCHIVED_ARCHES:
-        logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, name))
+        logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, m.name))
 
         # read uploads
         scan_result[arch] = uploads.scan(basedir, m, all_packages, arch, args)
@@ -185,18 +183,31 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
         uploads.remove(args, scan_result[arch].remove_always)
 
         if scan_result[arch].error:
-            logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, name))
-            skip_maintainer = True
+            logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, m.name))
+            success = False
             continue
+
+    if success:
+        success = _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc)
+
+    # remove upload files on success in homedir, always in stagingdir
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        if scrub or success:
+            uploads.remove(args, scan_result[arch].remove_success)
+
+    # clean up any empty directories
+    if not args.dryrun:
+        utils.rmemptysubdirs(os.path.join(basedir, m.name))
+
+
+def _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc):
+    name = m.name
 
     # if there are no added or removed files for this maintainer, we
     # don't have anything to do
     if not any([scan_result[a].to_relarea or scan_result[a].to_vault for a in scan_result]):
         logging.debug("nothing to do for maintainer %s" % (name))
-        skip_maintainer = True
-
-    if skip_maintainer:
-        return
+        return True
 
     # for each arch
     merged_packages = {}
@@ -225,7 +236,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
     # if an error occurred ...
     if not valid:
         # ... discard move list and merged_packages
-        return
+        return False
 
     # check for packages which are stale as a result of this upload,
     # which we will want in the same report
@@ -236,7 +247,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
         if not stale_to_vault:
             # ... discard move list and merged_packages
             logging.error("error while evaluating stale packages for %s" % (name))
-            return
+            return False
 
     # check for conflicting movelists
     conflicts = False
@@ -249,7 +260,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
     if conflicts:
         # ... discard move list and merged_packages
         logging.error("error while validating movelists for %s" % (name))
-        return
+        return False
 
     # for each arch and noarch
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -259,10 +270,11 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
         if scan_result[arch].to_vault:
             logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
         scan_result[arch].to_vault.move_to_vault(args)
-        uploads.remove(args, scan_result[arch].remove_success)
+
         if scan_result[arch].to_relarea:
             logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
         scan_result[arch].to_relarea.move_to_relarea(m, args, desc)
+
         # XXX: Note that there seems to be a separate process, not run
         # from cygwin-admin's crontab, which changes the ownership of
         # files in the release area to cyguser:cygwin
@@ -279,10 +291,6 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
         # use merged package list
         state.packages[arch] = merged_packages[arch]
 
-    # clean up any empty directories
-    if not args.dryrun:
-        utils.rmemptysubdirs(os.path.join(basedir, m.name))
-
     # report what we've done
     added = []
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -290,6 +298,8 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc):
     msg = "added %s packages from maintainer %s" % (' + '.join(added), name)
     logging.debug(msg)
     irk.irk("calm %s" % msg)
+
+    return True
 
 
 #
