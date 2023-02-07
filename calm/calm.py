@@ -72,6 +72,7 @@ from . import package
 from . import pkg2html
 from . import repology
 from . import reports
+from . import scallywag_db
 from . import setup_exe
 from . import uploads
 from . import utils
@@ -161,7 +162,14 @@ def process_uploads(args, state):
 
         with logfilters.AttrFilter(maint=m.name):
             process_maintainer_uploads(args, state, all_packages, m, args.homedir, 'upload')
-            process_maintainer_uploads(args, state, all_packages, m, args.stagingdir, 'staging', scrub=True)
+
+    # for each deploy job
+    def deploy_upload(r):
+        m = mlist[r.user]
+        with logfilters.AttrFilter(maint=m.name):
+            return process_maintainer_uploads(args, state, all_packages, m, os.path.join(args.stagingdir, str(r.id)), 'staging', scrub=True)
+
+    scallywag_db.do_deploys(deploy_upload)
 
     # record updated reminder times for maintainers
     maintainers.update_reminder_times(mlist)
@@ -198,6 +206,8 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
     # clean up any empty directories
     if not args.dryrun:
         utils.rmemptysubdirs(os.path.join(basedir, m.name))
+
+    return success
 
 
 def _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc):
