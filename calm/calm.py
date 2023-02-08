@@ -121,7 +121,11 @@ def process_relarea(args, state):
     # packages can be stale due to changes made directly in the release
     # area, so first check here if there are any stale packages to vault
     if args.stale:
-        stale_to_vault = remove_stale_packages(args, packages, state)
+        fresh_packages = {}
+        for arch in common_constants.ARCHES:
+            fresh_packages[arch] = package.merge(packages[arch])
+
+        stale_to_vault = remove_stale_packages(args, fresh_packages, state)
         if stale_to_vault:
             for arch in common_constants.ARCHES + ['noarch', 'src']:
                 logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
@@ -129,6 +133,8 @@ def process_relarea(args, state):
         else:
             logging.error("error while evaluating stale packages")
             return None
+
+        packages = fresh_packages
 
     # clean up any empty directories
     if not args.dryrun:
