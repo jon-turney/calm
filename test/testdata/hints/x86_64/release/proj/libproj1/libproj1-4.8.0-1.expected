@@ -3,4 +3,5 @@
  'sdesc': '""The PROJ Cartographic Projections Software (runtime)"\n'
           'ldesc: "Cartographic projection library and utilities"',
  'external-source': 'proj',
- 'parse-errors': ['embedded quote at line 3', 'key sdesc has multi-line value']}
+ 'parse-errors': ['double-quote within double-quotes at line 3 (hint files have no escape character)',
+                  'key sdesc has multi-line value']}

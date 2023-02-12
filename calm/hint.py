@@ -232,7 +232,7 @@ def hint_file_parse(fn, kind, strict=False):
                     errors.append('%s at line %d' % (error, i))
 
                 if (item.count('"') != 0) and (item.count('"') != 2):
-                    errors.append('embedded quote at line %d' % (i))
+                    errors.append('double-quote within double-quotes at line %d (hint files have no escape character)' % (i))
 
                 # key:value
                 match = re.match(r'^([^:\s]+):\s*(.*)$', item, re.DOTALL)

@@ -9,4 +9,4 @@
  'category': 'Text',
  'requires': 'cygwin',
  'external-source': 'libtextcat',
- 'parse-errors': ['embedded quote at line 7']}
+ 'parse-errors': ['double-quote within double-quotes at line 7 (hint files have no escape character)']}
