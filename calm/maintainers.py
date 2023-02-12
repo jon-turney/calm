@@ -168,9 +168,13 @@ def _read_pkglist(pkglist):
                 if status_match:
                     status = status_match.group(1)
 
-                    # ignore packages marked as 'OBSOLETE'
+                    # packages marked as 'OBSOLETE' are obsolete
                     if status == 'OBSOLETE':
-                        continue
+                        # obsolete packages have no maintainer
+                        #
+                        # XXX: perhaps disallow even trusties to upload (or
+                        # warn if they try?)
+                        m = ''
 
                     # orphaned packages are assigned to 'ORPHANED'
                     elif status == 'ORPHANED':
@@ -190,6 +194,9 @@ def _read_pkglist(pkglist):
                 # joint maintainers are separated by '/'
                 maintainers = list()
                 for name in m.split('/'):
+                    if not name:
+                        continue
+
                     name = name.strip()
 
                     # is the maintainer name ascii?
