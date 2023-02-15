@@ -48,37 +48,14 @@ import calm.pkg2html as pkg2html
 import calm.uploads as uploads
 from calm.version import SetupVersion
 
+from .utils import compare_with_expected_file
+
 ARGDIRS = ['rel_area', 'homedir', 'htdocs', 'stagingdir', 'vault']
 
 
 #
 # helper functions
 #
-# write results to the file 'results'
-# read expected from the file 'expected'
-# compare them
-#
-
-def compare_with_expected_file(test, dirpath, results, basename=None):
-    results_str = pprint.pformat(results, width=120)
-
-    if basename:
-        results_fn = basename + '.results'
-        expected_fn = basename + '.expected'
-    else:
-        results_fn = 'results'
-        expected_fn = 'expected'
-
-    # save results in a file
-    with open(os.path.join(dirpath, results_fn), 'w') as f:
-        print(results_str, file=f)
-
-    # read expected from a file
-    with open(os.path.join(dirpath, expected_fn)) as f:
-        expected = f.read().rstrip()
-
-    test.assertMultiLineEqual(expected, results_str)
-
 
 #
 # capture a directory tree as a dict 'tree', where each key is a directory path
