@@ -55,8 +55,8 @@ ALWAYS_BCC = 'jturney@sourceware.org'
 # (these people have sourceware shell access and cygwin group membership, so
 # they can do whatever they like directly, anyhow)
 TRUSTEDMAINT = '/'.join([
+    'Achim Gratz',
     'Corinna Vinschen',
-    'Eric Blake',
     'Jon Turney',
     'Ken Brown',
     'Marco Atzeri',
