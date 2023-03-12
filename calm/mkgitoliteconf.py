@@ -68,7 +68,7 @@ def do_main(pkglist, file=sys.stdout):
     print('    config uploadpack.allowReachableSHA1InWant = true', file=file)
     print('    config receive.advertisePushOptions = true', file=file)
     print('    - VREF/MAX_NEWBIN_SIZE/1024 = @all', file=file)
-    print('# this rejects binary files over the size limit, text files of any size are still permiited', file=file)
+    print('# this rejects binary files over the size limit, text files of any size are still permitted', file=file)
     print('    - VREF/HIGHLANDER/cygport = @all', file=file)
     print('# this checks for trees which contain more than one .cygport file', file=file)
     print('', file=file)
@@ -91,8 +91,19 @@ def do_main(pkglist, file=sys.stdout):
         if users:
             print("RW master$ = %s" % (users), file=file)
             print("RW refs/tags/ = %s" % (users), file=file)
+
+        # these gitconfig keys also need to be listed in gitolite's
+        # GIT_CONFIG_KEYS setting to be permitted
+
+        # gitweb info
         if owner:
             print("owner = %s" % (owner), file=file)
+        print("desc = cygwin packaging for %s" % (p), file=file)
+
+        # cgit info (see 'man cgitrc')
+        if owner:
+            print("config repo.owner = %s" % (owner), file=file)
+        print("config repo.desc = cygwin packaging for %s" % (p), file=file)
         print("", file=file)
 
 
