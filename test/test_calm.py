@@ -45,6 +45,7 @@ import calm.hint as hint
 import calm.maintainers as maintainers
 import calm.package as package
 import calm.pkg2html as pkg2html
+import calm.reports as reports
 import calm.uploads as uploads
 from calm.version import SetupVersion
 
@@ -447,6 +448,7 @@ class CalmTest(unittest.TestCase):
 
         pkg2html.update_package_listings(args, packages)
         package.write_setup_ini(args, packages['x86_64'], 'x86_64')
+        reports.do_reports(args, packages)
 
         with open(os.path.join(args.rel_area, 'setup.ini')) as inifile:
             results = inifile.read()
