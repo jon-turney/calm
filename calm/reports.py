@@ -188,6 +188,64 @@ def deprecated(args, packages, reportsdir):
         template('Deprecated shared library packages', body.getvalue(), f)
 
 
+# produce a report of packages which need rebuilding for latest perl major version
+#
+def perlrebuild(args, packages, reportsdir):
+    pr_list = []
+
+    arch = 'x86_64'
+    # XXX: look into how we can change this, after x86 is dropped
+
+    perl_package = packages[arch].get('perl_base', None)
+    perl_provide = None
+
+    if perl_package:
+        perl_bv = perl_package.best_version
+        perl_provide = perl_package.version_hints[perl_bv]['provides']
+
+    for p in packages[arch]:
+        po = packages[arch][p]
+        bv = po.best_version
+
+        depends = packages[arch][p].version_hints[bv]['depends'].split(', ')
+        depends = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in depends]
+
+        for d in depends:
+            if not re.match(r'perl\d+_\d+', d):
+                continue
+
+            if d == perl_provide:
+                continue
+
+            # requires an old perl provide
+            pr = types.SimpleNamespace()
+            pr.pn = p
+            pr.po = po
+            pr.spn = po.srcpackage(bv)
+            pr.spo = packages[arch][pr.spn]
+            pr.depends = d
+            pr.bv = bv
+
+            pr_list.append(pr)
+            break
+
+    body = io.StringIO()
+    print(' <p>Packages whose latest version depends on a perl version provides: other than %s.</p>' % perl_provide, file=body)
+
+    print('<table class="grid">', file=body)
+    print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
+
+    for pr in sorted(pr_list, key=lambda i: (i.depends, i.pn)):
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends), file=body)
+
+    print('</table>', file=body)
+
+    r = os.path.join(reportsdir, 'perl_rebuilds.html')
+    with utils.open_amifc(r) as f:
+        template('Packages needing rebuilds for latest perl', body.getvalue(), f)
+
+
 #
 def do_reports(args, packages):
     if args.dryrun:
@@ -198,3 +256,4 @@ def do_reports(args, packages):
 
     unmaintained(args, packages, reportsdir)
     deprecated(args, packages, reportsdir)
+    perlrebuild(args, packages, reportsdir)
