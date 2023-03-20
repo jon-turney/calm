@@ -160,6 +160,8 @@ nonexistent_provides = [
     'rxvt-unicode-X-debuginfo',
     'xfce4-mixer-debuginfo',
     'python3-dbus-debuginfo',
+    'tl_2023',
+    'tl_basic_2023',
 ]
 
 # provides: which don't exist and packages which require them should be expired
