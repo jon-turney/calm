@@ -48,8 +48,12 @@ def permitted(p):
         logging.error("who are you?")
         return False
 
-    # CYGNAME is a maintainer for package
     pkg_list = maintainers.pkg_list(common_constants.PKGMAINT)
+    if p not in pkg_list:
+        logging.error("%s is not a package name" % p)
+        return False
+
+    # CYGNAME is a maintainer for package
     if cygname in pkg_list[p].maintainers():
         return True
 
