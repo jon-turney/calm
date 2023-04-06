@@ -212,7 +212,9 @@ def update_package_listings(args, packages):
                     if po.kind == package.Kind.source:
                         details = ['build-depends']
                     else:
-                        details = ['depends', 'obsoletes', 'provides', 'conflicts']
+                        details = ['depends', 'obsoletes', 'obsoleted_by', 'provides', 'conflicts']
+
+                    detail_is_attr = ['obsoleted_by']
 
                     for key in details:
                         # make the union of the package list for this detail
@@ -221,11 +223,15 @@ def update_package_listings(args, packages):
                         value = {}
                         values = set()
                         for arch in pos:
-                            t = pos[arch].version_hints[pos[arch].best_version].get(key, None)
-                            if t:
-                                value[arch] = set(t.split(', '))
+                            if key in detail_is_attr:
+                                value[arch] = getattr(pos[arch], key, set())
                             else:
-                                value[arch] = set()
+                                t = pos[arch].version_hints[pos[arch].best_version].get(key, None)
+
+                                if t:
+                                    value[arch] = set(t.split(', '))
+                                else:
+                                    value[arch] = set()
                             values.update(value[arch])
 
                         if values:
