@@ -1,1 +1,1 @@
-OrderedDict([('category', 'Devel'), ('sdesc', '"test package E"'), ('build-depends', 'libtextcat-devel')])
+OrderedDict([('category', 'Devel'), ('sdesc', '"test package E"'), ('build-depends', 'cygwin-devel')])

@@ -132,7 +132,7 @@ def main():
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
 
-    disable_check_choices = choiceList(['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package', 'curr-most-recent'])
+    disable_check_choices = choiceList(['missing-curr', 'missing-depended-package', 'missing-obsoleted-package', 'missing-required-package', 'curr-most-recent', 'missing-build-depended-package'])
 
     parser = argparse.ArgumentParser(description='Make setup.ini')
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES + common_constants.ARCHIVED_ARCHES)

@@ -701,7 +701,8 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
         for (v, hints) in packages[p].version_hints.items():
             for (c, okmissing, valid) in [
                     ('depends', 'missing-depended-package', valid_requires),
-                    ('obsoletes', 'missing-obsoleted-package', valid_obsoletes)
+                    ('obsoletes', 'missing-obsoleted-package', valid_obsoletes),
+                    ('build-depends', 'missing-build-depended-package', valid_requires),
             ]:
                 # if c is in hints, and not the empty string
                 if hints.get(c, ''):
