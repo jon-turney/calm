@@ -50,7 +50,7 @@ def do_main(args):
     # build package list
     packages, error = package.read_packages(args.rel_area, args.arch)
 
-    if error:
+    if error and not args.ignore_errors:
         logging.error("errors reading package set, not writing setup.ini")
         return 1
 
@@ -138,6 +138,7 @@ def main():
     parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES + common_constants.ARCHIVED_ARCHES)
     parser.add_argument('--disable-check', action=flatten_append, help='checks to disable', type=disable_check_choices, default=[], metavar=disable_check_choices.help())
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
+    parser.add_argument('--ignore-errors', action='store_true', help='ignore errors')
     parser.add_argument('--okmissing', action='append', help='superseded by --disable-check', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
     parser.add_argument('--pkglist', action='store', nargs='?', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", const=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key', default='')
