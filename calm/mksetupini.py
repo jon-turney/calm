@@ -139,7 +139,7 @@ def main():
     parser.add_argument('--disable-check', action=flatten_append, help='checks to disable', type=disable_check_choices, default=[], metavar=disable_check_choices.help())
     parser.add_argument('--inifile', '-u', action='store', help='output filename', required=True)
     parser.add_argument('--ignore-errors', action='store_true', help='ignore errors')
-    parser.add_argument('--okmissing', action='append', help='superseded by --disable-check', choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
+    parser.add_argument('--okmissing', action='append', help=argparse.SUPPRESS, choices=['curr', 'depended-package', 'obsoleted-package', 'required-package'])
     parser.add_argument('--pkglist', action='store', nargs='?', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", const=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key', default='')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
@@ -160,7 +160,9 @@ def main():
     # For the moment '--okmissing=foo' is silently transformed into it's
     # equivalent '--disable-check=missing-foo'
     if args.okmissing:
-        args.disable_check.extend(['missing-' + m for m in args.okmissing])
+        for m in args.okmissing:
+            print("Warning: --okmissing={0} is obsolete, use --disable-check=missing-{0} instead".format(m), file=sys.stderr)
+            args.disable_check.append('missing-' + m)
 
     # disabling either of these checks, implies both of these are disabled
     # (since depends: is generated from requires:, and vice versa, if not
