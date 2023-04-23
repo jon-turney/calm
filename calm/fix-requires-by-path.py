@@ -63,7 +63,7 @@ def fix_one_hint(args, dirpath, hintfile, tf):
 
     try:
         with xtarfile.open(os.path.join(dirpath, tf), mode='r') as a:
-            ivp = any(m.startswith(args.path) for m in a.getnames())
+            ivp = any(re.match(args.path, m) for m in a.getnames())
     except tarfile.ReadError:
         pass
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='Add DEPATOM to requires: of packages which contain a file starting with PATH')
-    parser.add_argument('path', metavar='PATH', help='path to match')
+    parser.add_argument('path', metavar='PATH', help='regex of path to match')
     parser.add_argument('requires', metavar='DEPATOM', help='require to add')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
