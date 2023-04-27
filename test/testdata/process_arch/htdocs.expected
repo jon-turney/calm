@@ -1,5 +1,5 @@
 {'.': ['calm.db', 'packages.inc', 'src_packages.inc'],
- 'reports': ['deprecated_so.html', 'perl_rebuilds.html', 'unmaintained.html'],
+ 'reports': ['deprecated_so.html', 'perl_rebuilds.html', 'ruby_rebuilds.html', 'unmaintained.html'],
  'summary': ['arc-src.html',
              'arc.html',
              'base-cygwin.html',

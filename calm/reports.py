@@ -188,49 +188,51 @@ def deprecated(args, packages, reportsdir):
         template('Deprecated shared library packages', body.getvalue(), f)
 
 
-# produce a report of packages which need rebuilding for latest perl major version
+# produce a report of packages which need rebuilding for the latest major
+# version version provides
 #
-def perlrebuild(args, packages, reportsdir):
+def provides_rebuild(args, packages, reportfile, provide_package):
     pr_list = []
 
     arch = 'x86_64'
     # XXX: look into how we can change this, after x86 is dropped
 
-    perl_package = packages[arch].get('perl_base', None)
-    perl_provide = None
+    pp_package = packages[arch].get(provide_package, None)
+    pp_provide = None
 
-    if perl_package:
-        perl_bv = perl_package.best_version
-        perl_provide = perl_package.version_hints[perl_bv]['provides']
+    if pp_package:
+        pp_bv = pp_package.best_version
+        pp_provide = pp_package.version_hints[pp_bv]['provides']
+        pp_provide_base = re.sub(r'\d+$', '', pp_provide)
 
-    for p in packages[arch]:
-        po = packages[arch][p]
-        bv = po.best_version
+        for p in packages[arch]:
+            po = packages[arch][p]
+            bv = po.best_version
 
-        depends = packages[arch][p].version_hints[bv]['depends'].split(', ')
-        depends = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in depends]
+            depends = packages[arch][p].version_hints[bv]['depends'].split(', ')
+            depends = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in depends]
 
-        for d in depends:
-            if not re.match(r'perl\d+_\d+', d):
-                continue
+            for d in depends:
+                if not d.startswith(pp_provide_base):
+                    continue
 
-            if d == perl_provide:
-                continue
+                if d == pp_provide:
+                    continue
 
-            # requires an old perl provide
-            pr = types.SimpleNamespace()
-            pr.pn = p
-            pr.po = po
-            pr.spn = po.srcpackage(bv)
-            pr.spo = packages[arch][pr.spn]
-            pr.depends = d
-            pr.bv = bv
+                # requires an old provide
+                pr = types.SimpleNamespace()
+                pr.pn = p
+                pr.po = po
+                pr.spn = po.srcpackage(bv)
+                pr.spo = packages[arch][pr.spn]
+                pr.depends = d
+                pr.bv = bv
 
-            pr_list.append(pr)
-            break
+                pr_list.append(pr)
+                break
 
     body = io.StringIO()
-    print(' <p>Packages whose latest version depends on a perl version provides: other than %s.</p>' % perl_provide, file=body)
+    print(' <p>Packages whose latest version depends on a version provides: other than %s.</p>' % pp_provide, file=body)
 
     print('<table class="grid">', file=body)
     print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
@@ -241,8 +243,7 @@ def perlrebuild(args, packages, reportsdir):
 
     print('</table>', file=body)
 
-    r = os.path.join(reportsdir, 'perl_rebuilds.html')
-    with utils.open_amifc(r) as f:
+    with utils.open_amifc(reportfile) as f:
         template('Packages needing rebuilds for latest perl', body.getvalue(), f)
 
 
@@ -256,4 +257,6 @@ def do_reports(args, packages):
 
     unmaintained(args, packages, reportsdir)
     deprecated(args, packages, reportsdir)
-    perlrebuild(args, packages, reportsdir)
+
+    provides_rebuild(args, packages, os.path.join(reportsdir, 'perl_rebuilds.html'), 'perl_base')
+    provides_rebuild(args, packages, os.path.join(reportsdir, 'ruby_rebuilds.html'), 'ruby')
