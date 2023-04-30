@@ -729,7 +729,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
                         # all packages listed in a hint must exist (unless the
                         # disable-check option says that's ok)
-                        if (r not in valid) and (r not in past_mistakes.nonexistent_provides + past_mistakes.expired_provides):
+                        if (r not in valid) and (r not in past_mistakes.expired_provides) and (not any(re.match(nep, r) for nep in past_mistakes.nonexistent_provides)):
                             if okmissing not in getattr(args, 'disable_check', []):
                                 logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, v, c, r))
                                 error = True

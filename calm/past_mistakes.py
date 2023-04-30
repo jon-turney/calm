@@ -152,19 +152,27 @@ missing_obsolete = {
     'xfig-debuginfo': ['transfig-debuginfo'],     # contain conflicting files
 }
 
-# provides: which don't exist
-nonexistent_provides = [
-    '_windows',
-    'perl5_026',
+# historical provides
+#
+# something obsoletes these, but they were removed before we started remembering
+# all historic_package_names
+historical_provides = [
     'rdiff-debuginfo',
     'rxvt-unicode-X-debuginfo',
     'xfce4-mixer-debuginfo',
     'python3-dbus-debuginfo',
-    'tl_2023',
-    'tl_basic_2023',
-    'ruby_23',
-    'ruby_22',
-    'ruby_20',
+]
+
+# provides: which don't exist
+#
+# we use regex patterns to match version provides which might have been expired,
+# or not uploaded yet.
+nonexistent_provides = historical_provides + [
+    '_windows',
+    r'perl5_\d+',
+    r'ruby_\d+',
+    r'tl_\d+',
+    r'tl_basic_\d+',
 ]
 
 # provides: which don't exist and packages which require them should be expired
