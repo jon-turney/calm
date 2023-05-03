@@ -219,6 +219,9 @@ def provides_rebuild(args, packages, reportfile, provide_package):
                 if d == pp_provide:
                     continue
 
+                if po.obsoleted_by:
+                    continue
+
                 # requires an old provide
                 pr = types.SimpleNamespace()
                 pr.pn = p
