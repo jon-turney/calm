@@ -247,7 +247,7 @@ def provides_rebuild(args, packages, reportfile, provide_package):
     print('</table>', file=body)
 
     with utils.open_amifc(reportfile) as f:
-        template('Packages needing rebuilds for latest perl', body.getvalue(), f)
+        template('Packages needing rebuilds for latest %s' % provide_package, body.getvalue(), f)
 
 
 #
