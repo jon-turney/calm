@@ -297,6 +297,10 @@ def hint_file_parse(fn, kind, strict=False):
 
                     # license must be a valid spdx license expression
                     if key == 'license' and licensing:
+                        # first, normalize whitespace in license, so we don't
+                        # get spurious normalization warnings over whitespace
+                        value = re.sub(r'\s+', ' ', value)
+
                         try:
                             licensing.parse(value, strict=True)
                             le = licensing.validate(value, strict=True)
