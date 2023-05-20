@@ -151,46 +151,12 @@ def add_directories(mlist, homedirs):
 @utils.mtime_cache
 def _read_pkglist(pkglist):
     mpkgs = {}
+    teams = {}
 
     with open(pkglist) as f:
         for (i, l) in enumerate(f):
-            orphaned = False
-            l = l.rstrip()
 
-            # match lines of the form '<package> <maintainer(s)|status>'
-            match = re.match(r'^(\S+)\s+(.+)$', l)
-            if match:
-                pkg = match.group(1)
-                rest = match.group(2)
-
-                # does rest starts with a status in all caps?
-                status_match = re.match(r'^([A-Z]{2,})\b.*$', rest)
-                if status_match:
-                    status = status_match.group(1)
-
-                    # packages marked as 'OBSOLETE' are obsolete
-                    if status == 'OBSOLETE':
-                        # obsolete packages have no maintainer
-                        #
-                        # XXX: perhaps disallow even trusties to upload (or
-                        # warn if they try?)
-                        m = ''
-
-                    # orphaned packages are assigned to 'ORPHANED'
-                    elif status == 'ORPHANED':
-                        m = status
-                        orphaned = True
-
-                        # also add any previous maintainer(s) listed
-                        prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
-                        if prevm:
-                            m = m + '/' + prevm.group(1)
-                    else:
-                        logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
-                        continue
-                else:
-                    m = rest
-
+            def _split_maintainer_names(m, teams=None):
                 # joint maintainers are separated by '/'
                 maintainers = list()
                 for name in m.split('/'):
@@ -206,15 +172,83 @@ def _read_pkglist(pkglist):
                     try:
                         name.encode('ascii')
                     except UnicodeError:
-                        logging.error("non-ascii maintainer name '%s' in line %s:%d, skipped" % (rest, pkglist, i))
+                        logging.error("non-ascii maintainer name '%s' in %s:%d: '%s', skipped" % (name, pkglist, i, l))
                         continue
 
-                    maintainers.append(name)
+                    if name.startswith('@'):
+                        if teams and name in teams:
+                            for n in teams[name]:
+                                if n not in maintainers:
+                                    maintainers.append(n)
+                        else:
+                            logging.error("unknown team '%s' in %s:%d: '%s', skipped" % (name, pkglist, i, l))
+                    else:
+                        # avoid adding name if it's already in the list (a set
+                        # is not appropriate here, as we have the concept of
+                        # 'first named maintainer'
+                        if name not in maintainers:
+                            maintainers.append(name)
 
-                mpkgs[pkg] = MaintainerPackage(pkg, maintainers, orphaned)
+                return maintainers
 
+            if l.startswith('#'):
+                # comment
+                continue
+            elif l.startswith('@'):
+                # 'team' definition of the form '@<team> <maintainer(s)>'
+                match = re.match(r'^(\S+)\s+(.+)$', l)
+                if match:
+                    team = match.group(1)
+                    rest = match.group(2)
+
+                    teams[team] = _split_maintainer_names(rest)
+                    continue
             else:
-                logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
+                # package
+                orphaned = False
+                l = l.rstrip()
+
+                # match lines of the form '<package> <maintainer(s)|status>'
+                match = re.match(r'^(\S+)\s+(.+)$', l)
+                if match:
+                    pkg = match.group(1)
+                    rest = match.group(2)
+
+                    # does rest starts with a status in all caps?
+                    status_match = re.match(r'^([A-Z]{2,})\b.*$', rest)
+                    if status_match:
+                        status = status_match.group(1)
+
+                        # packages marked as 'OBSOLETE' are obsolete
+                        if status == 'OBSOLETE':
+                            # obsolete packages have no maintainer
+                            #
+                            # XXX: perhaps disallow even trusties to upload (or
+                            # warn if they try?)
+                            m = ''
+
+                        # orphaned packages are assigned to 'ORPHANED'
+                        elif status == 'ORPHANED':
+                            m = status
+                            orphaned = True
+
+                            # also add any previous maintainer(s) listed
+                            prevm = re.match(r'^ORPHANED\s\((.*)\)', rest)
+                            if prevm:
+                                m = m + '/' + prevm.group(1)
+                        else:
+                            logging.error("unknown package status '%s' in line %s:%d: '%s'" % (status, pkglist, i, l))
+                            continue
+                    else:
+                        m = rest
+
+                    maintainers = _split_maintainer_names(m, teams)
+
+                    mpkgs[pkg] = MaintainerPackage(pkg, maintainers, orphaned)
+                    continue
+
+            # couldn't handle the line
+            logging.error("unrecognized line in %s:%d: '%s'" % (pkglist, i, l))
 
     return mpkgs
 
@@ -259,3 +293,13 @@ def update_reminder_times(mlist):
 # a list of all packages
 def all_packages(pkglist):
     return pkg_list(pkglist).keys()
+
+
+#
+#
+#
+
+if __name__ == "__main__":
+    from . import common_constants
+    p = pkg_list(common_constants.PKGMAINT)
+    print(p['xwininfo'].maintainers())
