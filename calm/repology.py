@@ -43,7 +43,13 @@ use_legacy = {'qt': [LegacyData('5', []),
                      LegacyData('4', []),
                      LegacyData('3', [])],
               'gtk': [LegacyData('3', ['3.9', '+']),
-                      LegacyData('2', [])]}
+                      LegacyData('2', [])],
+              'gtksourceview': [LegacyData('2', []),
+                                LegacyData('3', []),
+                                LegacyData('4', []),
+                                LegacyData('5', []),
+                                ]
+              }
 
 
 def repology_fetch_versions():
@@ -99,7 +105,7 @@ def repology_fetch_versions():
             # packages
             #
             # (multiple cygwin source packages can correspond to a single
-            # canonical repology package name, e.g. foo and mingww64-arch-foo)
+            # canonical repology package name, e.g. foo and mingw64-arch-foo)
             for i in p:
                 if i['repo'] == "cygwin":
                     source_pn = i['srcname']
