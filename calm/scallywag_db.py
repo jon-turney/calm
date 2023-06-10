@@ -52,5 +52,4 @@ def do_deploys(cb):
                 status = 'deploy failed'
 
             conn.execute("UPDATE jobs SET status = ? WHERE id = ?", (status, r.id))
-
-        conn.commit()
+            conn.commit()
