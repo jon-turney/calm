@@ -57,6 +57,15 @@ def template(title, body, f):
     </html>'''), file=f)
 
 
+def write_report(args, title, body, fn, reportlist):
+    reportlist[title] = os.path.join('reports', fn)
+
+    fn = os.path.join(args.htdocs, 'reports', fn)
+
+    with utils.open_amifc(fn) as f:
+        template(title, body.getvalue(), f)
+
+
 def linkify(pn, po):
     return '<a href="/packages/summary/{0}.html">{1}</a>'.format(pn, po.orig_name)
 
@@ -64,7 +73,7 @@ def linkify(pn, po):
 #
 # produce a report of unmaintained packages
 #
-def unmaintained(args, packages, reportsdir):
+def unmaintained(args, packages, reportlist):
     pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     um_list = []
@@ -123,14 +132,12 @@ def unmaintained(args, packages, reportsdir):
 
     print('</table>', file=body)
 
-    unmaintained = os.path.join(reportsdir, 'unmaintained.html')
-    with utils.open_amifc(unmaintained) as f:
-        template('Unmaintained packages', body.getvalue(), f)
+    write_report(args, 'Unmaintained packages', body, 'unmaintained.html', reportlist)
 
 
 # produce a report of deprecated packages
 #
-def deprecated(args, packages, reportsdir):
+def deprecated(args, packages, reportlist):
     dep_list = []
 
     arch = 'x86_64'
@@ -183,15 +190,13 @@ def deprecated(args, packages, reportsdir):
 
     print('</table>', file=body)
 
-    deprecated = os.path.join(reportsdir, 'deprecated_so.html')
-    with utils.open_amifc(deprecated) as f:
-        template('Deprecated shared library packages', body.getvalue(), f)
+    write_report(args, 'Deprecated shared library packages', body, 'deprecated_so.html', reportlist)
 
 
 # produce a report of packages which need rebuilding for the latest major
 # version version provides
 #
-def provides_rebuild(args, packages, reportfile, provide_package):
+def provides_rebuild(args, packages, fn, provide_package, reportlist):
     pr_list = []
 
     arch = 'x86_64'
@@ -246,8 +251,7 @@ def provides_rebuild(args, packages, reportfile, provide_package):
 
     print('</table>', file=body)
 
-    with utils.open_amifc(reportfile) as f:
-        template('Packages needing rebuilds for latest %s' % provide_package, body.getvalue(), f)
+    write_report(args, 'Packages needing rebuilds for latest %s' % provide_package, body, fn, reportlist)
 
 
 #
@@ -255,11 +259,21 @@ def do_reports(args, packages):
     if args.dryrun:
         return
 
-    reportsdir = os.path.join(args.htdocs, 'reports')
-    pkg2html.ensure_dir_exists(args, reportsdir)
+    reportlist = {}
 
-    unmaintained(args, packages, reportsdir)
-    deprecated(args, packages, reportsdir)
+    pkg2html.ensure_dir_exists(args, os.path.join(args.htdocs, 'reports'))
 
-    provides_rebuild(args, packages, os.path.join(reportsdir, 'perl_rebuilds.html'), 'perl_base')
-    provides_rebuild(args, packages, os.path.join(reportsdir, 'ruby_rebuilds.html'), 'ruby')
+    unmaintained(args, packages, reportlist)
+    deprecated(args, packages, reportlist)
+
+    provides_rebuild(args, packages, 'perl_rebuilds.html', 'perl_base', reportlist)
+    provides_rebuild(args, packages, 'ruby_rebuilds.html', 'ruby', reportlist)
+
+    fn = os.path.join(args.htdocs, 'reports_list.inc')
+    with utils.open_amifc(fn) as f:
+        print('<ul>', file=f)
+        for r in reportlist:
+            print('<li>', file=f)
+            print('<a href="%s">%s</a>' % (reportlist[r], r), file=f)
+            print('</li>', file=f)
+        print('</ul>', file=f)
