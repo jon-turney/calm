@@ -271,10 +271,14 @@ def update_package_listings(args, packages):
                     m_pn = es_po.orig_name
                     if m_pn not in pkg_maintainers:
                         m = None
-                    elif pkg_maintainers[m_pn].is_orphaned():
-                        m = 'ORPHANED'
+                        pkg_groups = None
                     else:
-                        m = ', '.join(sorted(pkg_maintainers[m_pn].maintainers()))
+                        if pkg_maintainers[m_pn].is_orphaned():
+                            m = 'ORPHANED'
+                        else:
+                            m = ', '.join(sorted(pkg_maintainers[m_pn].maintainers()))
+
+                        pkg_groups = pkg_maintainers[m_pn].groups()
 
                     if m:
                         print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)
@@ -282,6 +286,10 @@ def update_package_listings(args, packages):
                         print(textwrap.dedent('''\
                         <span class="smaller">(Use <a href="/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
                         <a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
+                        print('<br><br>', file=f)
+
+                    if pkg_groups:
+                        print('<span class="detail">group</span>: %s ' % ','.join(pkg_groups), file=f)
                         print('<br><br>', file=f)
 
                     if po.kind == package.Kind.source:

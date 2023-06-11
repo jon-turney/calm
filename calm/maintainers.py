@@ -48,9 +48,10 @@ from . import utils
 # supports is_orphaned() and maintainers() methods
 #
 class MaintainerPackage(UserString):
-    def __init__(self, name, maintainers, orphaned):
+    def __init__(self, name, maintainers, groups, orphaned):
         super().__init__(name)
         self._maintainers = maintainers
+        self._groups = groups
         self._orphaned = orphaned
 
     # XXX: for historical reasons, 'ORPHANED' still appears in the maintainer
@@ -60,6 +61,9 @@ class MaintainerPackage(UserString):
 
     def maintainers(self):
         return self._maintainers
+
+    def groups(self):
+        return self._groups
 
 
 #
@@ -159,6 +163,8 @@ def _read_pkglist(pkglist):
             def _split_maintainer_names(m, teams=None):
                 # joint maintainers are separated by '/'
                 maintainers = list()
+                groups = list()
+
                 for name in m.split('/'):
                     if not name:
                         continue
@@ -176,6 +182,8 @@ def _read_pkglist(pkglist):
                         continue
 
                     if name.startswith('@'):
+                        groups.append(name[1:])
+
                         if teams and name in teams:
                             for n in teams[name]:
                                 if n not in maintainers:
@@ -189,7 +197,7 @@ def _read_pkglist(pkglist):
                         if name not in maintainers:
                             maintainers.append(name)
 
-                return maintainers
+                return maintainers, groups
 
             if l.startswith('#'):
                 # comment
@@ -201,7 +209,7 @@ def _read_pkglist(pkglist):
                     team = match.group(1)
                     rest = match.group(2)
 
-                    teams[team] = _split_maintainer_names(rest)
+                    teams[team], _ = _split_maintainer_names(rest)
                     continue
             else:
                 # package
@@ -242,9 +250,9 @@ def _read_pkglist(pkglist):
                     else:
                         m = rest
 
-                    maintainers = _split_maintainer_names(m, teams)
+                    maintainers, groups = _split_maintainer_names(m, teams)
 
-                    mpkgs[pkg] = MaintainerPackage(pkg, maintainers, orphaned)
+                    mpkgs[pkg] = MaintainerPackage(pkg, maintainers, groups, orphaned)
                     continue
 
             # couldn't handle the line
