@@ -168,6 +168,9 @@ historical_provides = [
 # we use regex patterns to match version provides which might have been expired,
 # or not uploaded yet.
 nonexistent_provides = historical_provides + [
+    'python2',
+    'python2-devel',
+    'python27',
     '_windows',
     r'perl5_\d+',
     r'ruby_\d+',
@@ -177,7 +180,6 @@ nonexistent_provides = historical_provides + [
 
 # provides: which don't exist and packages which require them should be expired
 expired_provides = [
-    'python26',
 ]
 
 # empty source packages
