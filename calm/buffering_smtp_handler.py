@@ -21,13 +21,11 @@
 #
 
 
-import email.message
-import email.utils
 import logging
 import logging.handlers
-import subprocess
 
 from . import common_constants
+from . import utils
 
 
 class BufferingSMTPHandler(logging.handlers.BufferingHandler):
@@ -60,37 +58,15 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
 
             msg = msg + 'SUMMARY: ' + ', '.join(['%d %s(s)' % (v, k) for (k, v) in summary.items()]) + "\r\n"
 
-            # build the email
-            m = email.message.Message()
-            m['From'] = self.fromaddr
-            m['To'] = ','.join(self.toaddrs)
-            m['Reply-To'] = self.replytoaddr
-            m['Bcc'] = common_constants.ALWAYS_BCC
-            m['Subject'] = self.subject
-            m['Message-Id'] = email.utils.make_msgid()
-            m['Date'] = email.utils.formatdate()
-            m['X-Calm'] = '1'
+            hdr = {}
+            hdr['From'] = self.fromaddr
+            hdr['To'] = ','.join(self.toaddrs)
+            hdr['Reply-To'] = self.replytoaddr
+            hdr['Bcc'] = common_constants.ALWAYS_BCC
+            hdr['Subject'] = self.subject
+            hdr['X-Calm-Report'] = '1'
 
-            # use utf-8 only if the message can't be ascii encoded
-            charset = 'ascii'
-            try:
-                msg.encode('ascii')
-            except UnicodeError:
-                charset = 'utf-8'
-            m.set_payload(msg, charset=charset)
-
-            # if toaddrs consists of the single address 'debug', just dump the mail we would have sent
-            if self.toaddrs == ['debug']:
-                print('-' * 40)
-                for k in m:
-                    print('%s: %s' % (k, m[k]))
-                print('-' * 40)
-                print(msg)
-                print('-' * 40)
-            else:
-                with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', self.fromaddr], stdin=subprocess.PIPE) as p:
-                    p.communicate(m.as_bytes())
-                    logging.debug('sendmail: msgid %s, exit status %d' % (m['Message-Id'], p.returncode))
+            utils.sendmail(hdr, msg)
 
             self.buffer = []
 

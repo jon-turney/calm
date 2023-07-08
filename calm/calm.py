@@ -754,7 +754,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('-d', '--daemon', action='store', nargs='?', const=pidfile_default, help="daemonize (PIDFILE defaults to " + pidfile_default + ")", metavar='PIDFILE')
-    parser.add_argument('--email', action='store', dest='email', nargs='?', const=common_constants.EMAILS, help="email output to maintainer and ADDRS (ADDRS defaults to '" + common_constants.EMAILS + "')", metavar='ADDRS')
+    parser.add_argument('--email', action='store', dest='email', nargs='?', default='', const=common_constants.EMAILS, help="email output to maintainer and ADDRS (ADDRS defaults to '" + common_constants.EMAILS + "')", metavar='ADDRS')
     parser.add_argument('--force', action='count', help="force regeneration of static htdocs content", default=0)
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)

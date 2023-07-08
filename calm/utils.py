@@ -25,6 +25,8 @@
 # utility functions
 #
 
+import email.message
+import email.utils
 import filecmp
 import logging
 import os
@@ -158,3 +160,39 @@ def mtime_cache(user_function):
         return result
 
     return wrapper
+
+
+def sendmail(hdr, msg):
+    # sending email not enabled
+    if not hdr['To']:
+        return
+
+    # build the email
+    m = email.message.Message()
+
+    for h in hdr:
+        m[h] = hdr[h]
+    m['Message-Id'] = email.utils.make_msgid()
+    m['Date'] = email.utils.formatdate()
+    m['X-Calm'] = '1'
+
+    # use utf-8 only if the message can't be ascii encoded
+    charset = 'ascii'
+    try:
+        msg.encode('ascii')
+    except UnicodeError:
+        charset = 'utf-8'
+    m.set_payload(msg, charset=charset)
+
+    # if To: header consists of the single address 'debug', just dump the mail we would have sent
+    if m['To'] == 'debug':
+        logging.debug('-' * 40)
+        for k in m:
+            logging.debug('%s: %s' % (k, m[k]))
+        logging.debug('-' * 40)
+        logging.debug(msg)
+        logging.debug('-' * 40)
+    else:
+        with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', hdr['From']], stdin=subprocess.PIPE) as p:
+            p.communicate(m.as_bytes())
+            logging.debug('sendmail: msgid %s, exit status %d' % (m['Message-Id'], p.returncode))
