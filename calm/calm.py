@@ -53,6 +53,7 @@
 #
 
 import argparse
+import codecs
 import functools
 import logging
 import lzma
@@ -62,6 +63,8 @@ import signal
 import sys
 import tempfile
 import time
+
+import xtarfile
 
 from . import common_constants
 from . import db
@@ -201,7 +204,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
 
     # automatically generate announce email if requested
     if announce and success and any([scan_result[a].to_relarea for a in scan_result]):
-        _announce_upload(scan_result, m)
+        _announce_upload(args, scan_result, m)
 
     # remove upload files on success in homedir, always in stagingdir
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -215,7 +218,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
     return success
 
 
-def _announce_upload(scan_result, maintainer):
+def _announce_upload(args, scan_result, maintainer):
     srcpkg = None
     pkglist = set()
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -234,6 +237,38 @@ def _announce_upload(scan_result, maintainer):
         return
     logging.debug("source package is %s, version %s, test %s", srcpkg.orig_name, version, test)
 
+    # find source tarfile for this particular package version
+    to = srcpkg.tar(version)
+    tf = to.repopath.abspath(args.rel_area)
+
+    # look in the source tar file for a README
+    cl = ''
+    with xtarfile.open(tf, mode='r') as a:
+        files = a.getnames()
+        for readme in ['README', srcpkg.orig_name + '.README']:
+            fn = srcpkg.orig_name + '-' + version + '.src/' + readme
+            if fn in files:
+                logging.debug("extracting %s from archive for changelog" % readme)
+
+                f = codecs.getreader("utf-8")(a.extractfile(fn))
+
+                # extract relevant part of ChangeLog
+                # (between one '---- .* <version> ----' and the next '----' line)
+                found = False
+                for l in f:
+                    if not found:
+                        if l.startswith('----') and (version in l):
+                            cl = l
+                            found = True
+                    else:
+                        if l.startswith('----'):
+                            break
+                        cl = cl + '\n' + l
+
+                break
+
+    # TODO: maybe other mechanisms for getting package ChangeLog?
+
     # build the email
     hdr = {}
     hdr['From'] = maintainer.name + ' via Cygwin package uploader <cygwin-no-reply@cygwin.com>'
@@ -249,7 +284,9 @@ The following packages have been uploaded to the Cygwin distribution:
 %s
 
 %s
-''' % ('\n'.join('* ' + p + '-' + version for p in sorted(pkglist)), ldesc)
+
+%s
+''' % ('\n'.join('* ' + p + '-' + version for p in sorted(pkglist)), ldesc, cl)
 
     # TODO: add an attachment: sha512 hashes of packages, gpg signed?
 
