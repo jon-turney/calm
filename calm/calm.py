@@ -167,7 +167,8 @@ def process_uploads(args, state):
     def deploy_upload(r):
         m = mlist[r.user]
         with logfilters.AttrFilter(maint=m.name):
-            return process_maintainer_uploads(args, state, all_packages, m, os.path.join(args.stagingdir, str(r.id)), 'staging', scrub=True)
+            announce = ('announce' in r.tokens) and ('noannounce' not in r.tokens)
+            return process_maintainer_uploads(args, state, all_packages, m, os.path.join(args.stagingdir, str(r.id)), 'staging', scrub=True, announce=announce)
 
     scallywag_db.do_deploys(deploy_upload)
 
@@ -177,7 +178,7 @@ def process_uploads(args, state):
     return state.packages
 
 
-def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False):
+def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False, announce=False):
     # for each arch and noarch
     scan_result = {}
     success = True
@@ -198,6 +199,10 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
     if success:
         success = _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc)
 
+    # automatically generate announce email if requested
+    if announce and success and any([scan_result[a].to_relarea for a in scan_result]):
+        _announce_upload(scan_result, m)
+
     # remove upload files on success in homedir, always in stagingdir
     for arch in common_constants.ARCHES + ['noarch', 'src']:
         if scrub or success:
@@ -208,6 +213,47 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
         utils.rmemptysubdirs(os.path.join(basedir, m.name))
 
     return success
+
+
+def _announce_upload(scan_result, maintainer):
+    srcpkg = None
+    pkglist = set()
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        for po in scan_result[arch].packages.values():
+            if po.kind == package.Kind.source:
+                srcpkg = po
+                assert len(po.versions()) == 1
+                version = list(po.versions())[0]
+                ldesc = po.version_hints[version]['ldesc'].strip('"')
+                test = 'test' in po.version_hints[version]
+
+            pkglist.add(po.orig_name)
+
+    if not srcpkg:
+        logging.error("could not locate source package in upload")
+        return
+    logging.debug("source package is %s, version %s, test %s", srcpkg.orig_name, version, test)
+
+    # build the email
+    hdr = {}
+    hdr['From'] = maintainer.name + ' via Cygwin package uploader <cygwin-no-reply@cygwin.com>'
+    hdr['To'] = 'cygwin-announce@cygwin.com'
+    hdr['Reply-To'] = 'cygwin@cygwin.com'
+    hdr['Bcc'] = ','.join(maintainer.email)
+    hdr['Subject'] = srcpkg.orig_name + ' ' + version + (' (TEST)' if test else '')
+    hdr['X-Calm-Announce'] = '1'
+
+    msg = '''
+The following packages have been uploaded to the Cygwin distribution:
+
+%s
+
+%s
+''' % ('\n'.join('* ' + p + '-' + version for p in sorted(pkglist)), ldesc)
+
+    # TODO: add an attachment: sha512 hashes of packages, gpg signed?
+
+    utils.sendmail(hdr, msg)
 
 
 def _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc):
@@ -301,7 +347,7 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
         # use merged package list
         state.packages[arch] = merged_packages[arch]
 
-    # report what we've done
+    # report what we've done to irc
     added = []
     for arch in common_constants.ARCHES + ['noarch', 'src']:
         added.append('%d (%s)' % (len(scan_result[arch].packages), arch))
