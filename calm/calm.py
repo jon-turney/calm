@@ -272,7 +272,7 @@ def _announce_upload(args, scan_result, maintainer):
     # build the email
     hdr = {}
     hdr['From'] = maintainer.name + ' via Cygwin package uploader <cygwin-no-reply@cygwin.com>'
-    hdr['To'] = 'cygwin-announce@cygwin.com'
+    hdr['To'] = 'debug'
     hdr['Reply-To'] = 'cygwin@cygwin.com'
     hdr['Bcc'] = ','.join(maintainer.email)
     hdr['Subject'] = srcpkg.orig_name + ' ' + version + (' (TEST)' if test else '')
