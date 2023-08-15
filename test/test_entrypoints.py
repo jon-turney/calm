@@ -67,8 +67,8 @@ class EntryPointsTest(unittest.TestCase):
             results = inifile.read()
 
             # fix the timestamp to match expected
-            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1680890562', results, 1)
-            results = re.sub('generated at .*', 'generated at 2023-04-07 18:02:42 GMT.', results, 1)
+            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1680890562', results, count=1)
+            results = re.sub('generated at .*', 'generated at 2023-04-07 18:02:42 GMT.', results, count=1)
 
             compare_with_expected_file(self, 'testdata/mksetupini', results, 'setup.ini')
 

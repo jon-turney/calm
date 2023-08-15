@@ -58,7 +58,7 @@ class SetupVersion:
             setattr(self, i, split[j])
             sequences = re.finditer(r'(\d+|[a-zA-Z]+|[^a-zA-Z\d]+)', split[j])
             sequences = [m for m in sequences if not re.match(r'[^a-zA-Z\d]+', m.group(1))]
-            sequences = [re.sub(r'^0+(\d)', r'\1', m.group(1), 1) for m in sequences]
+            sequences = [re.sub(r'^0+(\d)', r'\1', m.group(1), count=1) for m in sequences]
             setattr(self, '_' + i, sequences)
 
     def __str__(self):
