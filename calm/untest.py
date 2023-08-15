@@ -53,7 +53,7 @@ def untest(pvr):
                         content = fh.read()
 
                     if re.search(r'^test:', content, re.MULTILINE):
-                        content = re.sub(r'^test:\s*$', '', content, 0, re.MULTILINE)
+                        content = re.sub(r'^test:\s*$', '', content, count=0, flags=re.MULTILINE)
 
                         with open(fn, 'w') as fh:
                             fh.write(content)

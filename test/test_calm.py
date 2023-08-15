@@ -366,8 +366,8 @@ class CalmTest(unittest.TestCase):
         with open(args.inifile) as inifile:
             results = inifile.read()
             # fix the timestamp to match expected
-            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1458221800', results, 1)
-            results = re.sub('generated at .*', 'generated at 2016-03-17 13:36:40 GMT', results, 1)
+            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1458221800', results, count=1)
+            results = re.sub('generated at .*', 'generated at 2016-03-17 13:36:40 GMT', results, count=1)
             compare_with_expected_file(self, 'testdata/inifile', (results,), 'setup.ini')
 
         # XXX: delete a needed package, and check validate fails
@@ -453,8 +453,8 @@ class CalmTest(unittest.TestCase):
         with open(os.path.join(args.rel_area, 'setup.ini')) as inifile:
             results = inifile.read()
             # fix the timestamp to match expected
-            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1473797080', results, 1)
-            results = re.sub('generated at .*', 'generated at 2016-09-13 21:04:40 BST', results, 1)
+            results = re.sub('setup-timestamp: .*', 'setup-timestamp: 1473797080', results, count=1)
+            results = re.sub('generated at .*', 'generated at 2016-09-13 21:04:40 BST', results, count=1)
             compare_with_expected_file(self, 'testdata/process_arch', (results,), 'setup.ini')
 
         for d in ARGDIRS:
