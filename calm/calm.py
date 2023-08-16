@@ -171,6 +171,9 @@ def process_uploads(args, state):
         m = mlist[r.user]
         with logfilters.AttrFilter(maint=m.name):
             announce = ('announce' in r.tokens) and ('noannounce' not in r.tokens)
+            if announce and r.announce:
+                announce = r.announce
+
             return process_maintainer_uploads(args, state, all_packages, m, os.path.join(args.stagingdir, str(r.id)), 'staging', scrub=True, announce=announce)
 
     scallywag_db.do_deploys(deploy_upload)
@@ -204,7 +207,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
 
     # automatically generate announce email if requested
     if announce and success and any([scan_result[a].to_relarea for a in scan_result]):
-        _announce_upload(args, scan_result, m)
+        _announce_upload(args, scan_result, m, announce)
 
     # remove upload files on success in homedir, always in stagingdir
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -218,7 +221,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
     return success
 
 
-def _announce_upload(args, scan_result, maintainer):
+def _announce_upload(args, scan_result, maintainer, announce):
     srcpkg = None
     pkglist = set()
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -241,33 +244,44 @@ def _announce_upload(args, scan_result, maintainer):
     to = srcpkg.tar(version)
     tf = to.repopath.abspath(args.rel_area)
 
-    # look in the source tar file for a README
-    cl = ''
-    with xtarfile.open(tf, mode='r') as a:
-        files = a.getnames()
-        for readme in ['README', srcpkg.orig_name + '.README']:
-            fn = srcpkg.orig_name + '-' + version + '.src/' + readme
-            if fn in files:
-                logging.debug("extracting %s from archive for changelog" % readme)
+    if isinstance(announce, str):
+        # use announce message extracted from cygport, if present
+        cl = announce
+    else:
+        # otherwise, look in the source tar file for one of the files we know
+        # contains an announce message
+        cl = ''
+        with xtarfile.open(tf, mode='r') as a:
+            files = a.getnames()
+            for readme in ['README', srcpkg.orig_name + '.README', 'ANNOUNCE']:
+                fn = srcpkg.orig_name + '-' + version + '.src/' + readme
+                if fn in files:
+                    logging.debug("extracting %s from archive for changelog" % readme)
 
-                f = codecs.getreader("utf-8")(a.extractfile(fn))
+                    f = codecs.getreader("utf-8")(a.extractfile(fn))
 
-                # extract relevant part of ChangeLog
-                # (between one '---- .* <version> ----' and the next '----' line)
-                found = False
-                for l in f:
-                    if not found:
-                        if l.startswith('----') and (version in l):
-                            cl = l
-                            found = True
-                    else:
-                        if l.startswith('----'):
-                            break
-                        cl = cl + '\n' + l
+                    # use the contents of an ANNOUNCE file verbatim
+                    if readme == 'ANNOUNCE':
+                        cl = f.read()
+                        break
 
-                break
+                    # otherwise, extract relevant part of ChangeLog from README
+                    # (between one '---- .* <version> ----' and the next '----' line)
+                    found = False
+                    for l in f:
+                        if not found:
+                            if l.startswith('----') and (version in l):
+                                cl = l
+                                found = True
+                        else:
+                            if l.startswith('----'):
+                                break
+                            cl = cl + '\n' + l
+
+                    break
 
     # TODO: maybe other mechanisms for getting package ChangeLog?
+    # NEWS inside upstream source tarball?
 
     # build the email
     hdr = {}
