@@ -283,9 +283,12 @@ def _announce_upload(args, scan_result, maintainer, announce):
     # TODO: maybe other mechanisms for getting package ChangeLog?
     # NEWS inside upstream source tarball?
 
+    # TODO: store initial msgid for a package, so we can do in-reply-to and thus
+    # allow threading of announces for that package
+
     # build the email
     hdr = {}
-    hdr['From'] = maintainer.name + ' via Cygwin package uploader <cygwin-no-reply@cygwin.com>'
+    hdr['From'] = maintainer.name + ' <cygwin-no-reply@cygwin.com>'
     hdr['To'] = 'cygwin-announce@cygwin.com'
     hdr['Reply-To'] = 'cygwin@cygwin.com'
     hdr['Bcc'] = ','.join(maintainer.email)
