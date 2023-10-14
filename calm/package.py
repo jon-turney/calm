@@ -1531,10 +1531,65 @@ class Freshness(IntEnum):
 
 
 def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
-    if callable(mark):
-        mark = mark(v)
-
     packages[p].tar(v).fresh = mark
+
+
+#
+# helper function evaluate if package needs marking for conditional retention
+#
+
+def mark_fn(packages, po, v, certain_age, vault_requests):
+    pn = po.name
+    bv = po.best_version
+
+    # 'conditional' package retention means the package is weakly retained.
+    # This allows total expiry when a source package no longer provides
+    # anything useful:
+    #
+    # - if all we have is a source package and a debuginfo package, then we
+    # shouldn't retain anything.
+    #
+    if pn.endswith('-debuginfo'):
+        return Freshness.conditional
+
+    # - shared library packages which don't come from the current version of
+    # source (i.e. is superseded or removed), have no packages from a
+    # different source package which depend on them, and are over a certain
+    # age
+    #
+    es = po.version_hints[bv].get('external-source', None)
+    if (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
+        not any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends)):
+        if es and (packages[es].best_version != bv):
+            mtime = po.tar(v).mtime
+            if mtime < certain_age:
+                logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
+                return Freshness.conditional
+
+    # - if package depends on anything in expired_provides
+    #
+    requires = po.version_hints[v].get('depends', '').split(', ')
+    if any(ep in requires for ep in past_mistakes.expired_provides):
+        logging.info("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
+        return Freshness.conditional
+
+    # - explicitly marked as 'noretain'
+    #
+    if 'noretain' in po.override_hints:
+        noretain_versions = po.override_hints.get('noretain', '').split()
+        if (v in noretain_versions) or ('all' in noretain_versions):
+            return Freshness.conditional
+
+    # - marked via 'calm-tool vault'
+    #
+    es = po.srcpackage(bv, suffix=False)
+    if es in vault_requests:
+        if v in vault_requests[es]:
+            logging.info("package '%s' version '%s' not retained due vault request" % (pn, v))
+            return Freshness.conditional
+
+    # otherwise, make no change
+    return Freshness.fresh
 
 
 #
@@ -1553,83 +1608,8 @@ def stale_packages(packages, vault_requests):
         if po.kind != Kind.binary:
             continue
 
-        mark = Freshness.fresh
-
-        # 'conditional' package retention means the package is weakly retained.
-        # This allows total expiry when a source package no longer provides
-        # anything useful:
-        #
-        # - if all we have is a source package and a debuginfo package, then we
-        # shouldn't retain anything.
-        #
-        if pn.endswith('-debuginfo'):
-            mark = Freshness.conditional
-
-        # - shared library packages which don't come from the current version of
-        # source (i.e. is superseded or removed), have no packages from a
-        # different source package which depend on them, and are over a certain
-        # age
-        #
-        bv = po.best_version
-        es = po.version_hints[bv].get('external-source', None)
-        if (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
-            not any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends)):
-            if es and (packages[es].best_version != bv):
-                def dep_so_age_mark(v):
-                    mtime = po.tar(v).mtime
-                    if mtime < certain_age:
-                        logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
-                        return Freshness.conditional
-                    else:
-                        return Freshness.fresh
-
-                mark = dep_so_age_mark
-
-        # - if package depends on anything in expired_provides
-        #
-        all_reqs = set.union(*(set(po.version_hints[v].get('depends', '').split(', ')) for v in po.versions()))
-        if all_reqs.intersection(set(past_mistakes.expired_provides)):
-            def expired_provides_mark(v):
-                requires = po.version_hints[v].get('depends', '').split(', ')
-                if any(ep in requires for ep in past_mistakes.expired_provides):
-                    # XXX: for the moment, don't allow this to expire the
-                    # current version, though!
-                    if v != po.best_version:
-                        logging.info("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
-                        return Freshness.conditional
-                    else:
-                        logging.info("package '%s' version '%s' requires a provide known to be expired, but not expired as it's the current version" % (pn, v))
-
-                return Freshness.fresh
-
-            mark = expired_provides_mark
-
-        # - explicitly marked as 'noretain'
-        #
-        if 'noretain' in po.override_hints:
-            def noretain_hint_mark(v):
-                noretain_versions = po.override_hints.get('noretain', '').split()
-                if (v in noretain_versions) or ('all' in noretain_versions):
-                    return Freshness.conditional
-                else:
-                    return Freshness.fresh
-
-            mark = noretain_hint_mark
-
-        # - marked via 'calm-tool vault'
-        #
-        es = po.srcpackage(bv, suffix=False)
-        if es in vault_requests:
-            def vault_requests_mark(v):
-                if v in vault_requests[es]:
-                    logging.info("package '%s' version '%s' not retained due vault request" % (pn, v))
-                    return Freshness.conditional
-                else:
-                    return Freshness.fresh
-
-            mark = vault_requests_mark
-
-        # mark any versions explicitly listed in the keep: override hint (unconditionally)
+        # mark as fresh any versions explicitly listed in the keep: override
+        # hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
             if v in po.versions():
                 mark_package_fresh(packages, pn, v)
@@ -1643,7 +1623,7 @@ def stale_packages(packages, vault_requests):
             if 'test' not in po.version_hints[v]:
                 if keep_count <= 0:
                     break
-                mark_package_fresh(packages, pn, v, mark)
+                mark_package_fresh(packages, pn, v)
                 keep_count = keep_count - 1
 
         # mark as fresh the highest n test versions, where n is given by the
@@ -1656,7 +1636,7 @@ def stale_packages(packages, vault_requests):
             if 'test' in po.version_hints[v]:
                 if keep_count <= 0:
                     break
-                mark_package_fresh(packages, pn, v, mark)
+                mark_package_fresh(packages, pn, v)
                 keep_count = keep_count - 1
             else:
                 if 'keep-superseded-test' not in po.override_hints:
@@ -1674,6 +1654,13 @@ def stale_packages(packages, vault_requests):
                     newer = True
 
             if newer:
+                mark_package_fresh(packages, pn, v)
+
+        # overwrite with 'conditional' package retention mark if it meets
+        # various criteria
+        for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
+            mark = mark_fn(packages, po, v, certain_age, vault_requests)
+            if mark != Freshness.fresh:
                 mark_package_fresh(packages, pn, v, mark)
 
     # mark source packages as fresh if any install package which uses it is fresh
