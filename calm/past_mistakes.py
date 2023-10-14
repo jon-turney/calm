@@ -171,6 +171,8 @@ nonexistent_provides = historical_provides + [
     'python2',
     'python2-devel',
     'python27',
+    'python-pygments',
+    'python-lxml',
     '_windows',
     r'perl5_\d+',
     r'ruby_\d+',
@@ -180,6 +182,8 @@ nonexistent_provides = historical_provides + [
 
 # provides: which don't exist and packages which require them should be expired
 expired_provides = [
+    'python2',
+    'python27',
 ]
 
 # empty source packages

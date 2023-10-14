@@ -584,7 +584,7 @@ def sort_key(k):
 # generate a record to add an obsoletes: header to the replacement package.
 #
 
-OBSOLETE_CONVERT_THRESHOLD_YEARS = 20
+OBSOLETE_CONVERT_THRESHOLD_YEARS = 2
 
 
 def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
@@ -1568,9 +1568,10 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
     # - if package depends on anything in expired_provides
     #
     requires = po.version_hints[v].get('depends', '').split(', ')
-    if any(ep in requires for ep in past_mistakes.expired_provides):
-        logging.info("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
-        return Freshness.conditional
+    if re.match(r'^python(|2|27)-', pn):
+        if any(ep in requires for ep in past_mistakes.expired_provides) or po.obsolete:
+            logging.info("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
+            return Freshness.conditional
 
     # - explicitly marked as 'noretain'
     #
