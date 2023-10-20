@@ -1582,7 +1582,7 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
 
     # - marked via 'calm-tool vault'
     #
-    es = po.srcpackage(bv, suffix=False)
+    es = po.srcpackage(v, suffix=False)
     if es in vault_requests:
         if v in vault_requests[es]:
             logging.info("package '%s' version '%s' not retained due vault request" % (pn, v))
