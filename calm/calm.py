@@ -170,11 +170,7 @@ def process_uploads(args, state):
     def deploy_upload(r):
         m = mlist[r.user]
         with logfilters.AttrFilter(maint=m.name):
-            announce = ('announce' in r.tokens) and ('noannounce' not in r.tokens)
-            if announce and r.announce:
-                announce = r.announce
-
-            return process_maintainer_uploads(args, state, all_packages, m, os.path.join(args.stagingdir, str(r.id)), 'staging', scrub=True, announce=announce)
+            return process_maintainer_uploads(args, state, all_packages, m, os.path.join(args.stagingdir, str(r.id)), 'staging', scrub=True, record=r)
 
     scallywag_db.do_deploys(deploy_upload)
 
@@ -184,7 +180,7 @@ def process_uploads(args, state):
     return state.packages
 
 
-def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False, announce=False):
+def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False, record=None):
     # for each arch and noarch
     scan_result = {}
     success = True
@@ -206,8 +202,8 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
         success = _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc)
 
     # automatically generate announce email if requested
-    if announce and success and any([scan_result[a].to_relarea for a in scan_result]):
-        _announce_upload(args, scan_result, m, announce)
+    if record and success and any([scan_result[a].to_relarea for a in scan_result]):
+        _announce_upload(args, scan_result, m, record)
 
     # remove upload files on success in homedir, always in stagingdir
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -221,7 +217,12 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
     return success
 
 
-def _announce_upload(args, scan_result, maintainer, announce):
+def _announce_upload(args, scan_result, maintainer, r):
+    announce = ('announce' in r.tokens) and ('noannounce' not in r.tokens)
+
+    if not announce:
+        return
+
     srcpkg = None
     pkglist = set()
     for arch in common_constants.ARCHES + ['noarch', 'src']:
@@ -244,9 +245,9 @@ def _announce_upload(args, scan_result, maintainer, announce):
     to = srcpkg.tar(version)
     tf = to.repopath.abspath(args.rel_area)
 
-    if isinstance(announce, str):
+    if r.announce:
         # use announce message extracted from cygport, if present
-        cl = announce
+        cl = r.announce
     else:
         # otherwise, look in the source tar file for one of the files we know
         # contains an announce message
@@ -289,9 +290,12 @@ def _announce_upload(args, scan_result, maintainer, announce):
     # build the email
     hdr = {}
     hdr['From'] = maintainer.name + ' <cygwin-no-reply@cygwin.com>'
-    hdr['To'] = 'cygwin-announce@cygwin.com'
     hdr['Reply-To'] = 'cygwin@cygwin.com'
     hdr['Bcc'] = ','.join(maintainer.email)
+    if 'mock' in r.tokens:
+        hdr['To'] = hdr['Bcc']
+    else:
+        hdr['To'] = 'cygwin-announce@cygwin.com'
     hdr['Subject'] = srcpkg.orig_name + ' ' + version + (' (TEST)' if test else '')
     hdr['X-Calm-Announce'] = '1'
 
