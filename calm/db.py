@@ -55,6 +55,11 @@ def connect(args):
                      replaces TEXT NOT NULL,
                      PRIMARY KEY (name, arch)
                     )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS announce_msgid
+                    (srcpackage TEXT NOT NULL PRIMARY KEY,
+                     msgid TEXT NOT NULL
+                    )''')
+
     conn.commit()
 
     return conn
@@ -138,3 +143,21 @@ def update_missing_obsolete(args, packages, arch):
                 conn.execute('UPDATE missing_obsolete SET replaces = ? WHERE name = ? AND arch = ?', (' '.join(r), n, arch))
 
     return missing_obsolete
+
+
+def announce_msgid_get(args, srcpackage):
+    msgid = None
+    with connect(args) as conn:
+        conn.row_factory = sqlite3.Row
+
+        cur = conn.execute("SELECT msgid FROM announce_msgid WHERE srcpackage = ?", (srcpackage,))
+        row = cur.fetchone()
+        if row:
+            msgid = row['msgid']
+
+    return msgid
+
+
+def announce_msgid_set(args, srcpackage, msgid):
+    with connect(args) as conn:
+        conn.execute('INSERT INTO announce_msgid (srcpackage, msgid) VALUES (?, ?)', (srcpackage, msgid))

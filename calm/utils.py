@@ -196,3 +196,5 @@ def sendmail(hdr, msg):
         with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', hdr['From']], stdin=subprocess.PIPE) as p:
             p.communicate(m.as_bytes())
             logging.debug('sendmail: msgid %s, exit status %d' % (m['Message-Id'], p.returncode))
+
+    return m['Message-Id']

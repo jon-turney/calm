@@ -284,9 +284,6 @@ def _announce_upload(args, scan_result, maintainer, r):
     # TODO: maybe other mechanisms for getting package ChangeLog?
     # NEWS inside upstream source tarball?
 
-    # TODO: store initial msgid for a package, so we can do in-reply-to and thus
-    # allow threading of announces for that package
-
     # build the email
     hdr = {}
     hdr['From'] = maintainer.name + ' <cygwin-no-reply@cygwin.com>'
@@ -298,6 +295,10 @@ def _announce_upload(args, scan_result, maintainer, r):
         hdr['To'] = 'cygwin-announce@cygwin.com'
     hdr['Subject'] = srcpkg.orig_name + ' ' + version + (' (TEST)' if test else '')
     hdr['X-Calm-Announce'] = '1'
+
+    irtid = db.announce_msgid_get(args, srcpkg.orig_name)
+    if irtid:
+        hdr['In-Reply-To'] = irtid
 
     msg = '''
 The following packages have been uploaded to the Cygwin distribution:
@@ -311,7 +312,10 @@ The following packages have been uploaded to the Cygwin distribution:
 
     # TODO: add an attachment: sha512 hashes of packages, gpg signed?
 
-    utils.sendmail(hdr, msg)
+    msgid = utils.sendmail(hdr, msg)
+
+    if not irtid:
+        db.announce_msgid_set(args, srcpkg.orig_name, msgid)
 
 
 def _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc):
