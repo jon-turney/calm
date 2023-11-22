@@ -57,8 +57,9 @@ def template(title, body, f):
     </html>'''), file=f)
 
 
-def write_report(args, title, body, fn, reportlist):
-    reportlist[title] = os.path.join('reports', fn)
+def write_report(args, title, body, fn, reportlist, not_empty=True):
+    if not_empty:
+        reportlist[title] = os.path.join('reports', fn)
 
     fn = os.path.join(args.htdocs, 'reports', fn)
 
@@ -251,7 +252,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
 
     print('</table>', file=body)
 
-    write_report(args, 'Packages needing rebuilds for latest %s' % provide_package, body, fn, reportlist)
+    write_report(args, 'Packages needing rebuilds for latest %s' % provide_package, body, fn, reportlist, bool(pr_list))
 
 
 #
