@@ -112,6 +112,7 @@ def unmaintained(args, packages, reportlist):
         up.ts = po.tar(v).mtime
         up.rdepends = len(rdepends)
         up.build_rdepends = len(build_rdepends)
+        up.importance = po.importance
 
         # some packages are mature. If 'v' is still latest upstream version,
         # then maybe we don't need to worry about this package quite as much...
@@ -125,11 +126,11 @@ def unmaintained(args, packages, reportlist):
     print('<p>Packages without a maintainer.</p>', file=body)
 
     print('<table class="grid">', file=body)
-    print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>rdepends</th><th>build_rdepends</th></tr>', file=body)
+    print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>rdepends</th><th>build_rdepends</th><th>importance</th></tr>', file=body)
 
-    for up in sorted(um_list, key=lambda i: (i.rdepends + i.build_rdepends, not i.unchanged, i.ts), reverse=True):
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.upstream_v, up.rdepends, up.build_rdepends), file=body)
+    for up in sorted(um_list, key=lambda i: (-i.importance, i.rdepends + i.build_rdepends, not i.unchanged, i.ts), reverse=True):
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.upstream_v, up.rdepends, up.build_rdepends, up.importance), file=body)
 
     print('</table>', file=body)
 

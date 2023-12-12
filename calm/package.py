@@ -56,6 +56,16 @@ class Kind(Enum):
     source = 2
 
 
+@unique
+class Importance(IntEnum):
+    base = 1     # has base category
+    basedep = 2  # doesn't have base category, but is depended on by something that does
+    other = 3    # all others
+
+    def __str__(self):
+        return self.name
+
+
 # a path inside a package repository (e.g relative to relarea)
 class RepoPath():
     def __init__(self, _arch=None, _path=None, _fn=None):
@@ -1077,7 +1087,46 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
     # validate that all packages are in the package maintainers list
     error = validate_package_maintainers(args, packages) or error
 
+    assign_importance(packages)
+
     return not error
+
+
+# assign importance classes to packages
+def assign_importance(packages):
+    # XXX: if we had some package popularity data, we'd use it here
+    for po in packages.values():
+        po.importance = Importance.other
+
+    # recursively give dependencies of base packages the basedep importance
+    def recursive_basedep(p):
+        bv = p.best_version
+        requires = p.version_hints[bv].get('depends', '').split(', ')
+        requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
+        for r in requires:
+            if r in packages:
+                if packages[r].importance == Importance.other:
+                    packages[r].importance = Importance.basedep
+                    recursive_basedep(packages[r])
+
+    for po in packages.values():
+        bv = po.best_version
+        categories = po.version_hints[bv]['category'].lower().split()
+        if 'base' in categories:
+            recursive_basedep(po)
+
+    # base packages have base importance
+    for po in packages.values():
+        bv = po.best_version
+        categories = po.version_hints[bv]['category'].lower().split()
+        if 'base' in categories:
+            po.importance = Importance.base
+
+    # a source package has the importance of it's most important install package
+    for po in packages.values():
+        if po.kind == Kind.source:
+            for ip in po.is_used_by:
+                po.importance = min(po.importance, packages[ip].importance)
 
 
 #
