@@ -5,6 +5,7 @@ flake8-builtins
 flake8-import-order
 license_expression
 lockfile
+markdown
 pycodestyle
 python-daemon
 xtarfile[zstd]

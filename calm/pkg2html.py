@@ -52,6 +52,8 @@ import textwrap
 import time
 from typing import NamedTuple
 
+import markdown
+
 import xtarfile
 
 from . import common_constants
@@ -80,13 +82,18 @@ def ldesc(po, bv):
         return sdesc(po, bv)
 
     header = header.strip('"')
-    # escape html entities
-    header = html.escape(header, quote=False)
-    header = header.replace('\n\n', '\n<br>\n')
-    # try to recognize things which look like bullet points
-    header = re.sub(r'\n(\s*[*-]\s)', r'<br>\n\1', header)
-    # linkify things which look like hyperlinks
-    header = re.sub(r'http(s|)://[^\s\)]*', r'<a href="\g<0>">\g<0></a>', header)
+    header = markdown.markdown(header)
+
+    # linkify things which look like URLs
+    def linkify_without_fullstop(m):
+        url = m.group(0)
+        suffix = ''
+        if url[-1] == '.':
+            suffix = url[-1]
+            url = url[0:-1]
+        return '<a href="{0}">{0}</a>{1}'.format(url, suffix)
+
+    header = re.sub(r'http(s|)://[\w./_-]*', linkify_without_fullstop, header)
 
     return header
 
