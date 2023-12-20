@@ -43,6 +43,7 @@ def template(title, body, f):
     <html>
     <head>
     <link rel="stylesheet" type="text/css" href="/style.css"/>
+    <script src="sorttable.js"></script>
     <title>{0}</title>
     </head>
     <body>
@@ -125,7 +126,7 @@ def unmaintained(args, packages, reportlist):
     body = io.StringIO()
     print('<p>Packages without a maintainer.</p>', file=body)
 
-    print('<table class="grid">', file=body)
+    print('<table class="grid sortable">', file=body)
     print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>rdepends</th><th>build_rdepends</th><th>importance</th></tr>', file=body)
 
     for up in sorted(um_list, key=lambda i: (-i.importance, i.rdepends + i.build_rdepends, not i.unchanged, i.ts), reverse=True):
@@ -183,7 +184,7 @@ def deprecated(args, packages, reportlist):
     <p>Packages for old soversions. (The corresponding source package produces a
     newer soversion, or has stopped producing this solib).</p>'''), file=body)
 
-    print('<table class="grid">', file=body)
+    print('<table class="grid sortable">', file=body)
     print('<tr><th>package</th><th>version</th><th>timestamp</th><th>rdepends</th></tr>', file=body)
 
     for depp in sorted(dep_list, key=lambda i: (i.rdepends, i.ts), reverse=True):
@@ -244,7 +245,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
     body = io.StringIO()
     print(' <p>Packages whose latest version depends on a version provides: other than %s.</p>' % pp_provide, file=body)
 
-    print('<table class="grid">', file=body)
+    print('<table class="grid sortable">', file=body)
     print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
 
     for pr in sorted(pr_list, key=lambda i: (i.depends, i.pn)):
