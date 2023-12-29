@@ -1393,6 +1393,20 @@ def upper_first_character(s):
 
 
 #
+#
+#
+
+def _find_build_recipe_file(pn):
+    repo = '/git/cygwin-packages/%s.git' % pn
+    if os.path.exists(repo):
+        # XXX: we might want to check contents of the repo to determine if this
+        # package has a cygport or g-b-s build script
+        return 'https://cygwin.com/cgit/cygwin-packages/%s/tree/%s.cygport' % (pn, pn)
+
+    return None
+
+
+#
 # write a json summary of packages
 #
 def write_repo_json(args, packages, f):
@@ -1442,6 +1456,10 @@ def write_repo_json(args, packages, f):
 
         if 'license' in po.version_hints[bv]:
             d['license'] = po.version_hints[bv]['license']
+
+        build_recipe = _find_build_recipe_file(po.orig_name)
+        if build_recipe:
+            d['build_recipe'] = build_recipe
 
         if (po.orig_name in pkg_maintainers) and (not pkg_maintainers[po.orig_name].is_orphaned()):
             d['maintainers'] = sorted(pkg_maintainers[po.orig_name].maintainers())
