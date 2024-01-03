@@ -205,9 +205,10 @@ def update_package_listings(args, packages):
                     <!--#include virtual="/top.html" -->
                     <h1>%s: %s</h1>''' % (title, kind, pn)), file=f)
 
-                    print('<span class="detail">summary</span>: %s<br><br>' % sdesc(po, bv), file=f)
-                    print('<span class="detail">description</span>: %s<br><br>' % ldesc(po, bv), file=f)
-                    print('<span class="detail">categories</span>: %s<br><br>' % po.version_hints[bv].get('category', ''), file=f)
+                    details_table = {}
+                    details_table['summary'] = sdesc(po, bv)
+                    details_table['description'] = ldesc(po, bv)
+                    details_table['categories'] = po.version_hints[bv].get('category', '')
 
                     if po.kind == package.Kind.source:
                         details = ['build-depends']
@@ -242,7 +243,7 @@ def update_package_listings(args, packages):
                                 else:
                                     detail.append(linkify_package(detail_pkg) + ' (%s)' % (','.join([arch for arch in pos if detail_pkg in value[arch]])))
 
-                            print('<span class="detail">%s</span>: %s<br><br>' % (key, ', '.join(detail)), file=f)
+                            details_table[key] = ', '.join(detail)
 
                     if po.kind == package.Kind.source:
                         es = p
@@ -250,19 +251,18 @@ def update_package_listings(args, packages):
                         install_packages = set()
                         for arch in pos:
                             install_packages.update(pos[arch].is_used_by)
-                        print('<span class="detail">install package(s)</span>: %s<br><br>' % ', '.join([linkify_package(p) for p in sorted(install_packages)]), file=f)
+                        details_table['install package(s)'] = ', '.join([linkify_package(p) for p in sorted(install_packages)])
 
                         homepage = po.version_hints[po.best_version].get('homepage', None)
                         if homepage:
-                            print('<span class="detail">homepage</span>: <a href="%s">%s</a><br><br>' % (homepage, homepage), file=f)
+                            details_table['homepage'] = '<a href="%s">%s</a>' % (homepage, homepage)
+
                         lic = po.version_hints[po.best_version].get('license', None)
                         if lic:
-                            print('<span class="detail">license</span>: %s' % (lic), file=f)
-                            print('<span class="smaller">(<a href="https://spdx.org/licenses/">SPDX</a>)</span>', file=f)
-                            print('<br><br>', file=f)
+                            details_table['license'] = '%s <span class="smaller">(<a href="https://spdx.org/licenses/">SPDX</a>)</span>' % (lic)
                     else:
                         es = po.srcpackage(bv)
-                        print('<span class="detail">source package</span>: %s<br><br>' % linkify_package(es), file=f)
+                        details_table['source package'] = linkify_package(es)
 
                     es_po = arch_package(packages, es)
                     if not es_po:
@@ -281,24 +281,29 @@ def update_package_listings(args, packages):
                         pkg_groups = pkg_maintainers[m_pn].groups()
 
                     if m:
-                        print('<span class="detail">maintainer(s)</span>: %s ' % m, file=f)
-
-                        print(textwrap.dedent('''\
+                        details_table['maintainer(s)'] = m + textwrap.dedent('''
                         <span class="smaller">(Use <a href="/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
-                        <a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>'''), file=f)
-                        print('<br><br>', file=f)
+                        <a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>''')
 
                     if pkg_groups:
-                        print('<span class="detail">group</span>: %s ' % ','.join(pkg_groups), file=f)
-                        print('<br><br>', file=f)
+                        details_table['groups'] = ','.join(pkg_groups)
 
                     if po.kind == package.Kind.source:
                         if args.repodir:
                             repo = os.path.join(args.repodir, '%s.git' % pn)
                             if os.path.exists(repo):
                                 repo_browse_url = '/cgit/cygwin-packages/%s/' % pn
-                                print('<span class="detail">packaging repository</span>: <a href="%s">%s.git</a>' % (repo_browse_url, pn), file=f)
+                                details_table['packaging repository'] = '<a href="%s">%s.git</a>' % (repo_browse_url, pn)
 
+                    # output details table
+                    print('<table class="pkgdetails">', file=f)
+                    for d, v in details_table.items():
+                        if not v.startswith('<p>'):
+                            v = '<p>' + v + '</p>'
+                        print('<tr><td><p><span class="detail">%s</span>:</p></td><td>%s</td></tr>' % (d, v), file=f)
+                    print('</table>', file=f)
+
+                    # output per-arch package versions table
                     print('<ul>', file=f)
                     for arch in sorted(packages):
                         if p in packages[arch]:

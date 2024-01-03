@@ -10,8 +10,9 @@
 <div id="main">
 <!--#include virtual="/top.html" -->
 <h1>Source Package: keychain</h1>
-<span class="detail">summary</span>: Key manager for OpenSSH<br><br>
-<span class="detail">description</span>: Keychain is an OpenSSH key manager, typically run from
+<table class="pkgdetails">
+<tr><td><p><span class="detail">summary</span>:</p></td><td><p>Key manager for OpenSSH</p></td></tr>
+<tr><td><p><span class="detail">description</span>:</p></td><td><p>Keychain is an OpenSSH key manager, typically run from
 ~/.bash_profile. When keychain is run, it checks for a running
 ssh-agent, otherwise it starts one. It saves the ssh-agent environment
 variables to ~/.keychain/$HOSTNAME-sh, so that subsequent logins
@@ -19,13 +20,13 @@ and non-interactive shells such as cron jobs can source the file and
 make passwordless ssh connections. In addition, when keychain runs, it
 verifies that the key files specified on the command-line are known to
 ssh-agent, otherwise it loads them, prompting you for a password if
-necessary<br><br>
-<span class="detail">categories</span>: Utils<br><br>
-<span class="detail">install package(s)</span>: <a href="keychain.html">keychain</a><br><br>
-<span class="detail">maintainer(s)</span>: Jari Aalto 
+necessary</p></td></tr>
+<tr><td><p><span class="detail">categories</span>:</p></td><td><p>Utils</p></td></tr>
+<tr><td><p><span class="detail">install package(s)</span>:</p></td><td><p><a href="keychain.html">keychain</a></p></td></tr>
+<tr><td><p><span class="detail">maintainer(s)</span>:</p></td><td><p>Jari Aalto
 <span class="smaller">(Use <a href="/lists.html#cygwin">the mailing list</a> to report bugs or ask questions.
-<a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span>
-<br><br>
+<a href="/problems.html#personal-email">Do not contact the maintainer(s) directly</a>.)</span></p></td></tr>
+</table>
 <ul>
 <li><span class="detail">x86_64</span></li>
 <table class="pkgtable">
