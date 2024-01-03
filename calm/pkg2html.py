@@ -50,6 +50,7 @@ import string
 import sys
 import textwrap
 import time
+from typing import NamedTuple
 
 import xtarfile
 
@@ -210,12 +211,22 @@ def update_package_listings(args, packages):
                     details_table['description'] = ldesc(po, bv)
                     details_table['categories'] = po.version_hints[bv].get('category', '')
 
-                    if po.kind == package.Kind.source:
-                        details = ['build-depends']
-                    else:
-                        details = ['depends', 'obsoletes', 'obsoleted_by', 'provides', 'conflicts']
+                    class PackageData(NamedTuple):
+                        is_attr: bool = False
+                        summarize_limit: int = 0
 
-                    detail_is_attr = ['obsoleted_by']
+                    if po.kind == package.Kind.source:
+                        details = {'build-depends': PackageData()}
+                    else:
+                        details = {
+                            'depends': PackageData(),
+                            'obsoletes': PackageData(),
+                            'obsoleted_by': PackageData(is_attr=True),
+                            'provides': PackageData(),
+                            'conflicts': PackageData(),
+                            'rdepends': PackageData(is_attr=True, summarize_limit=10),
+                            'build_rdepends': PackageData(is_attr=True, summarize_limit=10)
+                        }
 
                     for key in details:
                         # make the union of the package list for this detail
@@ -224,7 +235,7 @@ def update_package_listings(args, packages):
                         value = {}
                         values = set()
                         for arch in pos:
-                            if key in detail_is_attr:
+                            if details[key].is_attr:
                                 value[arch] = getattr(pos[arch], key, set())
                             else:
                                 t = pos[arch].version_hints[pos[arch].best_version].get(key, None)
@@ -243,7 +254,11 @@ def update_package_listings(args, packages):
                                 else:
                                     detail.append(linkify_package(detail_pkg) + ' (%s)' % (','.join([arch for arch in pos if detail_pkg in value[arch]])))
 
-                            details_table[key] = ', '.join(detail)
+                            limit = details[key].summarize_limit
+                            if limit and len(detail) > limit:
+                                details_table[key] = '<details><summary>(%s)</summary>%s</details>' % (len(detail), ', '.join(detail))
+                            else:
+                                details_table[key] = ', '.join(detail)
 
                     if po.kind == package.Kind.source:
                         es = p
