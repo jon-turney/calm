@@ -343,6 +343,11 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
         # remove files which are to be removed
         scan_result[arch].to_vault.map(lambda p, f: package.delete(merged_packages[arch], p, f))
 
+    # if an error occurred ...
+    if not valid:
+        # ... discard move list and merged_packages
+        return False
+
     # validate the package set
     state.valid_provides = db.update_package_names(args, merged_packages)
     for arch in common_constants.ARCHES:
