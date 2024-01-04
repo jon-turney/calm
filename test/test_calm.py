@@ -149,6 +149,7 @@ class CalmTest(unittest.TestCase):
         args.dryrun = False
         args.force = True
         args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
+        args.repodir = 'testdata/repodir'
 
         try:
             shutil.rmtree(htdocs)
@@ -421,6 +422,7 @@ class CalmTest(unittest.TestCase):
         args.inifile = os.path.join(args.rel_area, 'setup.ini')
         args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
         args.release = 'trial'
+        args.repodir = 'testdata/repodir'
         args.setup_version = '3.1415'
         args.stale = True
 

@@ -1396,12 +1396,13 @@ def upper_first_character(s):
 #
 #
 
-def _find_build_recipe_file(pn):
-    repo = '/git/cygwin-packages/%s.git' % pn
-    if os.path.exists(repo):
-        # XXX: we might want to check contents of the repo to determine if this
-        # package has a cygport or g-b-s build script
-        return 'https://cygwin.com/cgit/cygwin-packages/%s/tree/%s.cygport' % (pn, pn)
+def _find_build_recipe_file(args, pn):
+    if args.repodir:
+        repo = os.path.join(args.repodir, '%s.git' % pn)
+        if os.path.exists(repo):
+            # XXX: we might want to check contents of the repo to determine if this
+            # package has a cygport or g-b-s build script
+            return 'https://cygwin.com/cgit/cygwin-packages/%s/tree/%s.cygport' % (pn, pn)
 
     return None
 
@@ -1457,7 +1458,7 @@ def write_repo_json(args, packages, f):
         if 'license' in po.version_hints[bv]:
             d['license'] = po.version_hints[bv]['license']
 
-        build_recipe = _find_build_recipe_file(po.orig_name)
+        build_recipe = _find_build_recipe_file(args, po.orig_name)
         if build_recipe:
             d['build_recipe'] = build_recipe
 

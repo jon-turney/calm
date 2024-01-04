@@ -861,6 +861,7 @@ def main():
     pidfile_default = '/sourceware/cygwin-staging/calm.pid'
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
+    repodir_default = '/git/cygwin-packages'
     setupdir_default = common_constants.HTDOCS
     vault_default = common_constants.VAULT
     logdir_default = '/sourceware/cygwin-staging/logs'
@@ -877,6 +878,7 @@ def main():
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--repodir', action='store', metavar='DIR', help="packaging repositories directory (default: " + repodir_default + ")", default=repodir_default)
     parser.add_argument('--setupdir', action='store', metavar='DIR', help="setup executable directory (default: " + setupdir_default + ")", default=setupdir_default)
     parser.add_argument('--stagingdir', action='store', metavar='DIR', help="automated build staging directory (default: " + stagingdir_default + ")", default=stagingdir_default)
     parser.add_argument('--no-stale', action='store_false', dest='stale', help="don't vault stale packages")

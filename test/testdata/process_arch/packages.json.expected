@@ -51,6 +51,7 @@
  '            "arches": [\n'
  '                "x86_64"\n'
  '            ],\n'
+ '            "build_recipe": "https://cygwin.com/cgit/cygwin-packages/cygwin/tree/cygwin.cygport",\n'
  '            "license": "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception",\n'
  '            "maintainers": [\n'
  '                "Corinna Vinschen",\n'
