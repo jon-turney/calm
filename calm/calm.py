@@ -308,6 +308,7 @@ The following packages have been uploaded to the Cygwin distribution:
 %s
 
 %s
+
 ''' % ('\n'.join('* ' + p + '-' + version for p in sorted(pkglist)), ldesc, cl)
 
     # TODO: add an attachment: sha512 hashes of packages, gpg signed?
