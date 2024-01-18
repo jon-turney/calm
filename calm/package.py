@@ -245,7 +245,7 @@ def process_package_constraint_list(pcl):
                     deplist[item] = item + ' ' + r
             else:
                 item = r
-                deplist[item] = item
+                deplist[item] = past_mistakes.substitute_dependency.get(r, r)
 
     # return a sorted list of package names with an optional version constraint.
     return sorted(deplist.values())
