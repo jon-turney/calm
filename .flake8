@@ -1,5 +1,5 @@
 [flake8]
-ignore=E741,E129,W504,A003,B023,B902
+ignore=E741,E129,W504,A003,B023,B038,B902
 max-line-length=240
 per-file-ignores =
   calm/fixes.py:E241,E127
