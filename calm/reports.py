@@ -196,6 +196,49 @@ def deprecated(args, packages, reportlist):
     write_report(args, 'Deprecated shared library packages', body, 'deprecated_so.html', reportlist)
 
 
+#
+# produce a report of packages where the latest version is marked test: and has
+# possibly been forgotten about
+#
+def unstable(args, packages, reportlist):
+    unstable_list = []
+
+    arch = 'x86_64'
+    # XXX: look into how we can make this 'src', after x86 is dropped
+    for p in packages[arch]:
+        po = packages[arch][p]
+
+        if po.kind != package.Kind.source:
+            continue
+
+        latest_v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
+        if 'test' not in po.version_hints[latest_v]:
+            continue
+
+        unstablep = types.SimpleNamespace()
+        unstablep.pn = p
+        unstablep.po = po
+        unstablep.v = latest_v
+        unstablep.ts = po.tar(latest_v).mtime
+
+        unstable_list.append(unstablep)
+
+    body = io.StringIO()
+    print(textwrap.dedent('''\
+    <p>Packages where latest version is marked as unstable (testing).</p>'''), file=body)
+
+    print('<table class="grid sortable">', file=body)
+    print('<tr><th>package</th><th>version</th><th>timestamp</th></tr>', file=body)
+
+    for unstablep in sorted(unstable_list, key=lambda i: i.ts):
+        print('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (linkify(unstablep.pn, unstablep.po), unstablep.v, pkg2html.tsformat(unstablep.ts)), file=body)
+
+    print('</table>', file=body)
+
+    write_report(args, 'Packages marked as unstable', body, 'unstable.html', reportlist)
+
+
 # produce a report of packages which need rebuilding for the latest major
 # version version provides
 #
@@ -268,6 +311,7 @@ def do_reports(args, packages):
 
     unmaintained(args, packages, reportlist)
     deprecated(args, packages, reportlist)
+    unstable(args, packages, reportlist)
 
     provides_rebuild(args, packages, 'perl_rebuilds.html', 'perl_base', reportlist)
     provides_rebuild(args, packages, 'ruby_rebuilds.html', 'ruby', reportlist)
