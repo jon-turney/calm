@@ -124,9 +124,11 @@ def system(args):
         for l in e.output.decode().splitlines():
             logging.warning(l)
         logging.warning('%s exited %d' % (args.split()[0], e.returncode))
+        return e.output.decode()
     else:
         for l in output.decode().splitlines():
             logging.info(l)
+        return output.decode()
 
 
 #

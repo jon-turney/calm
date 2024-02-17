@@ -550,9 +550,38 @@ def do_main(args, state):
 
 
 #
+# verify signing key(s) are available in gpg-agent
 #
-#
+def is_passphrase_cached(args):
+    passphrase_cached = set()
 
+    for k in args.keygrips:
+        logging.debug('Querying gpg-agent on keygrip %s' % (k))
+        key_details = utils.system("/usr/bin/gpg-connect-agent 'keyinfo %s' /bye" % k)
+        for l in key_details.splitlines():
+            if l.startswith('S'):
+                # check for either PROTECTION='P' and CACHED='1' (passphrase is
+                # cached) or PROTECTION='C' (no passphrase)
+                keyinfo = l.split()
+                if keyinfo[2] == k:
+                    if ((keyinfo[7] == 'P' and keyinfo[6] == '1') or
+                        keyinfo[7] == 'C'):
+                        passphrase_cached.add(k)
+                    else:
+                        logging.error("Signing key not available")
+                        # Provide some help on the necessary runes: start agent
+                        # with --allow-preset-passphrase so that the passphrase
+                        # preloaded with gpg-preset-passphrase doesn't expire.
+                        logging.error("Load it with '/usr/libexec/gpg-preset-passphrase --preset %s' then provide passphrase" % k)
+                    break
+
+    # return True if all keys are accessible
+    return passphrase_cached == set(args.keygrips)
+
+
+#
+#
+#
 def do_output(args, state):
     # update packages listings
     # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
@@ -598,7 +627,13 @@ def do_output(args, state):
                     changed = True
 
             # then update setup.ini
-            if changed:
+            if not changed:
+                logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
+                os.remove(tmpfile.name)
+            elif not is_passphrase_cached(args):
+                logging.debug("removing %s, cannot sign" % (tmpfile.name))
+                os.remove(tmpfile.name)
+            else:
                 update_json = True
 
                 if args.dryrun:
@@ -632,10 +667,6 @@ def do_output(args, state):
 
                         keys = ' '.join(['-u' + k for k in args.keys])
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
-
-            else:
-                logging.debug("removing %s, unchanged %s" % (tmpfile.name, inifile))
-                os.remove(tmpfile.name)
 
     # write packages.json
     jsonfile = os.path.join(args.htdocs, 'packages.json.xz')
@@ -681,9 +712,19 @@ def do_daemon(args, state):
 
     logging.getLogger('inotify.adapters').propagate = False
 
+    def getLogFileDescriptors(logger):
+        """Get a list of fds from logger"""
+        handles = []
+        for handler in logger.handlers:
+            handles.append(handler.stream.fileno())
+        if logger.parent:
+            handles += getLogFileDescriptors(logger.parent)
+        return handles
+
     context = daemon.DaemonContext(
         stdout=sys.stdout,
         stderr=sys.stderr,
+        files_preserve=getLogFileDescriptors(logging.getLogger()),
         umask=0o002,
         pidfile=lockfile.pidlockfile.PIDLockFile(args.daemon))
 
@@ -704,7 +745,6 @@ def do_daemon(args, state):
     }
 
     with context:
-        logging_setup(args)
         logging.info("calm daemon started, pid %d" % (os.getpid()))
         irk.irk("calm daemon started")
 
@@ -900,6 +940,7 @@ def main():
     setupdir_default = common_constants.HTDOCS
     vault_default = common_constants.VAULT
     logdir_default = '/sourceware/cygwin-staging/logs'
+    key_default = [common_constants.DEFAULT_GPG_KEY]
 
     parser = argparse.ArgumentParser(description='Upset replacement')
     parser.add_argument('-d', '--daemon', action='store', nargs='?', const=pidfile_default, help="daemonize (PIDFILE defaults to " + pidfile_default + ")", metavar='PIDFILE')
@@ -907,7 +948,7 @@ def main():
     parser.add_argument('--force', action='count', help="force regeneration of static htdocs content", default=0)
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
-    parser.add_argument('--key', action='append', metavar='KEYID', help="key to use to sign setup.ini", default=[], dest='keys')
+    parser.add_argument('--key', action='append', metavar='KEYID', help="key to use to sign setup.ini", default=key_default, dest='keys')
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
     parser.add_argument('--trustedmaint', action='store', metavar='NAMES', help="trusted package maintainers (default: '" + trustedmaint_default + "')", default=trustedmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
@@ -930,6 +971,18 @@ def main():
     if args.reports is None:
         args.reports = args.daemon
 
+    logging_setup(args)
+
+    # find matching keygrips for keys
+    args.keygrips = []
+    for k in args.keys:
+        details = utils.system('gpg2 --list-keys --with-keygrip --with-colons %s' % k)
+        for l in details.splitlines():
+            if l.startswith('grp'):
+                grip = l.split(':')[9]
+                args.keygrips.append(grip)
+                logging.debug('key ID %s has keygrip %s' % (k, grip))
+
     state = CalmState()
     state.args = args
 
@@ -944,7 +997,6 @@ def main():
     if args.daemon:
         do_daemon(args, state)
     else:
-        logging_setup(args)
         status = do_main(args, state)
 
     return status

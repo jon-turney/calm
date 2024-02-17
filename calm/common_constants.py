@@ -82,11 +82,16 @@ DEFAULT_KEEP_COUNT = 3
 DEFAULT_KEEP_COUNT_TEST = 2
 DEFAULT_KEEP_DAYS = 0
 
+# getting gpg to accurately tell you the default key is apparently impossible,
+# so hardcode it here
+DEFAULT_GPG_KEY = '56405CF6FCC81574682A5D561A698DE9E2E56300'
+
 # different values to be used when we are not running on sourceware.org, but my
 # test system...
 if os.uname()[1] == 'tambora':
     EMAILS = 'debug'
     ALWAYS_BCC = ''
+    DEFAULT_GPG_KEY = '29E138393680DBA0'
 
 # package compressions
 PACKAGE_COMPRESSIONS = ['bz2', 'gz', 'lzma', 'xz', 'zst']
