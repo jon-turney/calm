@@ -12,4 +12,4 @@
  'category': 'Devel',
  'requires': 'cygwin',
  'parse-errors': ['key sdesc has multi-line value'],
- 'parse-warnings': ["sdesc ends with '.'"]}
+ 'parse-warnings': ["sdesc ends with '.', fixing"]}

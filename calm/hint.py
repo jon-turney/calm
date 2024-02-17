@@ -282,13 +282,13 @@ def hint_file_parse(fn, kind, strict=False):
                     # if sdesc ends with a '.', warn and fix it
                     if key == 'sdesc':
                         if re.search(r'\."$', value):
-                            warnings.append("sdesc ends with '.'")
+                            warnings.append("sdesc ends with '.', fixing")
                             value = re.sub(r'\."$', '"', value)
 
                     # if sdesc contains '  ', warn and fix it
                     if key == 'sdesc':
                         if '  ' in value:
-                            warnings.append("sdesc contains '  '")
+                            warnings.append("sdesc contains '  ', fixing")
                             value = value.replace('  ', ' ')
 
                     # message must have an id and some text
@@ -312,7 +312,7 @@ def hint_file_parse(fn, kind, strict=False):
                         else:
                             if not le.normalized_expression:
                                 warnings.append('errors in license expression: %s' % (le.errors))
-                            elif le.original_expression != le.normalized_expression:
+                            elif le.original_expression.lower() != le.normalized_expression.lower():
                                 warnings.append("license expression: '%s' normalizes to '%s'" % (value, le.normalized_expression))
 
                     # warn if value starts with a quote followed by whitespace

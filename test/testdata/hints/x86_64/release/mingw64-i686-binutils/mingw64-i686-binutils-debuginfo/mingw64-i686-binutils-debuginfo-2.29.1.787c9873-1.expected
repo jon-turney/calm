@@ -4,4 +4,4 @@
  'ldesc': '"Debug info for mingw64-i686-binutils"',
  'sdesc': '"This package contains files necessary for debugging the\nmingw64-i686-binutils package with gdb"',
  'parse-errors': ['key sdesc has multi-line value'],
- 'parse-warnings': ["sdesc ends with '.'", 'sdesc is much longer than ldesc']}
+ 'parse-warnings': ["sdesc ends with '.', fixing", 'sdesc is much longer than ldesc']}

@@ -2,4 +2,4 @@
  'ldesc': '"Initial base installation helper script."',
  'category': 'Base',
  'requires': '',
- 'parse-warnings': ["sdesc ends with '.'"]}
+ 'parse-warnings': ["sdesc ends with '.', fixing"]}
