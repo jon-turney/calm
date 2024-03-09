@@ -125,7 +125,10 @@ def arch_packages(packages, p):
 def ensure_dir_exists(args, path):
     if not args.dryrun:
         utils.makedirs(path)
-        os.chmod(path, 0o755)
+        try:
+            os.chmod(path, 0o755)
+        except PermissionError:
+            pass
 
 
 #
