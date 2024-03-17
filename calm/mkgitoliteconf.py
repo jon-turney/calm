@@ -58,19 +58,20 @@ def do_main(pkglist, file=sys.stdout):
     print('', file=file)
     print('@leads = %s' % ' '.join(map(transform_username, common_constants.TRUSTEDMAINT.split('/'))), file=file)
     print('', file=file)
-    print('repo @all', file=file)
+    print('repo @allpackages', file=file)
     print('    RW = @leads', file=file)
-    print('    RW+ playground$ = @all', file=file)
     print('# anyone can create, push, rewind or delete the \'playground\' branch', file=file)
+    print('    RW+ playground$ = @all', file=file)
     print('    R  = @all', file=file)
     print('    R  = gitweb daemon', file=file)
+    print('    option hook.post-receive = pkgbuild', file=file)
     print('    config core.sharedrepository = all', file=file)
     print('    config uploadpack.allowReachableSHA1InWant = true', file=file)
     print('    config receive.advertisePushOptions = true', file=file)
-    print('    - VREF/MAX_NEWBIN_SIZE/1024 = @all', file=file)
     print('# this rejects binary files over the size limit, text files of any size are still permitted', file=file)
-    print('    - VREF/HIGHLANDER/cygport = @all', file=file)
+    print('    - VREF/MAX_NEWBIN_SIZE/1024 = @all', file=file)
     print('# this checks for trees which contain more than one .cygport file', file=file)
+    print('    - VREF/HIGHLANDER/cygport = @all', file=file)
     print('', file=file)
 
     # for each package
@@ -105,6 +106,10 @@ def do_main(pkglist, file=sys.stdout):
             print("config repo.owner = %s" % (owner), file=file)
         print("config repo.desc = cygwin packaging for %s" % (p), file=file)
         print("", file=file)
+
+    print('# accumulate list of all package repos into allpackages group', file=file)
+    for p in sorted(pkgs):
+        print("@allpackages = git/cygwin-packages/%s" % (p), file=file)
 
 
 #
