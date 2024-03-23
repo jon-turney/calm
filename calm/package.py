@@ -1046,7 +1046,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
             # ignore Python module packages, as we may keep old versions of
             # those
-            if re.match(r'^python[23][5678]?-.*', install_p):
+            if re.match(r'^python3\d+-.*', install_p):
                 continue
 
             # ignore packages where best_version is a test version (i.e doesn't
