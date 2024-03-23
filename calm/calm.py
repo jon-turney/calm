@@ -784,17 +784,18 @@ def do_daemon(args, state):
             #
             # so we arrange for signals to raise an InterruptedError
             # exception, to pop out here
-            irk.irk("calm daemon stopped by SIGTERM")
+            stop_reason = "calm daemon stopped by SIGTERM"
 
         except Exception as e:
             with BufferingSMTPHandler(toaddrs=args.email, subject='calm stopping due to unhandled exception'):
                 logging.error("exception %s" % (type(e).__name__), exc_info=True)
-            irk.irk("calm daemon stopped due to unhandled exception")
+            stop_reason = "calm daemon stopped due to unhandled exception"
 
         else:
-            irk.irk("calm daemon stopped for unknown reason")
+            stop_reason = "calm daemon stopped for unknown reason"
 
-        logging.info("calm daemon stopped")
+        irk.irk(stop_reason)
+        logging.info(stop_reason)
 
 
 def mail_logs(state):
