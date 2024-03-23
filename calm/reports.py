@@ -286,7 +286,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
                 break
 
     body = io.StringIO()
-    print(' <p>Packages whose latest version depends on a version provides: other than %s.</p>' % pp_provide, file=body)
+    print('<p>Packages whose latest version depends on a version provides: other than %s.</p>' % pp_provide, file=body)
 
     print('<table class="grid sortable">', file=body)
     print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
@@ -298,6 +298,110 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
     print('</table>', file=body)
 
     write_report(args, 'Packages needing rebuilds for latest %s' % provide_package, body, fn, reportlist, bool(pr_list))
+
+
+# produce a report of python modules/bindings/linked packages which depend on
+# non-latest version of python
+def python_rebuild(args, packages, fn, reportlist):
+    pr_list = []
+
+    # XXX: look into how we can change this, after x86 is dropped
+    arch = 'x86_64'
+
+    # assume that python3 depends on the latest python3n package
+    py_package = packages[arch].get('python3', None)
+    if not py_package:
+        return
+
+    latest_py = py_package.version_hints[py_package.best_version]['depends'].split(', ')[0]
+
+    modules = {}
+
+    for p in packages[arch]:
+        po = packages[arch][p]
+        bv = po.best_version
+
+        if po.obsoleted_by:
+            continue
+
+        depends = packages[arch][p].version_hints[bv]['depends'].split(', ')
+        depends = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in depends]
+
+        for d in depends:
+            # scan for a 'pythonnn' dependency
+            if not re.match(r'python\d+$', d):
+                continue
+
+            # if it's a generic python dependency, it's ok
+            if d == 'python3':
+                continue
+
+            # if this package is called 'idlenn', it's ok
+            if p == d.replace('python', 'idle'):
+                break
+
+            # if this package is called 'pythonnn-foo', it's ok, and remember
+            # the module/binding name and version
+            if p.startswith(d + '-'):
+                name = p[len(d) + 1:]
+
+                if name not in modules:
+                    modules[name] = []
+
+                ver = int(d[6:])
+                modules[name].append(ver)
+
+                break
+
+            # if it depends on the latest python version, this package is ok
+            if d == latest_py:
+                break
+
+            # requires an old python version
+            pr = types.SimpleNamespace()
+            pr.pn = p
+            pr.po = po
+            pr.spn = po.srcpackage(bv)
+            pr.spo = packages[arch][pr.spn]
+            pr.depends = d
+            pr.bv = bv
+
+            pr_list.append(pr)
+
+            break
+
+    # now look at list of module/bindings we've made
+    latest_ver = int(latest_py[6:])
+    for m in modules:
+        highest_ver = sorted(modules[m], reverse=True)[0]
+        if highest_ver == latest_ver:
+            continue
+
+        # if module/binding doesn't exist for latest python version, indicate
+        # that it needs updating
+        pr = types.SimpleNamespace()
+        pr.pn = 'python' + str(highest_ver) + '-' + m
+        pr.po = packages[arch][pr.pn]
+        pr.spn = pr.po.srcpackage(pr.po.best_version)
+        pr.spo = packages[arch][pr.spn]
+        pr.depends = 'python' + str(highest_ver)
+        pr.bv = pr.po.best_version
+
+        pr_list.append(pr)
+
+    body = io.StringIO()
+    print('<p>Packages for python module or binding for, or linkage to, a python version other than %s.</p>' % latest_py, file=body)
+
+    print('<table class="grid sortable">', file=body)
+    print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
+
+    for pr in sorted(pr_list, key=lambda i: (i.depends, i.pn)):
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends), file=body)
+
+    print('</table>', file=body)
+
+    write_report(args, 'Packages needing rebuilds for latest python', body, fn, reportlist, bool(pr_list))
 
 
 #
@@ -315,6 +419,7 @@ def do_reports(args, packages):
 
     provides_rebuild(args, packages, 'perl_rebuilds.html', 'perl_base', reportlist)
     provides_rebuild(args, packages, 'ruby_rebuilds.html', 'ruby', reportlist)
+    python_rebuild(args, packages, 'python_rebuilds.html', reportlist)
 
     fn = os.path.join(args.htdocs, 'reports_list.inc')
     with utils.open_amifc(fn) as f:
