@@ -59,13 +59,16 @@ def fix_one_hint(args, dirpath, hintfile, tf):
         if args.requires in requires:
             return
 
-    # check if this package installs linked the specified DLL, and if
-    # so, add to the requires, if not already present
+    # check if this package installs executables linked to the specified DLL,
+    # and if so, add to the requires, if not already present
     exe = False
 
     try:
         with xtarfile.open(os.path.join(dirpath, tf), mode='r') as a:
             for m in a.getmembers():
+                if not m.isfile():
+                    continue
+
                 if re.search(r'\.(exe|dll)$', m.name):
                     logging.info('Found executable %s' % m.name)
                     a.extract(m)
@@ -82,6 +85,8 @@ def fix_one_hint(args, dirpath, hintfile, tf):
     if exe:
         requires = hints.get('requires', '').split()
         if args.requires not in requires:
+            if args.replace and args.replace in requires:
+                requires.remove(args.replace)
             requires.append(args.requires)
             requires = sorted(requires)
             modified = True
@@ -94,7 +99,8 @@ def fix_one_hint(args, dirpath, hintfile, tf):
     # write updated hints
     shutil.copy2(pn, pn + '.bak')
     hint.hint_file_write(pn, hints)
-    # os.system('/usr/bin/diff -uBZ %s %s' % (pn + '.bak', pn))
+    if args.verbose:
+        os.system('/usr/bin/diff -uBZ %s %s' % (pn + '.bak', pn))
 
 
 def fix_hints(args):
@@ -108,7 +114,12 @@ def fix_hints(args):
 
                 pn = root.rsplit('-', 2)[0]
 
-                if pn not in args.package:
+                # is pn in the list of packages (if specified)?
+                if args.package and (pn not in args.package):
+                    continue
+
+                # it is pointless to check for adding a self-dependency
+                if pn == args.requires:
                     continue
 
                 logging.info('Checking %s' % root)
@@ -126,9 +137,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Add DEPATOM to requires: of packages which contain an executable linked with DLL')
     parser.add_argument('dll', metavar='DLL', help='DLL to check for linkage')
     parser.add_argument('requires', metavar='DEPATOM', help='require to add')
-    parser.add_argument('package', metavar='PACKAGE', action='extend', nargs='+', help='packages to check')
+    parser.add_argument('package', metavar='PACKAGE', action='extend', nargs='*', help='packages to check')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
+    parser.add_argument('--replace', action='store', metavar='DEPATOM', help="replace existing DEPATOM if present")
     (args) = parser.parse_args()
 
     if args.verbose:
