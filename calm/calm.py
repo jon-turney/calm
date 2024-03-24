@@ -881,7 +881,7 @@ def main():
     homedir_default = common_constants.HOMEDIR
     stagingdir_default = common_constants.STAGINGDIR
     trustedmaint_default = common_constants.TRUSTEDMAINT
-    pidfile_default = '/sourceware/cygwin-staging/calm.pid'
+    pidfile_default = '/sourceware/cygwin-staging/lock/calm.pid'
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
     repodir_default = '/git/cygwin-packages'
