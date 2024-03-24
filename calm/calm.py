@@ -758,7 +758,7 @@ def do_daemon(args, state):
                         if path.startswith(args.rel_area):
                             # ignore sha512.sum and modifications to setup.*
                             # files in the arch directory
-                            if (filename != 'sha512.sum') and (path.count(os.path.sep) > depth):
+                            if (filename != 'sha512.sum') and ((path.count(os.path.sep) > depth) or filename == ".touch"):
                                 action |= Event.read_relarea
                         elif path.startswith(args.stagingdir):
                             action |= Event.read_uploads
