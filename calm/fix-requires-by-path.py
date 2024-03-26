@@ -70,6 +70,8 @@ def fix_one_hint(args, dirpath, hintfile, tf):
     if ivp:
         requires = hints.get('requires', '').split()
         if args.requires not in requires:
+            if args.replace and args.replace in requires:
+                requires.remove(args.replace)
             requires.append(args.requires)
             requires = sorted(requires)
             modified = True
@@ -82,7 +84,8 @@ def fix_one_hint(args, dirpath, hintfile, tf):
     # write updated hints
     shutil.copy2(pn, pn + '.bak')
     hint.hint_file_write(pn, hints)
-    # os.system('/usr/bin/diff -uBZ %s %s' % (pn + '.bak', pn))
+    if args.verbose:
+        os.system('/usr/bin/diff -uBZ %s %s' % (pn + '.bak', pn))
 
 
 def fix_hints(args):
@@ -109,6 +112,7 @@ if __name__ == "__main__":
     parser.add_argument('requires', metavar='DEPATOM', help='require to add')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
+    parser.add_argument('--replace', action='store', metavar='DEPATOM', help="replace existing DEPATOM if present")
     (args) = parser.parse_args()
 
     if not args.path.startswith('/'):
