@@ -42,6 +42,10 @@ from . import hint
 def fix_one_hint(args, dirpath, hintfile, tf):
     pn = os.path.join(dirpath, hintfile)
 
+    # avoid pointlessly checking to add a self-dependency
+    if pn == args.requires:
+        return
+
     hints = hint.hint_file_parse(pn, hint.pvr)
 
     hints.pop('parse-warnings', None)
@@ -57,13 +61,13 @@ def fix_one_hint(args, dirpath, hintfile, tf):
         if args.requires in requires:
             return
 
-    # check if this package installs anything with the specified path, and if
+    # check if this package installs any files with the specified path, and if
     # so, add to the requires, if not already present
     ivp = False
 
     try:
         with xtarfile.open(os.path.join(dirpath, tf), mode='r') as a:
-            ivp = any(re.match(args.path, m) for m in a.getnames())
+            ivp = any((m.isfile() and re.match(args.path, m.name)) for m in a.getmembers())
     except tarfile.ReadError:
         pass
 
