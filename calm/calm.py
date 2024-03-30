@@ -745,29 +745,34 @@ def do_daemon(args, state):
                 saw_events = False
                 depth = args.rel_area.count(os.path.sep) + 1
 
-                # It would be nice to use inotify.adaptor's timeout feature so
-                # we go at least a few seconds without events, to ensure that we
-                # don't start processing in the middle of a flurry of events.
-                # Unfortunately, that goes back to waiting for the full
-                # block_duration_s if timeout hasn't expired...
-                for event in i.event_gen(yield_nones=True):
-                    if event is not None:
-                        logging.debug("inotify event %s" % str(event))
-                        saw_events = True
-                        (_, type_names, path, filename) = event
-                        if path.startswith(args.rel_area):
-                            # ignore sha512.sum and modifications to setup.*
-                            # files in the arch directory
-                            if (filename != 'sha512.sum') and ((path.count(os.path.sep) > depth) or filename == ".touch"):
-                                action |= Event.read_relarea
-                        elif path.startswith(args.stagingdir):
-                            action |= Event.read_uploads
-                        elif (path.startswith(args.homedir)) and (filename == "!ready"):
-                            action |= Event.read_uploads
-                    else:
-                        # None means no more events are currently available, so
-                        # break to process actions
-                        break
+                try:
+                    # It would be nice to use inotify.adaptor's timeout feature so
+                    # we go at least a few seconds without events, to ensure that we
+                    # don't start processing in the middle of a flurry of events.
+                    # Unfortunately, that goes back to waiting for the full
+                    # block_duration_s if timeout hasn't expired...
+                    for event in i.event_gen(yield_nones=True):
+                        if event is not None:
+                            logging.debug("inotify event %s" % str(event))
+                            saw_events = True
+                            (_, type_names, path, filename) = event
+                            if path.startswith(args.rel_area):
+                                # ignore sha512.sum and modifications to setup.*
+                                # files in the arch directory
+                                if (filename != 'sha512.sum') and ((path.count(os.path.sep) > depth) or filename == ".touch"):
+                                    action |= Event.read_relarea
+                            elif path.startswith(args.stagingdir) and (filename != 'tmp'):
+                                action |= Event.read_uploads
+                            elif (path.startswith(args.homedir)) and (filename == "!ready"):
+                                action |= Event.read_uploads
+                        else:
+                            # None means no more events are currently available, so
+                            # break to process actions
+                            break
+                except inotify.calls.InotifyError:
+                    # can occur if a just created directory is (re)moved before
+                    # we set a watch on it
+                    pass
 
                 if not saw_events:
                     if time.time() > next_scan_time:
