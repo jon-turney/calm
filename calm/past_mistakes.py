@@ -256,8 +256,7 @@ substitute_dependency = {
 
 # provides: which don't exist and packages which require them should be expired
 expired_provides = [
-    'python2',
-    'python27',
+    'python34',
 ]
 
 # empty source packages

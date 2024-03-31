@@ -1636,10 +1636,9 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
     # - if package depends on anything in expired_provides
     #
     requires = po.version_hints[v].get('depends', '').split(', ')
-    if re.match(r'^python(|2|27)[-_]', pn):
-        if any(ep in requires for ep in past_mistakes.expired_provides) or po.obsolete:
-            logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
-            return Freshness.stale
+    if any(ep in requires for ep in past_mistakes.expired_provides):
+        logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
+        return Freshness.conditional
 
     # - explicitly marked as 'noretain'
     #
