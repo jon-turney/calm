@@ -169,6 +169,7 @@ historical_provides = [
 # or not uploaded yet.
 nonexistent_provides = historical_provides + [
     # python3
+    'python35',
     'python35-gi',
     'glade3',
     # python2
@@ -257,6 +258,7 @@ substitute_dependency = {
 # provides: which don't exist and packages which require them should be expired
 expired_provides = [
     'python34',
+    'python35',
 ]
 
 # empty source packages
