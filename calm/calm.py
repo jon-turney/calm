@@ -213,7 +213,10 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
 
     # clean up any empty directories
     if not args.dryrun:
-        utils.rmemptysubdirs(os.path.join(basedir, m.name))
+        if scrub:
+            utils.rmemptysubdirs(os.path.join(basedir, m.name), depth=0)
+        else:
+            utils.rmemptysubdirs(os.path.join(basedir, m.name))
 
     return success
 
