@@ -42,10 +42,6 @@ from . import hint
 def fix_one_hint(args, dirpath, hintfile, tf):
     pn = os.path.join(dirpath, hintfile)
 
-    # avoid pointlessly checking to add a self-dependency
-    if pn == args.requires:
-        return
-
     hints = hint.hint_file_parse(pn, hint.pvr)
 
     hints.pop('parse-warnings', None)
@@ -72,6 +68,7 @@ def fix_one_hint(args, dirpath, hintfile, tf):
         pass
 
     if ivp:
+        logging.info('found matching path in %s' % (tf))
         requires = hints.get('requires', '').split()
         if args.requires not in requires:
             if args.replace and args.replace in requires:
@@ -101,6 +98,18 @@ def fix_hints(args):
                 if root.endswith('-src'):
                     continue
 
+                pn = root.rsplit('-', 2)[0]
+
+                # is pn in the list of packages (if specified)?
+                if args.package and (pn not in args.package):
+                    continue
+
+                # avoid pointlessly checking to add a self-dependency
+                if pn == args.requires:
+                    return
+
+                logging.info('Checking %s' % root)
+
                 fix_one_hint(args, dirpath, root + '.hint', f)
 
 #
@@ -114,6 +123,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Add DEPATOM to requires: of packages which contain a file starting with PATH')
     parser.add_argument('path', metavar='PATH', help='regex of path to match')
     parser.add_argument('requires', metavar='DEPATOM', help='require to add')
+    parser.add_argument('package', metavar='PACKAGE', action='extend', nargs='*', help='packages to check')
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
     parser.add_argument('--replace', action='store', metavar='DEPATOM', help="replace existing DEPATOM if present")
