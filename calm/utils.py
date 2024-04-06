@@ -30,6 +30,7 @@ import email.utils
 import filecmp
 import logging
 import os
+import re
 import subprocess
 from contextlib import contextmanager
 
@@ -198,3 +199,13 @@ def sendmail(hdr, msg):
             logging.debug('sendmail: msgid %s, exit status %d' % (m['Message-Id'], p.returncode))
 
     return m['Message-Id']
+
+
+#
+# remove version-constrains from a list of dependencies
+#
+def deplist_without_verrel(dl):
+    dpl = dl.split(',')
+    dpl = [dp.strip() for dp in dpl]
+    dpl = [re.sub(r'(.*)\s+\(.*\)', r'\1', dp) for dp in dpl]
+    return dpl

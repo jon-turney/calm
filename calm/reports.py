@@ -174,11 +174,49 @@ def deprecated(args, packages, reportlist):
         depp.po = po
         depp.v = bv
         depp.ts = po.tar(bv).mtime
-        # number of rdepends which have a different source package
-        depp.rdepends = len(list(p for p in po.rdepends if packages[arch][p].srcpackage(packages[arch][p].best_version) != es))
+
+        # filter rdepends
+        depp.rdepends = []
+        for d in po.rdepends:
+            # have a different source package
+            bv = packages[arch][d].best_version
+            if packages[arch][d].srcpackage(bv) == es:
+                continue
+
+            # current version has the dependency of interest
+            dpl = utils.deplist_without_verrel(packages[arch][d].version_hints[bv]['depends'])
+            if p not in dpl:
+                continue
+
+            depp.rdepends.append(d)
 
         dep_list.append(depp)
 
+    # produce a rebuild report for each solib
+    for depp in dep_list:
+        if len(depp.rdepends) == 0:
+            continue
+
+        body = io.StringIO()
+        print('<p>Packages needing a rebuild for a later version solib than %s.</p>' % depp.pn, file=body)
+
+        print('<table class="grid sortable">', file=body)
+        print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>timestamp</th></tr>', file=body)
+
+        for r in sorted(depp.rdepends):
+            po = packages[arch][r]
+            bv = po.best_version
+            spn = po.srcpackage(bv)
+            spo = packages[arch][spn]
+
+            print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                  (linkify(r, po), linkify(spn, spo), bv, pkg2html.tsformat(po.tar(bv).mtime)), file=body)
+
+        print('</table>', file=body)
+
+        write_report(args, 'Package needing rebuilds (%s)' % depp.pn, body, 'so_rebuild_%s.html' % depp.pn, reportlist, not_empty=False)
+
+    # then produce an overall report
     body = io.StringIO()
     print(textwrap.dedent('''\
     <p>Packages for old soversions. (The corresponding source package produces a
@@ -187,9 +225,13 @@ def deprecated(args, packages, reportlist):
     print('<table class="grid sortable">', file=body)
     print('<tr><th>package</th><th>version</th><th>timestamp</th><th>rdepends</th></tr>', file=body)
 
-    for depp in sorted(dep_list, key=lambda i: (i.rdepends, i.ts), reverse=True):
+    for depp in sorted(dep_list, key=lambda i: (len(i.rdepends), i.ts), reverse=True):
+        len_link = len(depp.rdepends)
+        if len_link:
+            len_link = '<a href="so_rebuild_%s.html">%s</a>' % (depp.pn, len_link)
+
         print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (linkify(depp.pn, depp.po), depp.v, pkg2html.tsformat(depp.ts), depp.rdepends), file=body)
+              (linkify(depp.pn, depp.po), depp.v, pkg2html.tsformat(depp.ts), len_link), file=body)
 
     print('</table>', file=body)
 
