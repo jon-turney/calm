@@ -73,7 +73,7 @@ def fix_one_hint(args, dirpath, hintfile, tf):
                     logging.info('Found executable %s' % m.name)
                     a.extract(m)
 
-                    result = subprocess.run(['objdump', '-p', m.name], stdout=subprocess.PIPE, text=True)
+                    result = subprocess.run(['objdump', '-p', m.name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
                     if ('DLL Name: %s' % args.dll) in result.stdout:
                         exe = True
 
