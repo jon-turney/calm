@@ -1448,15 +1448,22 @@ def write_repo_json(args, packages, f):
             'name': po.orig_name,
             'versions': versions,
             'summary': po.version_hints[bv]['sdesc'].strip('"'),
-            'subpackages': [{'name': sp, 'categories': package(sp).version_hints[package(sp).best_version].get('category', '').split()} for sp in sorted(po.is_used_by)],
             'arches': arches,
         }
 
-        if 'homepage' in po.version_hints[bv]:
-            d['homepage'] = po.version_hints[bv]['homepage']
+        spl = []
+        for sp in sorted(po.is_used_by):
+            hints = package(sp).version_hints[package(sp).best_version]
+            sp = {'name': sp, 'categories': hints.get('category', '').split()}
+            for k in ['depends', 'provides', 'obsoletes']:
+                if hints.get(k, None):
+                    sp[k] = [d.strip() for d in hints[k].split(',')]
+            spl.append(sp)
+        d['subpackages'] = spl
 
-        if 'license' in po.version_hints[bv]:
-            d['license'] = po.version_hints[bv]['license']
+        for k in ['homepage', 'license', 'build-depends']:
+            if k in po.version_hints[bv]:
+                d[k] = po.version_hints[bv][k]
 
         build_recipe = _find_build_recipe_file(args, po.orig_name)
         if build_recipe:
