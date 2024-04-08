@@ -84,6 +84,9 @@ class RepoPath():
     def move(self):
         return (os.path.join(self.arch, 'release', self.path), self.fn)
 
+    def __repr__(self):
+        return "RepoPath(%s, %s, %s)" % (self.arch, self.path, self.fn)
+
 
 # information we keep about a package
 class Package(object):
