@@ -204,8 +204,5 @@ def sendmail(hdr, msg):
 #
 # remove version-constrains from a list of dependencies
 #
-def deplist_without_verrel(dl):
-    dpl = dl.split(',')
-    dpl = [dp.strip() for dp in dpl]
-    dpl = [re.sub(r'(.*)\s+\(.*\)', r'\1', dp) for dp in dpl]
-    return dpl
+def deplist_without_verrel(dpl):
+    return [re.sub(r'(.*)\s+\(.*\)', r'\1', dp) for dp in dpl]

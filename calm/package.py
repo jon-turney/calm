@@ -268,12 +268,29 @@ def read_hints(p, fn, kind, strict=False):
         for l in hints['parse-warnings']:
             logging.info("package '%s': %s" % (p, l))
 
-    # generate depends: from requires:
-    # XXX: store this as a list, rather than splitting it into one everywhere we
-    # use it
-    hints['depends'] = ', '.join(process_package_constraint_list(hints.get('requires', '')))
-    # erase requires:, to ensure there is nothing using it
+    # convert hint keys which have a value which is a list to an actual list (to
+    # avoid doing the splitting and whitespace handling everywhere)
+    #
+    # XXX: guarantee they exist and are an empty list if empty, so we don't need
+    # to check if they exist everywhere?)
+    for k in ['obsoletes', 'provides', 'conflicts', 'build-depends']:
+        if k in hints:
+            v = hints[k].strip()
+            if not v:
+                v = []
+            else:
+                # split on comma, remove any extraneous whitespace
+                v = [i.strip() for i in v.split(',')]
+            hints[k] = v
+
+    # 'depends' is special, generated from from requires:
+    hints['depends'] = process_package_constraint_list(hints.get('requires', ''))
+    # erase requires:, to ensure there is nothing still using it
     hints.pop('requires', None)
+
+    # disable check is just whitespace separated
+    if 'disable-check' in hints:
+        hints['disable-check'] = hints['disable-check'].split()
 
     return hints
 
@@ -627,7 +644,7 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
                     continue
                 logging.debug("_obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (p, vr, time.strftime("%F %T %Z", time.localtime(mtime))))
 
-                requires = packages[p].version_hints[vr].get('depends', '').split(', ')
+                requires = packages[p].version_hints[vr].get('depends', [])
                 requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
 
                 o = None
@@ -645,7 +662,7 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
 
                 else:
                     # ignore self-destruct packages
-                    provides = packages[p].version_hints[vr].get('provides', '')
+                    provides = packages[p].version_hints[vr].get('provides', [])
                     if '_self-destruct' in provides:
                         continue
 
@@ -693,7 +710,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
     for p in packages:
         valid_requires.add(p)
         for hints in packages[p].version_hints.values():
-            valid_requires.update(hints.get('provides', '').split())
+            valid_requires.update(hints.get('provides', []))
 
             # reset computed package state
             packages[p].has_requires = False
@@ -718,10 +735,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             ]:
                 # if c is in hints, and not the empty string
                 if hints.get(c, ''):
-                    for r in hints[c].split(','):
-                        # remove any extraneous whitespace
-                        r = r.strip()
-
+                    for r in hints[c]:
                         # strip off any version relation enclosed in '()'
                         # following the package name
                         r = re.sub(r'(.*) +\(.*\)', r'\1', r)
@@ -767,15 +781,13 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             if p in packages:
                 for v in packages[p].version_hints:
 
-                    obsoletes = packages[p].version_hints[v].get('obsoletes', '').split(',')
-                    obsoletes = [o.strip() for o in obsoletes]
-                    obsoletes = [o for o in obsoletes if o]
+                    obsoletes = packages[p].version_hints[v].get('obsoletes', [])
 
                     def add_needed_obsoletes(needed):
                         for n in sorted(needed):
                             if n not in obsoletes:
                                 obsoletes.append(n)
-                                packages[p].version_hints[v]['obsoletes'] = ', '.join(obsoletes)
+                                packages[p].version_hints[v]['obsoletes'] = obsoletes
                                 logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
 
                             # recurse so we don't drop transitive missing obsoletes
@@ -794,10 +806,9 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
         # in read_hints(), so fix that up here.
     for p in sorted(packages):
         for hints in packages[p].version_hints.values():
-            obsoletes = hints.get('obsoletes', '')
+            obsoletes = hints.get('obsoletes', [])
             if obsoletes:
-                for o in obsoletes.split(','):
-                    o = o.strip()
+                for o in obsoletes:
                     o = re.sub(r'(.*) +\(.*\)', r'\1', o)
 
                     if o in packages:
@@ -805,10 +816,10 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
                         for (ov, ohints) in packages[o].version_hints.items():
                             if 'depends' in ohints:
-                                depends = ohints['depends'].split(', ')
+                                depends = ohints['depends']
                                 if p in depends:
                                     depends = [d for d in depends if d != p]
-                                    packages[o].version_hints[ov]['depends'] = ', '.join(depends)
+                                    packages[o].version_hints[ov]['depends'] = depends
                                     logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
                     else:
                         logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
@@ -910,7 +921,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                 if packages[p].tar(vr).is_empty:
                     # this classification relies on obsoleting packages
                     # not being present in depends
-                    if packages[p].version_hints[vr].get('depends', ''):
+                    if packages[p].version_hints[vr].get('depends', []):
                         # also allow '_obsolete' because old obsoletion
                         # packages depend on their replacement, but are not
                         # obsoleted by it
@@ -950,9 +961,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                     ('obsoletes', 'obsoleted_by'),
             ]:
                 if k in hints:
-                    dpl = hints[k].split(',')
-                    for dp in dpl:
-                        dp = dp.strip()
+                    for dp in hints[k]:
                         dp = re.sub(r'(.*)\s+\(.*\)', r'\1', dp)
                         if dp in packages:
                             getattr(packages[dp], a).add(p)
@@ -1104,7 +1113,7 @@ def assign_importance(packages):
     # recursively give dependencies of base packages the basedep importance
     def recursive_basedep(p):
         bv = p.best_version
-        requires = p.version_hints[bv].get('depends', '').split(', ')
+        requires = p.version_hints[bv].get('depends', [])
         requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
         for r in requires:
             if r in packages:
@@ -1354,27 +1363,26 @@ def write_setup_ini(args, packages, arch):
 
                 if version in po.versions():
                     if hints.get('depends', ''):
-                        print("depends2: %s" % hints.get('depends', ''), file=f)
+                        print("depends2: %s" % ', '.join(hints.get('depends', [])), file=f)
 
                     if hints.get('obsoletes', ''):
-                        print("obsoletes: %s" % hints['obsoletes'], file=f)
+                        print("obsoletes: %s" % ', '.join(hints['obsoletes']), file=f)
 
                     if hints.get('provides', ''):
-                        print("provides: %s" % hints['provides'], file=f)
+                        print("provides: %s" % ', '.join(hints['provides']), file=f)
 
                     if hints.get('conflicts', ''):
-                        print("conflicts: %s" % hints['conflicts'], file=f)
+                        print("conflicts: %s" % ','.join(hints['conflicts']), file=f)
 
                 if s:
                     src_hints = packages[s].version_hints.get(version, {})
-                    bd = src_hints.get('build-depends', '')
+                    bd = src_hints.get('build-depends', [])
 
                     # Ideally, we'd transform dependency atoms which aren't
                     # cygwin package names into package names. For the moment,
                     # we don't have the information to do that, so filter them
                     # all out.
-                    if bd:
-                        bd = [atom for atom in bd.split(', ') if '(' not in atom]
+                    bd = [atom for atom in bd if '(' not in atom]
 
                     if bd:
                         print("build-depends: %s" % ', '.join(bd), file=f)
@@ -1460,7 +1468,7 @@ def write_repo_json(args, packages, f):
             sp = {'name': sp, 'categories': hints.get('category', '').split()}
             for k in ['depends', 'provides', 'obsoletes']:
                 if hints.get(k, None):
-                    sp[k] = [d.strip() for d in hints[k].split(',')]
+                    sp[k] = hints[k]
             spl.append(sp)
         d['subpackages'] = spl
 
@@ -1645,7 +1653,7 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
 
     # - if package depends on anything in expired_provides
     #
-    requires = po.version_hints[v].get('depends', '').split(', ')
+    requires = po.version_hints[v].get('depends', [])
     if any(ep in requires for ep in past_mistakes.expired_provides):
         logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
         return Freshness.conditional

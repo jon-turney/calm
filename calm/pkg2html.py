@@ -248,12 +248,8 @@ def update_package_listings(args, packages):
                             if details[key].is_attr:
                                 value[arch] = getattr(pos[arch], key, set())
                             else:
-                                t = pos[arch].version_hints[pos[arch].best_version].get(key, None)
-
-                                if t:
-                                    value[arch] = set(t.split(', '))
-                                else:
-                                    value[arch] = set()
+                                t = pos[arch].version_hints[pos[arch].best_version].get(key, [])
+                                value[arch] = set(t)
                             values.update(value[arch])
 
                         if values:

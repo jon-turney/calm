@@ -295,15 +295,15 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
 
     if pp_package:
         pp_bv = pp_package.best_version
-        pp_provide = pp_package.version_hints[pp_bv]['provides']
+        pp_provide = pp_package.version_hints[pp_bv]['provides'][0]
         pp_provide_base = re.sub(r'\d+$', '', pp_provide)
 
         for p in packages[arch]:
             po = packages[arch][p]
             bv = po.best_version
 
-            depends = packages[arch][p].version_hints[bv]['depends'].split(', ')
-            depends = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in depends]
+            depends = packages[arch][p].version_hints[bv]['depends']
+            depends = utils.deplist_without_verrel(depends)
 
             for d in depends:
                 if not d.startswith(pp_provide_base):
@@ -350,12 +350,12 @@ def python_rebuild(args, packages, fn, reportlist):
     # XXX: look into how we can change this, after x86 is dropped
     arch = 'x86_64'
 
-    # assume that python3 depends on the latest python3n package
+    # assume that python3 depends only on the latest python3n package
     py_package = packages[arch].get('python3', None)
     if not py_package:
         return
 
-    latest_py = py_package.version_hints[py_package.best_version]['depends'].split(', ')[0]
+    latest_py = py_package.version_hints[py_package.best_version]['depends'][0]
 
     modules = {}
 
@@ -366,8 +366,8 @@ def python_rebuild(args, packages, fn, reportlist):
         if po.obsoleted_by:
             continue
 
-        depends = packages[arch][p].version_hints[bv]['depends'].split(', ')
-        depends = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in depends]
+        depends = packages[arch][p].version_hints[bv]['depends']
+        depends = utils.deplist_without_verrel(depends)
 
         for d in depends:
             # scan for a 'pythonnn' dependency
