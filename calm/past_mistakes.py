@@ -277,6 +277,8 @@ old_style_obsolete_by = {
     'at-spi2-atk': 'libatk-bridge2.0_0',
     'idle3': 'idle39',
     'lighttpd-mod_trigger_b4_dl': 'lighttpd',
+    'python-gi-common': 'python3-gi',
+    'python-pyatspi-common': 'python3-pyatspi',
     'qt-gstreamer': 'libQtGStreamer1_0_0',
     # these are odd and only exist to record an optional dependency on the
     # language runtime (dynamically loaded at runtime), which is also noted in
@@ -291,6 +293,11 @@ old_style_obsolete_by = {
     'python3-.*': '',
     # these packages probably should be marked as self-destruct?
     'mate-utils': '',
+    'octave-octcdf': '',
+    'python-twisted-debuginfo': '',
     'texlive-collection-htmlxml': '',
+    'vte2.91': '',
     'w32api': '',
+    # self-destruct, or need to start to exist
+    'cron-debuginfo': '',
 }
