@@ -802,10 +802,10 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
                         for (ov, ohints) in packages[o].version_hints.items():
                             if 'depends' in ohints:
-                                depends = ohints['depends'].split(',')
+                                depends = ohints['depends'].split(', ')
                                 if p in depends:
                                     depends = [d for d in depends if d != p]
-                                    packages[o].version_hints[ov]['depends'] = ','.join(depends)
+                                    packages[o].version_hints[ov]['depends'] = ', '.join(depends)
                                     logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
                     else:
                         logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
