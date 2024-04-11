@@ -645,7 +645,7 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
                 logging.debug("_obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (p, vr, time.strftime("%F %T %Z", time.localtime(mtime))))
 
                 requires = packages[p].version_hints[vr].get('depends', [])
-                requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
+                requires = deplist_without_versions(requires)
 
                 o = None
                 for oso_re, oso_o in past_mistakes.old_style_obsolete_by.items():
@@ -693,6 +693,13 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
 
 
 #
+# drop version constraints from a list of dependencies
+#
+def deplist_without_versions(dpl):
+    return [re.sub(r'(.*)\s+\(.*\)', r'\1', dp) for dp in dpl]
+
+
+#
 # validate the package database
 #
 def validate_packages(args, packages, valid_provides_extra=None, missing_obsolete_extra=None):
@@ -735,11 +742,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             ]:
                 # if c is in hints, and not the empty string
                 if hints.get(c, ''):
-                    for r in hints[c]:
-                        # strip off any version relation enclosed in '()'
-                        # following the package name
-                        r = re.sub(r'(.*) +\(.*\)', r'\1', r)
-
+                    for r in deplist_without_versions(hints[c]):
                         if c == 'depends':
                             # don't count cygwin-debuginfo for the purpose of
                             # checking if this package has any requires, as
@@ -808,9 +811,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
         for hints in packages[p].version_hints.values():
             obsoletes = hints.get('obsoletes', [])
             if obsoletes:
-                for o in obsoletes:
-                    o = re.sub(r'(.*) +\(.*\)', r'\1', o)
-
+                for o in deplist_without_versions(obsoletes):
                     if o in packages:
                         packages[o].obsolete = True
 
@@ -961,8 +962,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                     ('obsoletes', 'obsoleted_by'),
             ]:
                 if k in hints:
-                    for dp in hints[k]:
-                        dp = re.sub(r'(.*)\s+\(.*\)', r'\1', dp)
+                    for dp in deplist_without_versions(hints[k]):
                         if dp in packages:
                             getattr(packages[dp], a).add(p)
 
@@ -1114,7 +1114,7 @@ def assign_importance(packages):
     def recursive_basedep(p):
         bv = p.best_version
         requires = p.version_hints[bv].get('depends', [])
-        requires = [re.sub(r'(.*) +\(.*\)', r'\1', r) for r in requires]
+        requires = deplist_without_versions(requires)
         for r in requires:
             if r in packages:
                 if packages[r].importance == Importance.other:

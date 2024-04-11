@@ -184,7 +184,7 @@ def deprecated(args, packages, reportlist):
                 continue
 
             # current version has the dependency of interest
-            dpl = utils.deplist_without_verrel(packages[arch][d].version_hints[bv]['depends'])
+            dpl = package.deplist_without_versions(packages[arch][d].version_hints[bv]['depends'])
             if p not in dpl:
                 continue
 
@@ -303,7 +303,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
             bv = po.best_version
 
             depends = packages[arch][p].version_hints[bv]['depends']
-            depends = utils.deplist_without_verrel(depends)
+            depends = packages.deplist_without_versions(depends)
 
             for d in depends:
                 if not d.startswith(pp_provide_base):
@@ -367,7 +367,7 @@ def python_rebuild(args, packages, fn, reportlist):
             continue
 
         depends = packages[arch][p].version_hints[bv]['depends']
-        depends = utils.deplist_without_verrel(depends)
+        depends = package.deplist_without_versions(depends)
 
         for d in depends:
             # scan for a 'pythonnn' dependency
