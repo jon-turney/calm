@@ -613,14 +613,7 @@ def sort_key(k):
 #
 # generate a record to add an obsoletes: header to the replacement package.
 #
-
-OBSOLETE_CONVERT_THRESHOLD_YEARS = 2
-
-
 def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
-    certain_age = time.time() - (OBSOLETE_CONVERT_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
-    logging.debug("cut-off date for _obsolete package to be considered for conversion is %s" % (time.strftime("%F %T %Z", time.localtime(certain_age))))
-
     for p in sorted(packages):
         if packages[p].kind == Kind.binary:
             for vr in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
@@ -636,13 +629,6 @@ def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
                 if not (packages[p].tar(vr).is_empty and
                         '_obsolete' in packages[p].version_hints[vr]['category']):
                     break
-
-                # initially apply to a subset over a certain age, to gradually
-                # introduce this change
-                mtime = packages[p].tar(vr).mtime
-                if mtime > certain_age:
-                    continue
-                logging.debug("_obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (p, vr, time.strftime("%F %T %Z", time.localtime(mtime))))
 
                 requires = packages[p].version_hints[vr].get('depends', [])
                 requires = deplist_without_versions(requires)
