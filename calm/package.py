@@ -466,17 +466,27 @@ def read_one_package(packages, p, basedir, files, kind, strict):
     for rp in list(files):
         f = rp.fn
 
+        if kind == Kind.source:
+            arch_re = r'(-src)'
+        else:
+            # XXX: we might also need to handle ARCHIVED_ARCHES, so this works
+            # for mksetupini invoked on an x86 repo with new packages made by
+            # future versions of cygport which generate arch-tagged packages (it
+            # might be better if we had an idea what the valid arches are here)
+            arch_re = r'(-' + '|'.join(common_constants.ARCHES) + r'|)'
+
         # warn if filename doesn't follow P-V-R naming convention
         #
         # P must match the package name, V can contain anything, R must
         # start with a number and can't include a hyphen
-        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z._+]*)(-src|)\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
+        match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z._+]*)' + arch_re + r'\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
         if not match:
             logging.error("file '%s' in package '%s' doesn't follow naming convention" % (rp.fn, p))
             return True
         else:
             v = match.group(1)
             r = match.group(2)
+            arch_tag = match.group(3)
 
             # historically, V can contain a '-' (since we can use the fact
             # we already know P to split unambiguously), but this is a bad
@@ -534,13 +544,19 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             tars[vr] = t
 
             # it's an error to not have a corresponding pvr.hint in the same directory
-            hint_fn = '%s-%s%s.hint' % (p, vr, '-src' if kind == Kind.source else '')
+            hint_fn = '%s-%s%s.hint' % (p, vr, arch_tag)
             hrp = RepoPath(rp.arch, rp.path, hint_fn)
             if hrp not in files:
                 logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
                 return True
 
         else:
+            # for each version, a package can contain at most one hint
+            # file. Warn if we have too many (for e.g. both with and without an
+            # archtag).
+            if vr in hint_files:
+                logging.error("package '%s' has more than one hint file for version '%s'" % (p, vr))
+                return True
             hint_files[vr] = rp
 
         # collect the superpackage names for authorization purposes

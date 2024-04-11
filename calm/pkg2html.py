@@ -506,10 +506,14 @@ def write_arch_listing(args, packages, arch):
         else:
             listings = []
 
-        for to in packages[p].tarfiles.values():
-            tn = to.repopath.fn
-            fver = re.sub(r'\.tar.*$', '', tn)
-            listing = os.path.join(dirpath, fver)
+        for v in packages[p].versions():
+            to = packages[p].tar(v)
+
+            # the way this filename is built is pretty arbitrary, but is linked
+            # to from the summary page, and package-grep relies on its knowledge
+            # of the scheme when producing its output
+            fn = packages[p].orig_name + '-' + v + ('-src' if packages[p].kind == package.Kind.source else '')
+            listing = os.path.join(dirpath, fn)
 
             # ... if it doesn't already exist, or --force --force
             if not os.path.exists(listing) or (args.force > 1):
@@ -522,7 +526,7 @@ def write_arch_listing(args, packages, arch):
                         bv = packages[p].best_version
                         desc = sdesc(packages[p], bv)
 
-                        if fver.endswith('-src'):
+                        if packages[p].kind == package.Kind.source:
                             desc = desc + " (source)"
 
                         print(textwrap.dedent('''\
@@ -569,8 +573,8 @@ def write_arch_listing(args, packages, arch):
             if listing in toremove:
                 toremove.remove(listing)
 
-            if fver in listings:
-                listings.remove(fver)
+            if fn in listings:
+                listings.remove(fn)
 
         # some versions remain on toremove list, and will be removed, so summary
         # needs updating
