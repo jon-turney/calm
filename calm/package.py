@@ -1372,7 +1372,7 @@ def write_setup_ini(args, packages, arch):
                         print("provides: %s" % ', '.join(hints['provides']), file=f)
 
                     if hints.get('conflicts', ''):
-                        print("conflicts: %s" % ','.join(hints['conflicts']), file=f)
+                        print("conflicts: %s" % ', '.join(hints['conflicts']), file=f)
 
                 if s:
                     src_hints = packages[s].version_hints.get(version, {})
