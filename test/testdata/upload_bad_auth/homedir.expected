@@ -1,0 +1,9 @@
+{'.': [],
+ 'Blooey McFooey': [],
+ 'Blooey McFooey/x86_64': [],
+ 'Blooey McFooey/x86_64/release': [],
+ 'Blooey McFooey/x86_64/release/testpackage': [],
+ 'Blooey McFooey/x86_64/release/testpackage/cygwin': ['cygwin-3.0.0-1-src.hint',
+                                                      'cygwin-3.0.0-1-src.tar.xz',
+                                                      'cygwin-3.0.0-1.hint',
+                                                      'cygwin-3.0.0-1.tar.xz']}

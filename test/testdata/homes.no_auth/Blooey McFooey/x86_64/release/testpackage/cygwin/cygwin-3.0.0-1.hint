@@ -1,0 +1,4 @@
+sdesc: "The UNIX emulation engine"
+ldesc: "A fraudulent packagee"
+category: Base
+requires: base-cygwin _windows ( >= 6.0 )

@@ -408,6 +408,41 @@ class CalmTest(unittest.TestCase):
                 compare_with_expected_file(self, 'testdata/conflict', dirlist, d)
                 shutil.rmtree(getattr(args, d))
 
+    def test_process_upload_no_auth(self):
+        self.maxDiff = None
+
+        args = types.SimpleNamespace()
+
+        for d in ARGDIRS:
+            setattr(args, d, tempfile.mktemp())
+            logging.info('%s = %s', d, getattr(args, d))
+
+        shutil.copytree('testdata/relarea', args.rel_area)
+        shutil.copytree('testdata/homes.no_auth', args.homedir)
+        os.mkdir(args.stagingdir)
+
+        args.dryrun = False
+        args.email = None
+        args.force = False
+        args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
+        args.stale = True
+        args.trustedmaint = ''
+
+        # set appropriate !ready
+        m_homedir = os.path.join(args.homedir, 'Blooey McFooey')
+        os.system('touch "%s"' % (os.path.join(m_homedir, 'x86_64', 'release', 'testpackage', '!ready')))
+
+        state = calm.calm.CalmState()
+        state.packages = calm.calm.process_relarea(args, state)
+        state.packages = calm.calm.process_uploads(args, state)
+        self.assertTrue(state.packages)
+
+        for d in ARGDIRS:
+            with self.subTest(directory=d):
+                dirlist = capture_dirtree(getattr(args, d))
+                compare_with_expected_file(self, 'testdata/upload_bad_auth', dirlist, d)
+                shutil.rmtree(getattr(args, d))
+
     def test_process(self):
         self.maxDiff = None
 

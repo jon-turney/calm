@@ -1,0 +1,5 @@
+sdesc: "The UNIX emulation engine"
+ldesc: "A fraudulent package"
+category: Base
+homepage: https://cygwin.com
+
