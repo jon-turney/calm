@@ -303,7 +303,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
             bv = po.best_version
 
             depends = packages[arch][p].version_hints[bv]['depends']
-            depends = packages.deplist_without_versions(depends)
+            depends = package.deplist_without_versions(depends)
 
             for d in depends:
                 if not d.startswith(pp_provide_base):
