@@ -1683,13 +1683,6 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
         logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
         return Freshness.conditional
 
-    # - explicitly marked as 'noretain'
-    #
-    if 'noretain' in po.override_hints:
-        noretain_versions = po.override_hints.get('noretain', '').split()
-        if (v in noretain_versions) or ('all' in noretain_versions):
-            return Freshness.conditional
-
     # - marked via 'calm-tool vault'
     #
     es = po.srcpackage(v, suffix=False)

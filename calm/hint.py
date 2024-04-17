@@ -94,7 +94,6 @@ hintkeys[override] = {
     'keep-superseded-test': 'noval',
     'disable-check': 'val',
     'replace-versions': 'val',
-    'noretain': 'val',
 }
 
 # valid categories
