@@ -740,8 +740,12 @@ def do_daemon(args, state):
         running = False
         raise InterruptedError
 
+    def sighup(signum, frame):
+        logging.debug("SIGHUP")
+
     context.signal_map = {
         signal.SIGTERM: sigterm,
+        signal.SIGHUP: sighup,
     }
 
     with context:
