@@ -1777,7 +1777,7 @@ def stale_packages(packages, vault_requests):
                     #
                     # (set above using same critera as for install package
                     # e.g. we have an excess number of packages)
-                    logging.warning("considering other packages from source package '%s' version '%s'" % (es, v))
+                    logging.debug("considering other packages from source package '%s' version '%s'" % (es, v))
                     if getattr(es_po.tar(v), 'fresh', Freshness.stale) != Freshness.fresh:
                         # ...  additionally mark anything with no other-source
                         # rdepends
@@ -1786,7 +1786,7 @@ def stale_packages(packages, vault_requests):
                                 if not any(packages[p].srcpackage(v) != es for p in packages[opn].rdepends):
                                     mark_package_fresh(packages, opn, v, mark)
                                 else:
-                                    logging.warning("package '%s' version '%s' retained due to being used" % (opn, v))
+                                    logging.debug("package '%s' version '%s' retained due to being used" % (opn, v))
 
     # mark source packages as fresh if any install package which uses it is fresh
     for po in packages.values():
