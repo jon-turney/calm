@@ -834,6 +834,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                                 obsoletes.append(n)
                                 packages[p].version_hints[v]['obsoletes'] = obsoletes
                                 logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
+                                logging.info("this should be in fixed in the cygport packaging")
 
                             # recurse so we don't drop transitive missing obsoletes
                             if n in mo:
