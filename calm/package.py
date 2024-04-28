@@ -759,6 +759,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
     for p in packages:
         valid_requires.add(p)
         for hints in packages[p].version_hints.values():
+            valid_requires.update(hints.get('obsoletes', []))
             valid_requires.update(hints.get('provides', []))
 
             # reset computed package state
