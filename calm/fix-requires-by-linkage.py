@@ -59,6 +59,9 @@ def fix_one_hint(args, dirpath, hintfile, tf):
         if args.requires in requires:
             return
 
+    if args.only and args.only not in requires:
+        return
+
     # check if this package installs executables linked to the specified DLL,
     # and if so, add to the requires, if not already present
     exe = False
@@ -69,7 +72,7 @@ def fix_one_hint(args, dirpath, hintfile, tf):
                 if not m.isfile():
                     continue
 
-                if re.search(r'\.(exe|dll)$', m.name):
+                if re.search(r'\.(exe|dll|so)$', m.name):
                     logging.info('Found executable %s' % m.name)
                     a.extract(m)
 
@@ -141,6 +144,7 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
     parser.add_argument('--replace', action='store', metavar='DEPATOM', help="replace existing DEPATOM if present")
+    parser.add_argument('--only', action='store', metavar='DEPATOM', help="only operate on packages with existing DEPATOM")
     (args) = parser.parse_args()
 
     if args.verbose:
