@@ -469,11 +469,8 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         if kind == Kind.source:
             arch_re = r'(-src)'
         else:
-            # XXX: we might also need to handle ARCHIVED_ARCHES, so this works
-            # for mksetupini invoked on an x86 repo with new packages made by
-            # future versions of cygport which generate arch-tagged packages (it
-            # might be better if we had an idea what the valid arches are here)
-            arch_re = r'(-' + '|'.join(common_constants.ARCHES) + r'|)'
+            # archtag is either missing, or the appropriate one for the path
+            arch_re = r'(-' + rp.arch + r'|)'
 
         # warn if filename doesn't follow P-V-R naming convention
         #
