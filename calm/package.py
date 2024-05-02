@@ -483,7 +483,6 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         else:
             v = match.group(1)
             r = match.group(2)
-            arch_tag = match.group(3)
 
             # historically, V can contain a '-' (since we can use the fact
             # we already know P to split unambiguously), but this is a bad
@@ -538,10 +537,16 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             t.mtime = os.path.getmtime(rp.abspath(basedir))
             t.sha512 = sha512_file(rp.abspath(basedir))
 
+            # record the arch_tag (or what it would have been, if not omitted)
+            if kind == Kind.source:
+                t.arch = 'src'
+            else:
+                t.arch = rp.arch
+
             tars[vr] = t
 
             # it's an error to not have a corresponding pvr.hint in the same directory
-            hint_fn = '%s-%s%s.hint' % (p, vr, arch_tag)
+            hint_fn = '%s-%s%s.hint' % (p, vr, match.group(3))
             hrp = RepoPath(rp.arch, rp.path, hint_fn)
             if hrp not in files:
                 logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))

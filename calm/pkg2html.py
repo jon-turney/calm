@@ -50,6 +50,7 @@ import string
 import sys
 import textwrap
 import time
+import types
 from typing import NamedTuple
 
 import markdown
@@ -322,35 +323,35 @@ def update_package_listings(args, packages):
                         if not v.startswith('<p>'):
                             v = '<p>' + v + '</p>'
                         print('<tr><td><p><span class="detail">%s</span>:</p></td><td>%s</td></tr>' % (d, v), file=f)
-                    print('</table>', file=f)
+                    print('</table><br>', file=f)
 
-                    # output per-arch package versions table
-                    print('<ul>', file=f)
+                    # output package versions table
+                    versions_table = []
                     for arch in sorted(packages):
                         if p in packages[arch]:
 
-                            print('<li><span class="detail">%s</span></li>' % arch, file=f)
-
-                            print('<table class="pkgtable">', file=f)
-                            print('<tr><th>Version</th><th>Package Size</th><th>Date</th><th>Files</th><th>Status</th></tr>', file=f)
-
-                            def tar_line(pn, p, v, arch, f):
-                                size = int(math.ceil(p.tar(v).size / 1024))
+                            def tar_line(pn, p, v, arch):
+                                item = types.SimpleNamespace()
+                                item.version = v
+                                item.size = int(math.ceil(p.tar(v).size / 1024))
                                 if p.kind == package.Kind.binary:
-                                    name = v
                                     target = "%s-%s" % (p.orig_name, v)
                                 else:
-                                    name = v + ' (source)'
                                     target = "%s-%s-src" % (p.orig_name, v)
-                                test = 'test' if 'test' in p.version_hints[v] else 'stable'
-                                ts = tsformat(p.tar(v).mtime)
-                                print('<tr><td>%s</td><td class="right">%d KiB</td><td>%s</td><td>[<a href="../%s/%s/%s">list of files</a>]</td><td>%s</td></tr>' % (name, size, ts, arch, pn, target, test), file=f)
+                                item.link = "../%s/%s/%s" % (arch, pn, target)
+                                item.status = 'test' if 'test' in p.version_hints[v] else 'stable'
+                                item.ts = tsformat(p.tar(v).mtime)
+                                item.arch = p.tar(v).arch
+                                return item
 
-                            for version in sorted(packages[arch][p].versions(), key=lambda v: SetupVersion(v)):
-                                tar_line(p, packages[arch][p], version, arch, f)
+                            for version in packages[arch][p].versions():
+                                versions_table.append(tar_line(p, packages[arch][p], version, arch))
 
-                            print('</table><br>', file=f)
-                    print('</ul>', file=f)
+                    print('<table class="pkgtable">', file=f)
+                    print('<tr><th>Version</th><th>Arch</th><th>Package Size</th><th>Date</th><th>Files</th><th>Status</th></tr>', file=f)
+                    for i in sorted(versions_table, key=lambda i: (SetupVersion(i.version), i.arch)):
+                        print('<tr><td>%s</td><td>%s</td><td class="right">%d KiB</td><td>%s</td><td>[<a href="%s">list of files</a>]</td><td>%s</td></tr>' % (i.version, i.arch, i.size, i.ts, i.link, i.status), file=f)
+                    print('</table><br>', file=f)
 
                     print(textwrap.dedent('''\
                     </div>
