@@ -772,6 +772,11 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             packages[p].obsoleted_by = set()
             packages[p].orphaned = False
 
+    # it's also valid to requires: packages which are named in a synthetic
+    # obsoletes:
+    for r in missing_obsolete_extra.values():
+        valid_requires.update(r)
+
     # it's also valid to obsoletes: packages which have been removed
     valid_obsoletes = set(valid_requires)
     if valid_provides_extra:
