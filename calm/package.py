@@ -1715,7 +1715,7 @@ def mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests):
 #
 
 SO_AGE_THRESHOLD_YEARS = 5
-OBSOLETE_AGE_THRESHOLD_YEARS = 10
+OBSOLETE_AGE_THRESHOLD_YEARS = 8
 
 
 def stale_packages(packages, vault_requests):
