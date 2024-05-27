@@ -136,7 +136,10 @@ def ensure_dir_exists(args, path):
 # format a unix epoch time (UTC)
 #
 def tsformat(ts):
-    return time.strftime('%Y-%m-%d %H:%M', time.gmtime(ts))
+    if ts == 0:
+        return 'Unknown'
+    else:
+        return time.strftime('%Y-%m-%d %H:%M', time.gmtime(ts))
 
 
 #

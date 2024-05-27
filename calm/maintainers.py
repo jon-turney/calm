@@ -33,6 +33,7 @@
 # - an email address (in HOME/!email (or !mail), as we don't want to publish
 #   it, and want to allow the maintainer to change it)
 # - the timestamp when 'ignoring' warnings were last emitted
+# - the timestamp of their last ssh connection
 #
 
 import logging
@@ -84,6 +85,7 @@ class Maintainer(object):
         self.email = email
         self.pkgs = pkgs
         self.quiet = False
+        self.has_homedir = os.path.isdir(self.homedir())
 
         # the mtime of this file records the timestamp
         reminder_file = os.path.join(self.homedir(), '!reminder-timestamp')
@@ -93,6 +95,13 @@ class Maintainer(object):
             self.reminder_time = 0
         self.reminders_issued = False
         self.reminders_timestamp_checked = False
+
+        # the mtime of this file records the last ssh session
+        last_seen_file = os.path.join(self.homedir(), '.last-seen')
+        if os.path.isfile(last_seen_file):
+            self.last_seen = os.path.getmtime(last_seen_file)
+        else:
+            self.last_seen = 0  # meaning 'unknown'
 
     def __repr__(self):
         return "maintainers.Maintainer('%s', %s, %s)" % (self.name, self.email, self.pkgs)

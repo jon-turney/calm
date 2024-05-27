@@ -69,7 +69,7 @@ def write_report(args, title, body, fn, reportlist, not_empty=True):
 
 
 def linkify(pn, po):
-    return '<a href="/packages/summary/{0}.html">{1}</a>'.format(pn, po.orig_name)
+    return '<a href="/packages/summary/{0}.html">{1}</a>'.format(po.name, po.orig_name)
 
 
 #
@@ -281,6 +281,72 @@ def unstable(args, packages, reportlist):
     write_report(args, 'Packages marked as unstable', body, 'unstable.html', reportlist)
 
 
+# produce a report on maintainer (in)activity
+#
+def maintainer_activity(args, packages, reportlist):
+    activity_list = []
+
+    arch = 'x86_64'
+    # XXX: look into how we can make this 'src', after x86 is dropped
+
+    ml = maintainers.maintainer_list(args)
+    for m in ml.values():
+        if m.name == 'ORPHANED':
+            continue
+
+        a = types.SimpleNamespace()
+        a.name = m.name
+        a.last_seen = m.last_seen
+
+        count = 0
+        mtime = 0
+        pkgs = []
+        for p in m.pkgs:
+            if not p.is_orphaned():
+                count += 1
+
+            pn = p.data + '-src'
+            # do something reasonable for sourceless packages
+            if pn not in packages[arch]:
+                pn = p.data
+
+            po = packages[arch].get(pn, None)
+            if po:
+                pkgs.append(pn)
+
+                for v in po.versions():
+                    if po.tar(v).mtime > mtime:
+                        mtime = po.tar(v).mtime
+
+        # ignore if all their packages are orphaned
+        # (key should be already disabled in this case)
+        if count == 0:
+            continue
+
+        a.count = count
+        a.pkgs = pkgs
+        a.last_package = mtime
+
+        activity_list.append(a)
+
+    body = io.StringIO()
+    print('<p>Maintainer activity.</p>', file=body)
+
+    print('<table class="grid sortable">', file=body)
+    print('<tr><th>Maintainer</th><th># packages</th><th>Last ssh</th><th>Latest package</th></tr>', file=body)
+
+    for a in sorted(activity_list, key=lambda i: (i.last_seen, i.last_package)):
+        def pkg_details(pkgs):
+            return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[arch][p]) for p in pkgs))
+
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (a.name, pkg_details(a.pkgs), pkg2html.tsformat(a.last_seen), pkg2html.tsformat(a.last_package)), file=body)
+
+    print('</table>', file=body)
+
+    write_report(args, 'Maintainer activity', body, 'maintainer_activity.html', reportlist, not_empty=False)
+
+
 # produce a report of packages which need rebuilding for the latest major
 # version version provides
 #
@@ -462,6 +528,8 @@ def do_reports(args, packages):
     provides_rebuild(args, packages, 'perl_rebuilds.html', 'perl_base', reportlist)
     provides_rebuild(args, packages, 'ruby_rebuilds.html', 'ruby', reportlist)
     python_rebuild(args, packages, 'python_rebuilds.html', reportlist)
+
+    maintainer_activity(args, packages, reportlist)
 
     fn = os.path.join(args.htdocs, 'reports_list.inc')
     with utils.open_amifc(fn) as f:
