@@ -281,9 +281,9 @@ def unstable(args, packages, reportlist):
     write_report(args, 'Packages marked as unstable', body, 'unstable.html', reportlist)
 
 
-# produce a report on maintainer (in)activity
+# gather data on maintainer activity
 #
-def maintainer_activity(args, packages, reportlist):
+def maintainer_activity(args, packages):
     activity_list = []
 
     arch = 'x86_64'
@@ -296,8 +296,12 @@ def maintainer_activity(args, packages, reportlist):
 
         a = types.SimpleNamespace()
         a.name = m.name
+        a.email = m.email
         a.last_seen = m.last_seen
 
+        # because last_seen hasn't been collected for very long, we also try to
+        # estimate by looking at packages (this isn't very good as it gets
+        # confused by co-mainainted packages)
         count = 0
         mtime = 0
         pkgs = []
@@ -329,13 +333,22 @@ def maintainer_activity(args, packages, reportlist):
 
         activity_list.append(a)
 
+    return activity_list
+
+
+# produce a report on maintainer (in)activity
+#
+def maintainer_activity_report(args, packages, reportlist):
+    arch = 'x86_64'
+    activity_list = maintainer_activity(args, packages)
+
     body = io.StringIO()
     print('<p>Maintainer activity.</p>', file=body)
 
     print('<table class="grid sortable">', file=body)
     print('<tr><th>Maintainer</th><th># packages</th><th>Last ssh</th><th>Latest package</th></tr>', file=body)
 
-    for a in sorted(activity_list, key=lambda i: (i.last_seen, i.last_package)):
+    for a in sorted(activity_list, key=lambda i: max(i.last_seen, i.last_package)):
         def pkg_details(pkgs):
             return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[arch][p]) for p in pkgs))
 
@@ -529,7 +542,7 @@ def do_reports(args, packages):
     provides_rebuild(args, packages, 'ruby_rebuilds.html', 'ruby', reportlist)
     python_rebuild(args, packages, 'python_rebuilds.html', reportlist)
 
-    maintainer_activity(args, packages, reportlist)
+    maintainer_activity_report(args, packages, reportlist)
 
     fn = os.path.join(args.htdocs, 'reports_list.inc')
     with utils.open_amifc(fn) as f:

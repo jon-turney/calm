@@ -169,6 +169,8 @@ def sendmail(hdr, msg):
     if not hdr['To']:
         return
 
+    envelope_from = hdr.pop('Envelope-From', hdr['From'])
+
     # build the email
     m = email.message.Message()
 
@@ -195,7 +197,7 @@ def sendmail(hdr, msg):
         logging.debug(msg)
         logging.debug('-' * 40)
     else:
-        with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', hdr['From']], stdin=subprocess.PIPE) as p:
+        with subprocess.Popen(['/usr/sbin/sendmail', '-t', '-oi', '-f', envelope_from], stdin=subprocess.PIPE) as p:
             p.communicate(m.as_bytes())
             logging.debug('sendmail: msgid %s, exit status %d' % (m['Message-Id'], p.returncode))
 
