@@ -52,11 +52,12 @@ ALWAYS_BCC = 'jturney@sourceware.org'
 # - untest any package
 # - vault any package
 #
-# (these people have sourceware shell access and cygwin group membership, so
-# they can do whatever they like directly, anyhow)
+# (most of these people have sourceware shell access and cygwin group
+# membership, so they can do whatever they like directly, anyhow)
 TRUSTEDMAINT = '/'.join([
     'Achim Gratz',
     'Corinna Vinschen',
+    'Brian Inglis',
     'Jon Turney',
     'Ken Brown',
     'Marco Atzeri',
