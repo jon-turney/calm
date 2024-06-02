@@ -62,15 +62,19 @@ For further assistance, please contact us via email at <cygwin-apps@cygwin.com>
 
 
 def main(args):
-    packages = {}
+    logging.getLogger().setLevel(logging.WARNING)
 
+    packages = {}
     for arch in common_constants.ARCHES:
         logging.debug("reading existing packages for arch %s" % (arch))
         packages[arch], _ = package.read_packages(args.relarea, arch)
 
     activity_list = reports.maintainer_activity(args, packages)
 
+    logging.getLogger().setLevel(logging.INFO)
+
     threshold = time.time() - MAINTAINER_ACTIVITY_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60
+    logging.info('threshold date %s', pkg2html.tsformat(threshold))
 
     for a in activity_list:
         last_activity = max(a.last_seen, a.last_package)
@@ -89,8 +93,11 @@ def main(args):
 
             msg = template.format(a.name, pkg2html.tsformat(last_activity), '\n'.join(pkg_list))
 
-            msg_id = utils.sendmail(hdr, msg)
-            logging.info('%s', msg_id)
+            if not args.dryrun:
+                msg_id = utils.sendmail(hdr, msg)
+                logging.info('%s', msg_id)
+            else:
+                print(msg)
 
 
 if __name__ == "__main__":
@@ -102,10 +109,10 @@ if __name__ == "__main__":
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
+    parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't send mails")
 
     (args) = parser.parse_args()
 
-    logging.getLogger().setLevel(logging.INFO)
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
     main(args)
