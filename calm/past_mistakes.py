@@ -295,9 +295,9 @@ old_style_obsolete_by = {
     # these packages probably should be marked as self-destruct?
     'mate-utils': '',
     'python-twisted-debuginfo': '',
-    'texlive-collection-htmlxml': '',
     'vte2.91': '',
     # self-destruct, or need to start to exist
     'cron-debuginfo': '',
+    'texlive-collection-htmlxml': '',
     'w32api': '',
 }
