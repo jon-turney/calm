@@ -36,10 +36,9 @@ from . import utils
 MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 10
 
 template = '''
-
 Hi {},
 
-As a part of keeping cygwin secure, your package maintainer account has been
+As a part of keeping Cygwin secure, your package maintainer account has been
 found to be long inactive, and will soon be disabled, and your packages moved to
 'ORPHANED' status.
 
@@ -83,12 +82,12 @@ def main(args):
             pkg_list = [packages[arch][p].orig_name for p in a.pkgs]
 
             hdr = {}
-            hdr['To'] = a.email
+            hdr['To'] = ','.join(a.email)
             hdr['From'] = 'cygwin-no-reply@cygwin.com'
             hdr['Envelope-From'] = common_constants.ALWAYS_BCC  # we want to see bounces
             hdr['Reply-To'] = 'cygwin-apps@cygwin.com'
             hdr['Bcc'] = common_constants.ALWAYS_BCC
-            hdr['Subject'] = 'cygwin package maintainer account for %s' % a.name
+            hdr['Subject'] = 'upcoming removal of cygwin package maintainer account for %s' % a.name
             hdr['X-Calm-Inactive-Maintainer'] = '1'
 
             msg = template.format(a.name, pkg2html.tsformat(last_activity), '\n'.join(pkg_list))
