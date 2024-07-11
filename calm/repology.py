@@ -138,6 +138,9 @@ def repology_fetch_versions():
         else:
             last_pn = pn
 
+        # rate-limit individual API calls to once per second
+        time.sleep(1)
+
     return upstream_versions
 
 
@@ -145,7 +148,7 @@ def annotate_packages(args, packages):
     global last_check
     global last_data
 
-    # rate limit to daily
+    # rate-limit fetching data to daily
     if (time.time() - last_check) < (24 * 60 * 60):
         logging.info("not consulting %s due to ratelimit" % (REPOLOGY_API_URL))
     else:
