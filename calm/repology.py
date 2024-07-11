@@ -29,6 +29,7 @@
 import json
 import logging
 import time
+import urllib.error
 import urllib.request
 from collections import namedtuple
 
@@ -62,7 +63,15 @@ def repology_fetch_versions():
             url = url + last_pn + '/'
         url += '?inrepo=cygwin'
 
-        r = urllib.request.urlopen(url)
+        request = urllib.request.Request(url)
+        request.add_header('User-Agent', 'CygwinUpstreamVersionFetch/1.0 +http://cygwin.com/')
+
+        try:
+            r = urllib.request.urlopen(request)
+        except urllib.error.URLError as e:
+            logging.error("consulting repology for upstream versions failed: %s" % (e.reason))
+            return {}
+
         j = json.loads(r.read().decode('utf-8'))
 
         for pn in sorted(j.keys()):
