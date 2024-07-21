@@ -67,9 +67,12 @@ def repology_fetch_versions():
         request.add_header('User-Agent', 'CygwinUpstreamVersionFetch/1.0 +http://cygwin.com/')
 
         try:
-            r = urllib.request.urlopen(request)
+            r = urllib.request.urlopen(request, timeout=600)
         except urllib.error.URLError as e:
             logging.error("consulting repology for upstream versions failed: %s" % (e.reason))
+            return {}
+        except ConnectionResetError as e:
+            logging.error("consulting repology for upstream versions failed: %s" % (e))
             return {}
 
         j = json.loads(r.read().decode('utf-8'))
@@ -153,14 +156,14 @@ def annotate_packages(args, packages):
         logging.info("not consulting %s due to ratelimit" % (REPOLOGY_API_URL))
     else:
         logging.info("consulting %s" % (REPOLOGY_API_URL))
-        last_data = repology_fetch_versions()
+        uv = repology_fetch_versions()
+        if uv:
+            last_data = uv
 
-    uv = last_data
-
-    for pn in uv:
+    for pn in last_data:
         spn = pn + '-src'
         for arch in packages:
             if spn in packages[arch]:
-                packages[arch][spn].upstream_version = uv[pn]
+                packages[arch][spn].upstream_version = last_data[pn]
 
     last_check = time.time()
