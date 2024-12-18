@@ -814,7 +814,7 @@ def do_daemon(args, state):
                                     action |= Event.read_relarea
                             elif path.startswith(args.stagingdir) and (filename != 'tmp'):
                                 action |= Event.read_uploads
-                            elif (path.startswith(args.homedir)) and (filename == "!ready"):
+                            elif (path.startswith(args.homedir)) and (filename == ".sftp-session-close"):
                                 action |= Event.read_uploads
                         else:
                             # None means no more events are currently available, so
