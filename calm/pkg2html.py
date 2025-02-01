@@ -183,19 +183,28 @@ def update_package_listings(args, packages):
         if summary in toremove:
             toremove.remove(summary)
 
-        # if listing files were added or removed, or it doesn't already exist,
-        # or force, update the summary
-        if p in update_summary or not os.path.exists(summary) or args.force:
+        pos = arch_packages(packages, p)
+        if not pos:
+            continue
+
+        po = next(iter(pos.values()))
+        bv = po.best_version
+
+        # update summary if:
+        # - it doesn't already exist,
+        # - or, listing files (i.e packages versions) were added or removed,
+        # - or, hints have changed since it was written
+        # - or, forced
+        hint_mtime = po.hints[bv].mtime
+
+        summary_mtime = 0
+        if os.path.exists(summary):
+            summary_mtime = os.path.getmtime(summary)
+
+        if (p in update_summary) or (summary_mtime < hint_mtime) or args.force:
             if not args.dryrun:
                 with utils.open_amifc(summary) as f:
                     os.fchmod(f.fileno(), 0o755)
-
-                    pos = arch_packages(packages, p)
-                    if not pos:
-                        continue
-
-                    po = next(iter(pos.values()))
-                    bv = po.best_version
 
                     if po.kind == package.Kind.source:
                         pn = po.orig_name

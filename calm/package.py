@@ -593,6 +593,7 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         hintobj = Hint()
         hintobj.repopath = rp
         hintobj.hints = pvr_hint
+        hintobj.mtime = os.path.getmtime(rp.abspath(basedir))
 
         version_hints[ovr] = pvr_hint
         hints[ovr] = hintobj
