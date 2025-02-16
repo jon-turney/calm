@@ -277,6 +277,8 @@ def pkg_list(pkglist):
 
 # create maintainer list
 def maintainer_list(args):
+    Maintainer._homedirs = args.homedir
+
     mlist = {}
 
     # add all maintainers for all packages
