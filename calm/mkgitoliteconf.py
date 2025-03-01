@@ -91,6 +91,7 @@ def do_main(pkglist, file=sys.stdout):
         print("C  = %s @leads" % (users), file=file)
         if users:
             print("RW master$ = %s" % (users), file=file)
+            print("RW main$ = %s" % (users), file=file)  # symref for master (or vice versa)
             print("RW refs/tags/ = %s" % (users), file=file)
 
         # these gitconfig keys also need to be listed in gitolite's
