@@ -33,16 +33,16 @@ from . import pkg2html
 from . import reports
 from . import utils
 
-MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 10
+MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 8.5
 
 template = '''
 Hi {},
 
 As a part of keeping Cygwin secure, your package maintainer account has been
-found to be long inactive, and will soon be disabled, and your packages moved to
+found to be long inactive. It will soon be disabled and your packages moved to
 'ORPHANED' status.
 
-The estimated date of your last packaging activity is {}.
+The estimated date of your last packaging activity is {} UTC.
 
 Any action using your ssh key is sufficient to keep your account alive, e.g.:
 
@@ -77,8 +77,9 @@ def main(args):
 
     for a in activity_list:
         last_activity = max(a.last_seen, a.last_package)
+
         if last_activity < threshold:
-            logging.info('%s %s %s %s', a.name, a.email, last_activity, a.pkgs)
+            logging.info('%s %s %s %s', a.name, a.email, pkg2html.tsformat(last_activity), a.pkgs)
             pkg_list = [packages[arch][p].orig_name for p in a.pkgs]
 
             hdr = {}
