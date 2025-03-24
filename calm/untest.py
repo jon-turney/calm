@@ -45,7 +45,7 @@ def untest(pvr):
     for arch in common_constants.ARCHES + ['noarch']:
         for (dirpath, _subdirs, files) in os.walk(os.path.join(common_constants.FTP, arch, 'release', p)):
             for f in files:
-                if re.match(r'.*-' + re.escape(vr) + '(|-src).hint$', f):
+                if re.match(r'.*-' + re.escape(vr) + r'.*\.hint$', f):
                     total = total + 1
                     fn = os.path.join(dirpath, f)
 
