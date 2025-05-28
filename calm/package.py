@@ -907,12 +907,6 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
         else:
             if len(packages[p].versions()):
                 packages[p].best_version = sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
-
-                # warn if no non-test ('curr') version exists
-                if (('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
-                    ('missing-curr' not in getattr(args, 'disable_check', []))):
-                    logging.warning("package '%s' doesn't have any non-test versions (i.e. no curr: version)" % (p))
-
             else:
                 # the package must have some versions
                 logging.error("package '%s' doesn't have any versions" % (p))
@@ -1237,6 +1231,19 @@ def validate_package_maintainers(args, packages):
                     packages[p].orphaned = True
 
     return error
+
+
+#
+# certain validation warnings we only want to issue once, when the package is
+# uploaded
+#
+def packages_warnings(args, packages, *modified):
+    for m in modified:
+        for p in sorted(m):
+            # warn if no non-test ('curr') version exists
+            if (('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
+                ('missing-curr' not in getattr(args, 'disable_check', []))):
+                logging.warning("package '%s' doesn't have any non-test versions (i.e. no curr: version)" % (p))
 
 
 #

@@ -66,6 +66,8 @@ def do_main(args):
         logging.error("package set has errors, not writing setup.ini")
         return 1
 
+    package.packages_warnings(args, packages, packages)
+
     # write setup.ini
     package.write_setup_ini(args, packages, args.arch)
 

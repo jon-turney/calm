@@ -365,6 +365,10 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
             logging.error("error while validating merged %s packages for %s" % (arch, name))
             valid = False
 
+    # issue any 'upload time only' validation warnings
+    for arch in common_constants.ARCHES:
+        package.packages_warnings(args, merged_packages[arch], scan_result[arch].packages, scan_result['noarch'].packages, scan_result['src'].packages)
+
     # if an error occurred ...
     if not valid:
         # ... discard move list and merged_packages
