@@ -1,4 +1,6 @@
-{'.': ['packages.inc', 'src_packages.inc'],
+{'.': ['packages.inc', 'packages_docs.inc', 'src_packages.inc'],
+ 'doc': ['.htaccess'],
+ 'doc/keychain': ['keychain-2.6.8.README', 'keychain-2.7.1.README'],
  'summary': ['arc-src.html',
              'arc.html',
              'base-cygwin.html',

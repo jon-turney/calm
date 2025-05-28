@@ -40,14 +40,17 @@
 #
 
 import argparse
+import functools
 import glob
 import html
 import logging
+import lzma
 import math
 import os
 import re
 import string
 import sys
+import tarfile
 import textwrap
 import time
 import types
@@ -329,6 +332,16 @@ def update_package_listings(args, packages):
                                 repo_browse_url = '/cgit/cygwin-packages/%s/' % pn
                                 details_table['packaging repository'] = '<a href="%s">%s.git</a>' % (repo_browse_url, pn)
 
+                    if po.kind == package.Kind.binary:
+                        doc_path = os.path.join(args.htdocs, 'doc', pn)
+                        if os.path.exists(doc_path):
+                            links = []
+
+                            for readme in sorted(os.listdir(doc_path)):
+                                links.append('<a href="../doc/%s/%s">%s</a>' % (pn, readme, readme))
+
+                            details_table['readme'] = ', '.join(links)
+
                     # output details table
                     print('<table class="pkgdetails">', file=f)
                     for d, v in details_table.items():
@@ -379,22 +392,23 @@ def update_package_listings(args, packages):
     write_packages_inc(args, packages, 'src_packages.inc', package.Kind.source, 'src_package_list.html')
 
 
+# callback function for open_amifc to touch including file
+def touch_including(including_file, changed):
+    if changed:
+        # touch the including file for the benefit of 'XBitHack full'
+        if os.path.exists(including_file):
+            logging.info("touching %s for the benefit of 'XBitHack full'" % (including_file))
+            utils.touch(including_file)
+
+
 #
 # write package index page fragment for inclusion
 #
 def write_packages_inc(args, packages, name, kind, includer):
     packages_inc = os.path.join(args.htdocs, name)
     if not args.dryrun:
-
-        def touch_including(changed):
-            if changed:
-                # touch the including file for the benefit of 'XBitHack full'
-                package_list = os.path.join(args.htdocs, includer)
-                if os.path.exists(package_list):
-                    logging.info("touching %s for the benefit of 'XBitHack full'" % (package_list))
-                    utils.touch(package_list)
-
-        with utils.open_amifc(packages_inc, cb=touch_including) as index:
+        package_list = os.path.join(args.htdocs, includer)
+        with utils.open_amifc(packages_inc, cb=functools.partial(touch_including, package_list)) as index:
             os.fchmod(index.fileno(), 0o644)
 
             # This list contains all packages in any arch. Source packages
@@ -458,8 +472,57 @@ def write_packages_inc(args, packages, name, kind, includer):
             print('</table>', file=index)
 
 
+#
+# write package doc catalogue fragment for inclusion
+#
+doc_inc_overrides = {'X': 'https://x.cygwin.com/'}
+
+
+def write_doc_inc(args):
+    packages_inc = os.path.join(args.htdocs, 'packages_docs.inc')
+    if not args.dryrun:
+        htaccess = os.path.join(args.htdocs, 'doc', '.htaccess')
+        if not os.path.exists(htaccess) or args.force:
+            with utils.open_amifc(htaccess) as f:
+                # README files are text
+                print('AddType text/plain README', file=f)
+
+        package_docs = os.path.join(args.htdocs, 'package_docs.html')
+        with utils.open_amifc(packages_inc, cb=functools.partial(touch_including, package_docs)) as index:
+            os.fchmod(index.fileno(), 0o644)
+
+            print('<div class="multicolumn-list">', file=index)
+
+            dir_list = os.listdir(os.path.join(args.htdocs, 'doc'))
+
+            for d in sorted(set(dir_list).union(doc_inc_overrides.keys()), key=package.sort_key):
+                if d.startswith('.'):
+                    continue
+
+                if d in doc_inc_overrides:
+                    print('<p><a href="%s">%s</a></p>' % (doc_inc_overrides[d], d),
+                          file=index)
+                else:
+                    links = []
+                    different_name = False
+
+                    for f in sorted(os.listdir(os.path.join(args.htdocs, 'doc', d))):
+                        links.append('<a href="doc/%s/%s">%s</a>' % (d, f, f.replace('.README', '')))
+
+                        if f.replace('.README', '') != d:
+                            different_name = True
+
+                    if (len(links) > 1) or different_name:
+                        print('<p>%s: %s</p>' % (d, ', '.join(links)), file=index)
+                    elif links:
+                        print('<p>%s</p>' % (', '.join(links)), file=index)
+
+            print('</div>', file=index)
+
+
 def write_arch_listing(args, packages, arch):
     update_summary = set()
+    update_doc_inc = False
     base = os.path.join(args.htdocs, arch)
     ensure_dir_exists(args, base)
 
@@ -570,7 +633,23 @@ def write_arch_listing(args, packages, arch):
                                         if i.issym() or i.islnk():
                                             print(' -> %s' % i.linkname, file=f, end='')
                                         print('', file=f)
-                            except Exception as e:
+
+                                        # extract Cygwin-specific READMEs
+                                        if i.name.startswith('usr/share/doc/Cygwin/') and i.name.endswith('README'):
+                                            logging.error("extracting %s to cygwin-specific documents directory" % (i.name))
+
+                                            readme_text = a.extractfile(i).read()
+                                            # redact email addresses
+                                            readme_text = re.sub(rb'<(.*)@(.*)>', rb'<\1 at \2>', readme_text)
+
+                                            doc_dir = os.path.join(args.htdocs, 'doc', p)
+                                            ensure_dir_exists(args, doc_dir)
+                                            with open(os.path.join(doc_dir, os.path.basename(i.name)), mode='wb') as readme:
+                                                readme.write(readme_text)
+
+                                            update_doc_inc = True
+
+                            except (tarfile.TarError, lzma.LZMAError) as e:
                                 print('package is corrupted', file=f)
                                 logging.error("exception %s while reading %s" % (type(e).__name__, tf))
                                 logging.debug('', exc_info=True)
@@ -612,6 +691,10 @@ def write_arch_listing(args, packages, arch):
                 logging.debug('rmdir %s' % dirpath)
                 os.rmdir(os.path.join(dirpath))
 
+    # update the package documents list
+    if update_doc_inc:
+        write_doc_inc(args)
+
     return update_summary
 
 
@@ -620,7 +703,6 @@ if __name__ == "__main__":
     relarea_default = common_constants.FTP
 
     parser = argparse.ArgumentParser(description='Write HTML package listings')
-    parser.add_argument('--arch', action='store', required=True, choices=common_constants.ARCHES)
     parser.add_argument('--force', action='store_true', help="overwrite existing files")
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
@@ -633,5 +715,9 @@ if __name__ == "__main__":
 
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
-    packages, _ = package.read_packages(args.rel_area, args.arch)
-    update_package_listings(args, packages, args.arch)
+#    packages = {}
+#    for arch in common_constants.ARCHES:
+#        packages[arch], _ = package.read_packages(args.rel_area, arch)
+#
+#    update_package_listings(args, packages)
+    write_doc_inc(args)
