@@ -1240,10 +1240,14 @@ def validate_package_maintainers(args, packages):
 def packages_warnings(args, packages, *modified):
     for m in modified:
         for p in sorted(m):
-            # warn if no non-test ('curr') version exists
-            if (('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
-                ('missing-curr' not in getattr(args, 'disable_check', []))):
-                logging.warning("package '%s' doesn't have any non-test versions (i.e. no curr: version)" % (p))
+            for v in packages[p].versions():
+                if 'test' not in packages[p].version_hints[v]:
+                    break
+            else:
+                # warn if no non-test ('curr') version exists
+                if (('missing-curr' not in packages[p].version_hints[packages[p].best_version].get('disable-check', '')) and
+                    ('missing-curr' not in getattr(args, 'disable_check', []))):
+                    logging.warning("package '%s' doesn't have any non-test versions (i.e. no curr: version)" % (p))
 
 
 #
