@@ -1,6 +1,6 @@
 {'.': ['calm.db', 'packages.inc', 'packages_docs.inc', 'reports_list.inc', 'src_packages.inc'],
  'doc': ['.htaccess'],
- 'doc/keychain': ['keychain-2.6.8.README', 'keychain-2.7.1.README'],
+ 'doc/keychain': ['keychain.README'],
  'reports': ['deprecated_so.html',
              'maintainer_activity.html',
              'perl_rebuilds.html',

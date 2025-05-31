@@ -582,7 +582,7 @@ def write_arch_listing(args, packages, arch):
         else:
             listings = []
 
-        for v in packages[p].versions():
+        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v)):
             to = packages[p].tar(v)
 
             # the way this filename is built is pretty arbitrary, but is linked
@@ -636,7 +636,7 @@ def write_arch_listing(args, packages, arch):
 
                                         # extract Cygwin-specific READMEs
                                         if i.name.startswith('usr/share/doc/Cygwin/') and i.name.endswith('README'):
-                                            logging.error("extracting %s to cygwin-specific documents directory" % (i.name))
+                                            logging.info("extracting %s to cygwin-specific documents directory" % (i.name))
 
                                             readme_text = a.extractfile(i).read()
                                             # redact email addresses
@@ -644,7 +644,13 @@ def write_arch_listing(args, packages, arch):
 
                                             doc_dir = os.path.join(args.htdocs, 'doc', p)
                                             ensure_dir_exists(args, doc_dir)
-                                            with open(os.path.join(doc_dir, os.path.basename(i.name)), mode='wb') as readme:
+
+                                            # accommodate an historical error where the README was installed as
+                                            # $PN-$PV.README, by stripping off any version suffix after the
+                                            # package name
+                                            basename = re.sub(r'(.*)-[.0-9ga]*.README', r'\1.README', os.path.basename(i.name))
+
+                                            with open(os.path.join(doc_dir, basename), mode='wb') as readme:
                                                 readme.write(readme_text)
 
                                             update_doc_inc = True
@@ -692,7 +698,7 @@ def write_arch_listing(args, packages, arch):
                 os.rmdir(os.path.join(dirpath))
 
     # update the package documents list
-    if update_doc_inc:
+    if update_doc_inc or args.force:
         write_doc_inc(args)
 
     return update_summary
