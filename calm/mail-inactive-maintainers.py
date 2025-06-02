@@ -33,13 +33,13 @@ from . import pkg2html
 from . import reports
 from . import utils
 
-MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 8.5
+MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 3
 
 template = '''
 Hi {},
 
 As a part of keeping Cygwin secure, your package maintainer account has been
-found to be long inactive. It will soon be disabled and your packages moved to
+found to be inactive. It will soon be disabled and your packages moved to
 'ORPHANED' status.
 
 The estimated date of your last packaging activity is {} UTC.
@@ -76,6 +76,9 @@ def main(args):
     logging.info('threshold date %s', pkg2html.tsformat(threshold))
 
     for a in activity_list:
+        if not a.last_package:
+            continue
+
         last_activity = max(a.last_seen, a.last_package)
 
         if last_activity < threshold:
@@ -88,7 +91,7 @@ def main(args):
             hdr['Envelope-From'] = common_constants.ALWAYS_BCC  # we want to see bounces
             hdr['Reply-To'] = 'cygwin-apps@cygwin.com'
             hdr['Bcc'] = common_constants.ALWAYS_BCC
-            hdr['Subject'] = 'upcoming removal of cygwin package maintainer account for %s' % a.name
+            hdr['Subject'] = 'Upcoming removal of cygwin package maintainer account for %s' % a.name
             hdr['X-Calm-Inactive-Maintainer'] = '1'
 
             msg = template.format(a.name, pkg2html.tsformat(last_activity), '\n'.join(pkg_list))
