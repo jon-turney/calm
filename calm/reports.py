@@ -355,8 +355,8 @@ def maintainer_activity_report(args, packages, reportlist):
         def pkg_details(pkgs):
             return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[arch][p]) for p in pkgs))
 
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (a.name, pkg_details(a.pkgs), pkg2html.tsformat(a.last_seen), pkg2html.tsformat(a.last_package)), file=body)
+        print('<tr><td>%s</td><td sorttable_customkey="%d">%s</td><td>%s</td><td>%s</td></tr>' %
+              (a.name, len(a.pkgs), pkg_details(a.pkgs), pkg2html.tsformat(a.last_seen), pkg2html.tsformat(a.last_package)), file=body)
 
     print('</table>', file=body)
 
