@@ -332,6 +332,11 @@ def update_package_listings(args, packages):
                                 repo_browse_url = '/cgit/cygwin-packages/%s/' % pn
                                 details_table['packaging repository'] = '<a href="%s">%s.git</a>' % (repo_browse_url, pn)
 
+                        repology_pn = getattr(po, 'repology_project_name', None)
+                        if repology_pn:
+                            upstream_version = getattr(po, 'upstream_version', '')
+                            details_table['repology info'] = '<a href="https://repology.org/project/%s/information">%s</a> (%s)' % (repology_pn, repology_pn, upstream_version)
+
                     if po.kind == package.Kind.binary:
                         doc_path = os.path.join(args.htdocs, 'doc', pn)
                         if os.path.exists(doc_path):

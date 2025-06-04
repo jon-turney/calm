@@ -587,10 +587,6 @@ def is_passphrase_cached(args):
 #
 #
 def do_output(args, state):
-    # update packages listings
-    # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
-    pkg2html.update_package_listings(args, state.packages)
-
     update_json = False
 
     # for each arch
@@ -692,6 +688,10 @@ def do_output(args, state):
     if (update_json or args.force) and args.reports:
         repology.annotate_packages(args, state.packages)
         reports.do_reports(args, state.packages)
+
+    # update packages listings
+    # XXX: perhaps we need a --[no]listing command line option to disable this from being run?
+    pkg2html.update_package_listings(args, state.packages)
 
     # if we are daemonized, allow force regeneration of static content in htdocs
     # initially (in case the generation code has changed), but update that
