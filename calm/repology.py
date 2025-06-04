@@ -52,9 +52,11 @@ use_legacy = {'qt': [LegacyData('5', []),
                                 ]
               }
 
+RepologyData = namedtuple('RepologyData', ['upstream_version', 'repology_project_name'])
 
-def repology_fetch_versions():
-    upstream_versions = {}
+
+def repology_fetch_data():
+    repology_data = {}
     last_pn = ''
 
     while True:
@@ -130,11 +132,12 @@ def repology_fetch_versions():
                                 prefix = ld.version
 
                         if prefix and prefix in legacy_versions:
-                            upstream_versions[source_pn] = legacy_versions[prefix]
-                            continue
+                            upstream_version = legacy_versions[prefix]
+                    else:
+                        # otherwise, just use the newest version
+                        upstream_version = newest_version
 
-                    # otherwise, just use the newest version
-                    upstream_versions[source_pn] = newest_version
+                    repology_data[source_pn] = RepologyData(upstream_version, pn)
 
         if pn == last_pn:
             break
@@ -144,7 +147,7 @@ def repology_fetch_versions():
         # rate-limit individual API calls to once per second
         time.sleep(1)
 
-    return upstream_versions
+    return repology_data
 
 
 def annotate_packages(args, packages):
@@ -156,14 +159,15 @@ def annotate_packages(args, packages):
         logging.info("not consulting %s due to ratelimit" % (REPOLOGY_API_URL))
     else:
         logging.info("consulting %s" % (REPOLOGY_API_URL))
-        uv = repology_fetch_versions()
-        if uv:
-            last_data = uv
+        repology_data = repology_fetch_data()
+        if repology_data:
+            last_data = repology_data
 
     for pn in last_data:
         spn = pn + '-src'
         for arch in packages:
             if spn in packages[arch]:
-                packages[arch][spn].upstream_version = last_data[pn]
+                packages[arch][spn].upstream_version = last_data[pn].upstream_version
+                packages[arch][spn].repology_project_name = last_data[pn].repology_project_name
 
     last_check = time.time()
