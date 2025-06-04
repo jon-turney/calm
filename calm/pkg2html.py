@@ -63,6 +63,7 @@ import xtarfile
 from . import common_constants
 from . import maintainers
 from . import package
+from . import reports
 from . import utils
 from .version import SetupVersion
 
@@ -313,7 +314,7 @@ def update_package_listings(args, packages):
                         if pkg_maintainers[m_pn].is_orphaned():
                             m = 'ORPHANED'
                         else:
-                            m = ', '.join(sorted(pkg_maintainers[m_pn].maintainers()))
+                            m = ', '.join('<a href="../reports/%s">%s</a>' % (reports.filenameify(l), l) for l in sorted(pkg_maintainers[m_pn].maintainers()))
 
                         pkg_groups = pkg_maintainers[m_pn].groups()
 

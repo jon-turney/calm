@@ -60,7 +60,8 @@ def template(title, body, f):
 
 def write_report(args, title, body, fn, reportlist, not_empty=True):
     if not_empty:
-        reportlist[title] = os.path.join('reports', fn)
+        if reportlist is not None:
+            reportlist[title] = os.path.join('reports', fn)
 
     fn = os.path.join(args.htdocs, 'reports', fn)
 
@@ -72,10 +73,29 @@ def linkify(pn, po):
     return '<a href="/packages/summary/{0}.html">{1}</a>'.format(po.name, po.orig_name)
 
 
+def filenameify(m):
+    return 'maintainer_' + re.sub(r'[ .]', r'_', m.lower()) + '.html'
+
+
+def status(s):
+    if s < 0:
+        style = "red"
+        mark = "&#x2718;"  # cross
+    elif s == 0:
+        style = "green"
+        mark = "&#x2714;"  # tick
+    else:
+        # probably some kind of data error
+        style = "amber"
+        mark = "&#x2BD1;"  # uncertainty
+
+    return '<span class="%s">%s</span>' % (style, mark)
+
+
 #
-# produce a report of unmaintained packages
+# produce a report of packages maintained by a given maintainer (None = unmaintained)
 #
-def unmaintained(args, packages, reportlist):
+def maintainer_packages(args, packages, maintainer, reportlist):
     pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     um_list = []
@@ -88,8 +108,17 @@ def unmaintained(args, packages, reportlist):
         if po.kind != package.Kind.source:
             continue
 
-        if (po.orig_name not in pkg_maintainers) or (not pkg_maintainers[po.orig_name].is_orphaned()):
+        if po.orig_name not in pkg_maintainers:
             continue
+
+        if maintainer:
+            if maintainer not in pkg_maintainers[po.orig_name].maintainers():
+                continue
+            if pkg_maintainers[po.orig_name].is_orphaned():
+                continue
+        else:
+            if not pkg_maintainers[po.orig_name].is_orphaned():
+                continue
 
         # the highest version we have
         v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
@@ -114,28 +143,40 @@ def unmaintained(args, packages, reportlist):
         up.rdepends = len(rdepends)
         up.build_rdepends = len(build_rdepends)
         up.importance = po.importance
-
-        # some packages are mature. If 'v' is still latest upstream version,
-        # then maybe we don't need to worry about this package quite as much...
-        up.unchanged = (SetupVersion(v)._V == SetupVersion(up.upstream_v)._V)
-        if up.unchanged:
-            up.upstream_v += " (unchanged)"
+        up.status = SetupVersion._compare(SetupVersion(v)._V, SetupVersion(up.upstream_v)._V)
 
         um_list.append(up)
 
     body = io.StringIO()
-    print('<p>Packages without a maintainer.</p>', file=body)
+
+    if maintainer:
+        print('<p>Packages maintained by %s.</p>' % maintainer, file=body)
+    else:
+        print('<p>Packages without a maintainer.</p>', file=body)
 
     print('<table class="grid sortable">', file=body)
-    print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>rdepends</th><th>build_rdepends</th><th>importance</th></tr>', file=body)
+    print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>status</th><th>rdepends</th><th>build_rdepends</th><th>importance</th></tr>', file=body)
 
-    for up in sorted(um_list, key=lambda i: (-i.importance, i.rdepends + i.build_rdepends, not i.unchanged, i.ts), reverse=True):
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.upstream_v, up.rdepends, up.build_rdepends, up.importance), file=body)
+    for up in sorted(um_list, key=lambda i: (-i.importance, i.rdepends + i.build_rdepends, i.status, i.ts), reverse=True):
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (pkg2html.tsformat(up.ts), linkify(up.pn, up.po), up.v, up.upstream_v, status(up.status), up.rdepends, up.build_rdepends, up.importance), file=body)
 
     print('</table>', file=body)
 
-    write_report(args, 'Unmaintained packages', body, 'unmaintained.html', reportlist)
+    if maintainer:
+        def feed_url(proto):
+            name = maintainer.replace('.', '').replace(' ', '.').lower() + '@cygwin'
+            url = 'https://repology.org/maintainer/%s/feed-for-repo/cygwin' % name
+            if proto == 'atom':
+                url += '/atom'
+
+            return '<a href="%s">(%s)</a>' % (url, proto)
+
+        print("<p>Changes to this data are available in a repology feed: %s %s</p>" % (feed_url('html'), feed_url('atom')), file=body)
+
+        write_report(args, "%s's packages" % maintainer, body, '%s' % filenameify(maintainer), None, not_empty=False)
+    else:
+        write_report(args, 'Unmaintained packages', body, 'unmaintained.html', reportlist)
 
 
 # produce a report of deprecated packages
@@ -355,8 +396,11 @@ def maintainer_activity_report(args, packages, reportlist):
         def pkg_details(pkgs):
             return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[arch][p]) for p in pkgs))
 
+        def maintainer_link(m):
+            return '<a href="%s">%s</a>' % (filenameify(m), m)
+
         print('<tr><td>%s</td><td sorttable_customkey="%d">%s</td><td>%s</td><td>%s</td></tr>' %
-              (a.name, len(a.pkgs), pkg_details(a.pkgs), pkg2html.tsformat(a.last_seen), pkg2html.tsformat(a.last_package)), file=body)
+              (maintainer_link(a.name), len(a.pkgs), pkg_details(a.pkgs), pkg2html.tsformat(a.last_seen), pkg2html.tsformat(a.last_package)), file=body)
 
     print('</table>', file=body)
 
@@ -537,7 +581,7 @@ def do_reports(args, packages):
 
     pkg2html.ensure_dir_exists(args, os.path.join(args.htdocs, 'reports'))
 
-    unmaintained(args, packages, reportlist)
+    maintainer_packages(args, packages, None, reportlist)
     deprecated(args, packages, reportlist)
     unstable(args, packages, reportlist)
 
@@ -546,6 +590,9 @@ def do_reports(args, packages):
     python_rebuild(args, packages, 'python_rebuilds.html', reportlist)
 
     maintainer_activity_report(args, packages, reportlist)
+
+    for maintainer in maintainers.maintainer_list(args):
+        maintainer_packages(args, packages, maintainer, None)
 
     fn = os.path.join(args.htdocs, 'reports_list.inc')
     with utils.open_amifc(fn) as f:
