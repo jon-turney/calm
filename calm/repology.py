@@ -82,15 +82,15 @@ def repology_fetch_data():
         for pn in sorted(j.keys()):
             p = j[pn]
 
-            # first, pick out the version which repology has called newest, and
+            # first, pick out the version(s) which repology has called newest, and
             # if needed, also pick out latest version for legacy packages
-            newest_version = None
+            newest_version = []
             legacy_versions = {}
 
             for i in p:
                 v = i['version']
                 if i['status'] == 'newest':
-                    newest_version = v
+                    newest_version.append(v)
 
                 if (pn in use_legacy) and (i['status'] in ['legacy', 'outdated']):
                     prefix = None
@@ -115,6 +115,9 @@ def repology_fetch_data():
             if not newest_version:
                 continue
 
+            # XXX: if everything is noscheme, we can probably record that
+            # information as well.
+
             # next, assign that version to all the corresponding cygwin source
             # packages
             #
@@ -134,7 +137,7 @@ def repology_fetch_data():
                         if prefix and prefix in legacy_versions:
                             upstream_version = legacy_versions[prefix]
                     else:
-                        # otherwise, just use the newest version
+                        # otherwise, just use the newest version(s)
                         upstream_version = newest_version
 
                     repology_data[source_pn] = RepologyData(upstream_version, pn)
@@ -148,6 +151,20 @@ def repology_fetch_data():
         time.sleep(1)
 
     return repology_data
+
+
+# when repology reports multiple 'newest' versions due to altver, pick the one
+# which splits into the same number of numeric and alphabetic sequences
+def seqmatch(bv, uv):
+    if len(uv) <= 1:
+        return uv[0]
+
+    seq_count = len(SetupVersion(bv)._V)
+    for v in uv:
+        if len(SetupVersion(bv)._V) == seq_count:
+            return v
+
+    return uv[0]
 
 
 def annotate_packages(args, packages):
@@ -167,7 +184,7 @@ def annotate_packages(args, packages):
         spn = pn + '-src'
         for arch in packages:
             if spn in packages[arch]:
-                packages[arch][spn].upstream_version = last_data[pn].upstream_version
+                packages[arch][spn].upstream_version = seqmatch(packages[arch][spn].best_version, last_data[pn].upstream_version)
                 packages[arch][spn].repology_project_name = last_data[pn].repology_project_name
 
     last_check = time.time()
