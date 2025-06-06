@@ -300,8 +300,7 @@ def maintainer_activity(args, packages):
         a.last_seen = m.last_seen
 
         # because last_seen hasn't been collected for very long, we also try to
-        # estimate by looking at packages (this isn't very good as it gets
-        # confused by co-mainainted packages)
+        # estimate last activity by looking at packages
         count = 0
         mtime = 0
         pkgs = []
@@ -318,6 +317,11 @@ def maintainer_activity(args, packages):
             if po:
                 pkgs.append(pn)
 
+                # ignore timestamp of co-maintained packages, because we don't
+                # know who is responsible for the update
+                if len(p.maintainers()) > 1:
+                    continue
+
                 for v in po.versions():
                     if po.tar(v).mtime > mtime:
                         mtime = po.tar(v).mtime
@@ -327,7 +331,6 @@ def maintainer_activity(args, packages):
         if count == 0:
             continue
 
-        a.count = count
         a.pkgs = pkgs
         a.last_package = mtime
 
