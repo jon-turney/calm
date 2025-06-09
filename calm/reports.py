@@ -541,9 +541,10 @@ def python_rebuild(args, packages, fn, reportlist):
     # now look at list of module/bindings we've made
     latest_ver = int(latest_py[6:])
     for m in modules:
-        highest_ver = sorted(modules[m], reverse=True)[0]
-        if highest_ver == latest_ver:
+        if latest_ver in modules[m]:
             continue
+
+        highest_ver = sorted(modules[m], reverse=True)[0]
 
         # if module/binding doesn't exist for latest python version, indicate
         # that it needs updating
