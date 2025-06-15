@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/src/per-version-src/$ /packages/summary/per-version-src.html
+ForceType text/html

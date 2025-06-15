@@ -104,27 +104,6 @@ def ldesc(po, bv):
 
 
 #
-# try hard to find a package object for package p
-#
-def arch_package(packages, p):
-    for arch in common_constants.ARCHES:
-        if p in packages[arch]:
-            return packages[arch][p]
-    return None
-
-
-#
-# build a dict of the arches which contain package p
-#
-def arch_packages(packages, p):
-    result = {}
-    for arch in common_constants.ARCHES:
-        if p in packages[arch]:
-            result[arch] = packages[arch][p]
-    return result
-
-
-#
 # ensure a directory exists
 #
 def ensure_dir_exists(args, path):
@@ -151,12 +130,8 @@ def tsformat(ts):
 #
 
 def update_package_listings(args, packages):
-    package_list = set()
     update_summary = set()
-
-    for arch in packages:
-        update_summary.update(write_arch_listing(args, packages[arch], arch))
-        package_list.update(packages[arch])
+    update_summary.update(write_package_listings(args, packages))
 
     summaries = os.path.join(args.htdocs, 'summary')
     ensure_dir_exists(args, summaries)
@@ -167,14 +142,14 @@ def update_package_listings(args, packages):
 
     def linkify_package(pkg):
         p = re.sub(r'(.*)\s+\(.*\)', r'\1', pkg)
-        if p in package_list:
-            pn = arch_package(packages, p).orig_name
+        if p in packages:
+            pn = packages[p].orig_name
             text = re.sub(re.escape(p), pn, pkg)
             return '<a href="%s.html">%s</a>' % (p, text)
         logging.debug('package linkification failed for %s' % p)
         return p
 
-    for p in package_list:
+    for p in packages:
         #
         # write package summary
         #
@@ -187,11 +162,7 @@ def update_package_listings(args, packages):
         if summary in toremove:
             toremove.remove(summary)
 
-        pos = arch_packages(packages, p)
-        if not pos:
-            continue
-
-        po = next(iter(pos.values()))
+        po = packages[p]
         bv = po.best_version
 
         # update summary if:
@@ -256,6 +227,12 @@ def update_package_listings(args, packages):
                         }
 
                     for key in details:
+                        # XXX: multiarch TODO:
+                        # access to per-arch version_hints ???
+                        pos = {}
+                        for arch in common_constants.ARCHES:
+                            pos[arch] = po
+
                         # make the union of the package list for this detail
                         # across arches, and then annotate any items which don't
                         # appear for all arches
@@ -286,9 +263,7 @@ def update_package_listings(args, packages):
                     if po.kind == package.Kind.source:
                         es = p
 
-                        install_packages = set()
-                        for arch in pos:
-                            install_packages.update(pos[arch].is_used_by)
+                        install_packages = po.is_used_by
                         details_table['install package(s)'] = ', '.join([linkify_package(p) for p in sorted(install_packages)])
 
                         homepage = po.version_hints[po.best_version].get('homepage', None)
@@ -302,8 +277,9 @@ def update_package_listings(args, packages):
                         es = po.srcpackage(bv)
                         details_table['source package'] = linkify_package(es)
 
-                    es_po = arch_package(packages, es)
-                    if not es_po:
+                    if es in packages:
+                        es_po = packages[es]
+                    else:
                         es_po = po
 
                     m_pn = es_po.orig_name
@@ -358,25 +334,24 @@ def update_package_listings(args, packages):
 
                     # output package versions table
                     versions_table = []
-                    for arch in sorted(packages):
-                        if p in packages[arch]:
 
-                            def tar_line(pn, p, v, arch):
-                                item = types.SimpleNamespace()
-                                item.version = v
-                                item.size = int(math.ceil(p.tar(v).size / 1024))
-                                if p.kind == package.Kind.binary:
-                                    target = "%s-%s" % (p.orig_name, v)
-                                else:
-                                    target = "%s-%s-src" % (p.orig_name, v)
-                                item.link = "../%s/%s/%s" % (arch, pn, target)
-                                item.status = 'test' if 'test' in p.version_hints[v] else 'stable'
-                                item.ts = tsformat(p.tar(v).mtime)
-                                item.arch = p.tar(v).arch
-                                return item
+                    def tar_line(pn, p, v):
+                        item = types.SimpleNamespace()
+                        item.version = v
+                        item.size = int(math.ceil(p.tar(v).size / 1024))
+                        if p.kind == package.Kind.binary:
+                            target = "%s-%s" % (p.orig_name, v)
+                        else:
+                            target = "%s-%s-src" % (p.orig_name, v)
+                        item.link = "../%s/%s/%s" % (p.tar(v).arch, pn, target)
+                        item.status = 'test' if 'test' in p.version_hints[v] else 'stable'
+                        item.ts = tsformat(p.tar(v).mtime)
+                        item.arch = p.tar(v).arch
+                        return item
 
-                            for version in packages[arch][p].versions():
-                                versions_table.append(tar_line(p, packages[arch][p], version, arch))
+                    # XXX: multiarch TODO: iterate over all versions and arches per version?
+                    for version in packages[p].versions():
+                        versions_table.append(tar_line(p, packages[p], version))
 
                     print('<table class="pkgtable">', file=f)
                     print('<tr><th>Version</th><th>Arch</th><th>Package Size</th><th>Date</th><th>Files</th><th>Status</th></tr>', file=f)
@@ -417,19 +392,18 @@ def write_packages_inc(args, packages, name, kind, includer):
         with utils.open_amifc(packages_inc, cb=functools.partial(touch_including, package_list)) as index:
             os.fchmod(index.fileno(), 0o644)
 
-            # This list contains all packages in any arch. Source packages
-            # appear under their original package name.
+            # Install package list contains all packages in any arch.
+            # Source package list appear under their original package name.
             package_list = {}
-            for arch in packages:
-                for p in packages[arch]:
-                    if p.endswith('-debuginfo'):
-                        continue
+            for p in packages:
+                if p.endswith('-debuginfo'):
+                    continue
 
-                    if packages[arch][p].not_for_output:
-                        continue
+                if packages[p].not_for_output:
+                    continue
 
-                    if packages[arch][p].kind == kind:
-                        package_list[packages[arch][p].orig_name] = p
+                if packages[p].kind == kind:
+                    package_list[packages[p].orig_name] = p
 
             jumplist = set()
             for k in package_list:
@@ -450,9 +424,10 @@ def write_packages_inc(args, packages, name, kind, includer):
             for k in sorted(package_list, key=package.sort_key):
                 p = package_list[k]
 
-                po = arch_package(packages, p)
-                if not po:
+                if p not in packages:
                     continue
+
+                po = packages[p]
 
                 bv = po.best_version
                 header = sdesc(po, bv)
@@ -526,76 +501,82 @@ def write_doc_inc(args):
             print('</div>', file=index)
 
 
-def write_arch_listing(args, packages, arch):
+def write_package_listings(args, packages):
     update_summary = set()
     update_doc_inc = False
-    base = os.path.join(args.htdocs, arch)
-    ensure_dir_exists(args, base)
+
+    # collect together a list of all the listing files
+    #
+    # (this has to be done at this level, since we want to remove listings
+    # corresponding to removed packages)
+    toremove = set()
 
     #
     # write base directory .htaccess, if needed
     #
     # force trying to access the base directory to redirect to the package list
-    # page, as having the server index this directory containing lots of
+    # page (as having the server index this directory containing lots of
     # subdirectories makes this URL very expensive to serve if someone stumbles
     # onto it by accident)
     #
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
+        base = os.path.join(args.htdocs, arch)
+        ensure_dir_exists(args, base)
 
-    htaccess = os.path.join(base, '.htaccess')
-    if not os.path.exists(htaccess) or args.force:
-        if not args.dryrun:
-            with utils.open_amifc(htaccess) as f:
+        htaccess = os.path.join(base, '.htaccess')
+        if not os.path.exists(htaccess) or args.force:
+            if not args.dryrun:
+                with utils.open_amifc(htaccess) as f:
 
-                print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (arch),
-                      file=f)
+                    print('Redirect temp /packages/%s/index.html https://cygwin.com/packages/package_list.html' % (arch),
+                          file=f)
 
-    toremove = glob.glob(os.path.join(base, '*', '*')) + glob.glob(os.path.join(base, '*', '.*'))
+        toremove.update(glob.glob(os.path.join(base, '*', '*')))
+        toremove.update(glob.glob(os.path.join(base, '*', '.*')))
 
     for p in packages:
 
-        dirpath = os.path.join(base, p)
-        ensure_dir_exists(args, dirpath)
+        def check_directory_setup(dirpath):
+            ensure_dir_exists(args, dirpath)
 
-        #
-        # write .htaccess if needed
-        #
+            #
+            # write .htaccess if needed
+            #
+            htaccess = os.path.join(dirpath, '.htaccess')
+            if not os.path.exists(htaccess):
+                if not args.dryrun or args.force:
+                    with utils.open_amifc(htaccess) as f:
+                        # We used to allow access to the directory listing as a
+                        # crude way of listing the versions of the package available
+                        # for which file lists were available. Redirect that index
+                        # page to the summary page, which now has that information
+                        # (and more).
+                        print('RedirectMatch temp /packages/%s/%s/$ /packages/summary/%s.html' % (arch, p, p),
+                              file=f)
 
-        htaccess = os.path.join(dirpath, '.htaccess')
-        if not os.path.exists(htaccess):
-            if not args.dryrun or args.force:
-                with utils.open_amifc(htaccess) as f:
-                    # We used to allow access to the directory listing as a
-                    # crude way of listing the versions of the package available
-                    # for which file lists were available. Redirect that index
-                    # page to the summary page, which now has that information
-                    # (and more).
-                    print('RedirectMatch temp /packages/%s/%s/$ /packages/summary/%s.html' % (arch, p, p),
-                          file=f)
+                        # listing files don't have the extension, but are html
+                        print('ForceType text/html', file=f)
 
-                    # listing files don't have the extension, but are html
-                    print('ForceType text/html', file=f)
-
-        # this file should exist, so remove from the toremove list
-        if htaccess in toremove:
-            toremove.remove(htaccess)
+            # this file should exist, so remove from the toremove list
+            if htaccess in toremove:
+                toremove.remove(htaccess)
 
         #
         # for each tarfile, write tarfile listing
         #
-        if os.path.exists(dirpath):
-            listings = os.listdir(dirpath)
-            listings.remove('.htaccess')
-        else:
-            listings = []
 
+        # XXX: multiarch TODO: iterate over all versions and arches per version?
         for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v)):
             to = packages[p].tar(v)
 
+            dirpath = os.path.join(args.htdocs, to.arch, p)
             # the way this filename is built is pretty arbitrary, but is linked
             # to from the summary page, and package-grep relies on its knowledge
             # of the scheme when producing its output
             fn = packages[p].orig_name + '-' + v + ('-src' if packages[p].kind == package.Kind.source else '')
             listing = os.path.join(dirpath, fn)
+
+            check_directory_setup(dirpath)
 
             # ... if it doesn't already exist, or --force --force
             if not os.path.exists(listing) or (args.force > 1):
@@ -677,27 +658,21 @@ def write_arch_listing(args, packages, arch):
             if listing in toremove:
                 toremove.remove(listing)
 
-            if fn in listings:
-                listings.remove(fn)
-
-        # some versions remain on toremove list, and will be removed, so summary
-        # needs updating
-        if listings:
-            update_summary.add(p)
-
     #
     # remove any remaining files for which there was no corresponding package
     #
-
-    for r in toremove:
+    for r in sorted(toremove):
         logging.debug('rm %s' % r)
         if not args.dryrun:
+            # if we end up with '<arch>/packagename/someversion' left in the
+            # toremove list, packagename needs a summary update
+            p = r.split(os.path.sep)[1]
+            update_summary.add(p)
+
+            # remove the file
             os.unlink(r)
 
-            #
             # remove any directories which are now empty
-            #
-
             dirpath = os.path.dirname(r)
             if len(os.listdir(dirpath)) == 0:
                 logging.debug('rmdir %s' % dirpath)
@@ -727,9 +702,5 @@ if __name__ == "__main__":
 
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
-#    packages = {}
-#    for arch in common_constants.ARCHES:
-#        packages[arch], _ = package.read_packages(args.rel_area, arch)
-#
-#    update_package_listings(args, packages)
+    packages, _ = package.read_packages(args.rel_area)
     write_doc_inc(args)

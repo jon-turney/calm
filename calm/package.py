@@ -158,13 +158,13 @@ class Hint(object):
 #
 # read a packages from a directory hierarchy
 #
-def read_packages(rel_area, arch):
+def read_packages(rel_area):
     result = False
 
     # first collect all package files
-    # <arch>/ noarch/ and src/ directories are considered
+    # all <arch>/, noarch/ and src/ directories are considered
     collected = {}
-    for root in ['noarch', 'src', arch]:
+    for root in ['noarch', 'src'] + common_constants.ARCHES:
         releasedir = os.path.join(rel_area, root)
 
         for (dirpath, _subdirs, files) in os.walk(releasedir, followlinks=True):
@@ -343,7 +343,7 @@ def clean_hints(p, hints, warnings):
 def collect_files_package_dir(collected, basedir, dirpath, files):
     relpath = os.path.relpath(dirpath, basedir)
 
-    # skip over arch/release/ directories
+    # skip over <arch>/release/ directories
     if relpath.count(os.sep) < 2:
         return
 
@@ -1299,6 +1299,9 @@ def write_setup_ini(args, packages, arch):
             if po.not_for_output:
                 continue
 
+            # XXX: TODO for multiarch: filter version list where package exists
+            # for this arch (skip this package if it ends up empty)
+
             # write package data
             print("\n@ %s" % pn, file=f)
 
@@ -1486,25 +1489,16 @@ def _find_build_recipe_file(args, pn):
 # write a json summary of packages
 #
 def write_repo_json(args, packages, f):
-    package_list = set()
-    for arch in packages:
-        package_list.update(packages[arch])
-
     pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     pl = []
-    for pn in sorted(package_list):
-        po = None
-        arches = []
-        for arch in common_constants.ARCHES:
-            if pn in packages[arch]:
-                po = packages[arch][pn]
-                arches.append(arch)
+    for pn in sorted(packages):
+        po = packages[pn]
+        arches = common_constants.ARCHES  # XXX: multiarch TODO: set of arches which have this package
 
         def package(p):
-            for arch in common_constants.ARCHES:
-                if p in packages[arch]:
-                    return packages[arch][p]
+            if p in packages:
+                return packages[p]
 
             # will lead to AttributeError as has no version_hints
             return None
@@ -1884,6 +1878,5 @@ def stale_packages(packages, vault_requests):
 #
 
 if __name__ == "__main__":
-    for arch in common_constants.ARCHES:
-        packages, _ = read_packages(common_constants.FTP, arch)
-        print("arch %s has %d packages" % (arch, len(packages)))
+    packages, _ = read_packages(common_constants.FTP)
+    print("relarea has %d packages" % (len(packages)))

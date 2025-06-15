@@ -26,34 +26,33 @@
 #
 
 #
-# for each arch
-# - read and validate packages from release area
-# - stop if there are errors
+# read and validate packages from release area
+# stop if there are errors
 # otherwise,
 # identify and move stale packages
 # for each maintainer
 # - read and validate any package uploads
 # - build a list of files to move and remove
-# - for each arch
-# -- merge package sets
-# -- remove from the package set files which are to be removed
-# -- validate merged package set
-# -- identify stale packages
-# -- process remove list
+# - merge package sets
+# - remove from the package set files which are to be removed
+# - validate merged package set
+# - identify stale packages
+# - process remove list
 # - on failure
-# -- mail maintainer with errors
-# -- empty move list
-# -- discard merged package sets
+# - mail maintainer with errors
+# - empty move list
+# - discard merged package sets
 # - on success
-# -- process move lists
-# -- mail maintainer with movelist
-# -- continue with merged package sets
+# - process move lists
+# - mail maintainer with movelist
+# - continue with merged package sets
 # write package listings
-# write setup.ini file
+# write setup.ini file (for each arch)
 #
 
 import argparse
 import codecs
+import copy
 import functools
 import logging
 import lzma
@@ -102,23 +101,19 @@ class CalmState(object):
 #
 
 def process_relarea(args, state):
-    packages = {}
     error = False
 
-    # read the package list for each arch
-    for arch in common_constants.ARCHES:
-        logging.debug("reading existing packages for arch %s" % (arch))
-        packages[arch], _ = package.read_packages(args.rel_area, arch)
+    # read the package set
+    logging.debug("reading existing packages")
+    packages, _ = package.read_packages(args.rel_area)
 
     state.valid_provides = db.update_package_names(args, packages)
-    for arch in common_constants.ARCHES:
-        state.missing_obsolete[arch] = db.update_missing_obsolete(args, packages, arch)
+    state.missing_obsolete = db.update_missing_obsolete(args, packages)
 
-    # validate the package set for each arch
-    for arch in common_constants.ARCHES:
-        if not package.validate_packages(args, packages[arch], state.valid_provides, state.missing_obsolete[arch]):
-            logging.error("existing %s package set has errors" % (arch))
-            error = True
+    # validate the package set
+    if not package.validate_packages(args, packages, state.valid_provides, state.missing_obsolete):
+        logging.error("existing package set has errors")
+        error = True
 
     if error:
         return None
@@ -126,15 +121,12 @@ def process_relarea(args, state):
     # packages can be stale due to changes made directly in the release
     # area, so first check here if there are any stale packages to vault
     if args.stale:
-        fresh_packages = {}
-        for arch in common_constants.ARCHES:
-            fresh_packages[arch] = package.merge(packages[arch])
+        fresh_packages = copy.deepcopy(packages)
 
         stale_to_vault = remove_stale_packages(args, fresh_packages, state)
-        if stale_to_vault:
-            for arch in common_constants.ARCHES + ['noarch', 'src']:
-                logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
-                stale_to_vault[arch].move_to_vault(args)
+        if stale_to_vault is not None:
+            logging.info("vaulting %d old package(s)" % (len(stale_to_vault)))
+            stale_to_vault.move_to_vault(args)
         else:
             logging.error("error while evaluating stale packages")
             return None
@@ -182,38 +174,33 @@ def process_uploads(args, state):
 
 
 def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False, record=None):
-    # for each arch and noarch
-    scan_result = {}
     success = True
-    for arch in common_constants.ARCHES + ['noarch', 'src'] + common_constants.ARCHIVED_ARCHES:
-        logging.debug("reading uploaded arch %s packages from maintainer %s" % (arch, m.name))
+    logging.debug("reading uploaded packages from maintainer %s" % (m.name))
 
-        # read uploads
-        scan_result[arch] = uploads.scan(basedir, m, all_packages, arch, args)
+    # read uploads
+    scan_result = uploads.scan(basedir, m, all_packages, args)
 
-        # remove triggers
-        uploads.remove(args, scan_result[arch].remove_always)
+    # remove triggers
+    uploads.remove(args, scan_result.remove_always)
 
-        # check upload is authorized
-        if not scan_result[arch].error:
-            uploads.auth_check(args, m, scan_result[arch], state.packages)
+    # check upload is authorized
+    if not scan_result.error:
+        uploads.auth_check(args, m, scan_result, state.packages)
 
-        if scan_result[arch].error:
-            logging.error("error while reading uploaded arch %s packages from maintainer %s" % (arch, m.name))
-            success = False
-            continue
+    if scan_result.error:
+        logging.error("error while reading uploadedpackages from maintainer %s" % (m.name))
+        success = False
 
     if success:
         success = _process_maintainer_uploads(scan_result, args, state, all_packages, m, basedir, desc)
 
     # automatically generate announce email if requested
-    if record and success and any([scan_result[a].to_relarea for a in scan_result]):
+    if record and success and scan_result.to_relarea:
         _announce_upload(args, scan_result, m, record)
 
     # remove upload files on success in homedir, always in stagingdir
-    for arch in common_constants.ARCHES + ['noarch', 'src']:
-        if scrub or success:
-            uploads.remove(args, scan_result[arch].remove_success)
+    if scrub or success:
+        uploads.remove(args, scan_result.remove_success)
 
     # clean up any empty directories
     if not args.dryrun:
@@ -233,16 +220,15 @@ def _announce_upload(args, scan_result, maintainer, r):
 
     srcpkg = None
     pkglist = set()
-    for arch in common_constants.ARCHES + ['noarch', 'src']:
-        for po in scan_result[arch].packages.values():
-            if po.kind == package.Kind.source:
-                srcpkg = po
-                assert len(po.versions()) == 1
-                version = list(po.versions())[0]
-                ldesc = po.version_hints[version]['ldesc'].strip('"')
-                test = 'test' in po.version_hints[version]
+    for po in scan_result.packages.values():
+        if po.kind == package.Kind.source:
+            srcpkg = po
+            assert len(po.versions()) == 1
+            version = list(po.versions())[0]
+            ldesc = po.version_hints[version]['ldesc'].strip('"')
+            test = 'test' in po.version_hints[version]
 
-            pkglist.add(po.orig_name)
+        pkglist.add(po.orig_name)
 
     if not srcpkg:
         logging.error("could not locate source package in upload")
@@ -332,25 +318,22 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
 
     # if there are no added or removed files for this maintainer, we
     # don't have anything to do
-    if not any([scan_result[a].to_relarea or scan_result[a].to_vault for a in scan_result]):
+    if not (scan_result.to_relarea or scan_result.to_vault):
         logging.debug("nothing to do for maintainer %s" % (name))
         return True
 
-    # for each arch
     merged_packages = {}
     valid = True
-    for arch in common_constants.ARCHES:
-        logging.debug("merging %s package set with uploads from maintainer %s" % (arch, name))
+    logging.debug("merging package set with uploads from maintainer %s" % (name))
 
-        # merge package sets
-        merged_packages[arch] = package.merge(state.packages[arch], scan_result[arch].packages, scan_result['noarch'].packages, scan_result['src'].packages)
-        if not merged_packages[arch]:
-            logging.error("error while merging uploaded %s packages for %s" % (arch, name))
-            valid = False
-            break
+    # merge package sets
+    merged_packages = package.merge(state.packages, scan_result.packages)
+    if not merged_packages:
+        logging.error("error while merging uploaded packages for %s" % (name))
+        valid = False
 
-        # remove files which are to be removed
-        scan_result[arch].to_vault.map(lambda p, f: package.delete(merged_packages[arch], p, f))
+    # remove files which are to be removed
+    scan_result.to_vault.map(lambda p, f: package.delete(merged_packages, p, f))
 
     # if an error occurred ...
     if not valid:
@@ -359,15 +342,13 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
 
     # validate the package set
     state.valid_provides = db.update_package_names(args, merged_packages)
-    for arch in common_constants.ARCHES:
-        logging.debug("validating merged %s package set for maintainer %s" % (arch, name))
-        if not package.validate_packages(args, merged_packages[arch], state.valid_provides, state.missing_obsolete):
-            logging.error("error while validating merged %s packages for %s" % (arch, name))
-            valid = False
+    logging.debug("validating merged package set for maintainer %s" % (name))
+    if not package.validate_packages(args, merged_packages, state.valid_provides, state.missing_obsolete):
+        logging.error("error while validating merged packages for %s" % (name))
+        valid = False
 
     # issue any 'upload time only' validation warnings
-    for arch in common_constants.ARCHES:
-        package.packages_warnings(args, merged_packages[arch], scan_result[arch].packages, scan_result['noarch'].packages, scan_result['src'].packages)
+    package.packages_warnings(args, merged_packages, scan_result.packages)
 
     # if an error occurred ...
     if not valid:
@@ -380,17 +361,15 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
         stale_to_vault = remove_stale_packages(args, merged_packages, state)
 
         # if an error occurred ...
-        if not stale_to_vault:
+        if stale_to_vault is None:
             # ... discard move list and merged_packages
             logging.error("error while evaluating stale packages for %s" % (name))
             return False
 
     # check for conflicting movelists
-    conflicts = False
-    for arch in common_constants.ARCHES + ['noarch', 'src']:
-        conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, scan_result[arch].to_vault, "manually")
-        if args.stale:
-            conflicts = conflicts or report_movelist_conflicts(scan_result[arch].to_relarea, stale_to_vault[arch], "automatically")
+    conflicts = report_movelist_conflicts(scan_result.to_relarea, scan_result.to_vault, "manually")
+    if args.stale:
+        conflicts = conflicts or report_movelist_conflicts(scan_result.to_relarea, stale_to_vault, "automatically")
 
     # if an error occurred ...
     if conflicts:
@@ -398,40 +377,30 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
         logging.error("error while validating movelists for %s" % (name))
         return False
 
-    # for each arch and noarch
-    for arch in common_constants.ARCHES + ['noarch', 'src']:
-        logging.debug("moving %s packages for maintainer %s" % (arch, name))
+    # process the move lists
+    logging.debug("moving packages for maintainer %s" % (name))
+    if scan_result.to_vault:
+        logging.info("vaulting %d package(s), by request" % (len(scan_result.to_vault)))
+    scan_result.to_vault.move_to_vault(args)
 
-        # process the move lists
-        if scan_result[arch].to_vault:
-            logging.info("vaulting %d package(s) for arch %s, by request" % (len(scan_result[arch].to_vault), arch))
-        scan_result[arch].to_vault.move_to_vault(args)
+    if scan_result.to_relarea:
+        logging.info("adding %d package(s)" % (len(scan_result.to_relarea)))
+    scan_result.to_relarea.move_to_relarea(m, args, desc)
 
-        if scan_result[arch].to_relarea:
-            logging.info("adding %d package(s) for arch %s" % (len(scan_result[arch].to_relarea), arch))
-        scan_result[arch].to_relarea.move_to_relarea(m, args, desc)
+    # XXX: Note that there seems to be a separate process, not run
+    # from cygwin-admin's crontab, which changes the ownership of
+    # files in the release area to cyguser:cygwin
 
-        # XXX: Note that there seems to be a separate process, not run
-        # from cygwin-admin's crontab, which changes the ownership of
-        # files in the release area to cyguser:cygwin
-
-    # for each arch
     if args.stale:
-        for arch in common_constants.ARCHES + ['noarch', 'src']:
-            if stale_to_vault[arch]:
-                logging.info("vaulting %d old package(s) for arch %s" % (len(stale_to_vault[arch]), arch))
-                stale_to_vault[arch].move_to_vault(args)
+        if stale_to_vault:
+            logging.info("vaulting %d old package(s)" % (len(stale_to_vault)))
+            stale_to_vault.move_to_vault(args)
 
-    # for each arch
-    for arch in common_constants.ARCHES:
-        # use merged package list
-        state.packages[arch] = merged_packages[arch]
+    # use merged package list
+    state.packages = merged_packages
 
     # report what we've done to irc
-    added = []
-    for arch in common_constants.ARCHES + ['noarch', 'src']:
-        added.append('%d (%s)' % (len(scan_result[arch].packages), arch))
-    msg = "added %s packages from maintainer %s" % (' + '.join(added), name)
+    msg = "added %s packages from maintainer %s" % (len(scan_result.packages), name)
     logging.debug(msg)
     irk.irk("calm %s" % msg)
 
@@ -462,23 +431,18 @@ def process(args, state):
 #
 
 def remove_stale_packages(args, packages, state):
-    to_vault = {}
-    to_vault['noarch'] = MoveList()
-    to_vault['src'] = MoveList()
-
     vault_requests = db.vault_requests(args)
 
-    for arch in common_constants.ARCHES:
-        logging.debug("checking for stale packages for arch %s" % (arch))
+    logging.debug("checking for stale packages")
 
-        # find stale packages
-        to_vault[arch] = package.stale_packages(packages[arch], vault_requests)
+    # find stale packages
+    to_vault = package.stale_packages(packages, vault_requests)
 
-        # remove stale packages from package set
-        to_vault[arch].map(lambda p, f: package.delete(packages[arch], p, f))
+    # remove stale packages from package set
+    to_vault.map(lambda p, f: package.delete(packages, p, f))
 
     # if there are no stale packages, we don't have anything to do
-    if not any([to_vault[a] for a in to_vault]):
+    if not to_vault:
         logging.debug("nothing is stale")
         return to_vault
 
@@ -486,32 +450,12 @@ def remove_stale_packages(args, packages, state):
     # (this shouldn't fail, but we check just to sure...)
     error = False
     state.valid_provides = db.update_package_names(args, packages)
-    for arch in common_constants.ARCHES:
-        if not package.validate_packages(args, packages[arch], state.valid_provides, state.missing_obsolete):
-            logging.error("%s package set has errors after removing stale packages" % arch)
-            error = True
+    if not package.validate_packages(args, packages, state.valid_provides, state.missing_obsolete):
+        logging.error("package set has errors after removing stale packages")
+        error = True
 
     if error:
         return None
-
-    # since noarch and src packages are included in the package set for both
-    # arch, we will build (hopefully) identical move lists for those packages
-    # for each arch.
-    #
-    # de-duplicate these package moves, as rather awkward workaround for that
-    moved_list = set()
-
-    def dedup(path, f):
-        for prefix in ['noarch', 'src']:
-            if path.startswith(prefix):
-                to_vault[prefix].add(path, f)
-                moved_list.add(path)
-
-    to_vault[common_constants.ARCHES[0]].map(dedup)
-
-    for path in moved_list:
-        for arch in common_constants.ARCHES:
-            to_vault[arch].remove(path)
 
     return to_vault
 
@@ -607,7 +551,7 @@ def do_output(args, state):
             changed = False
 
             # write setup.ini
-            package.write_setup_ini(args, state.packages[arch], arch)
+            package.write_setup_ini(args, state.packages, arch)
 
             # make it world-readable, if we can
             try:

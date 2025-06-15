@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/src/perl-Net-SMTP-SSL/$ /packages/summary/perl-Net-SMTP-SSL.html
+ForceType text/html

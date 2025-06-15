@@ -70,9 +70,7 @@ def connect(args):
 # ones which aren't in the set of names for current package
 #
 def update_package_names(args, packages):
-    current_names = set()
-    for arch in packages:
-        current_names.update(packages[arch])
+    current_names = set(packages.keys())
 
     with connect(args) as conn:
         conn.row_factory = sqlite3.Row
@@ -122,25 +120,27 @@ def vault_request_add(args, p, v):
 # this accumulates missing_obsoletes data for packages, so we will remember it
 # even after the obsoleted package has been removed
 #
-def update_missing_obsolete(args, packages, arch):
+# N.B. missing_obsolete data only exists for historic, and should be only
+# applied to, x86_64 packages
+def update_missing_obsolete(args, packages):
     data = {}
     with connect(args) as conn:
         conn.row_factory = sqlite3.Row
 
         # read
-        cur = conn.execute("SELECT name, replaces FROM missing_obsolete WHERE arch = ?", (arch,))
+        cur = conn.execute("SELECT name, replaces FROM missing_obsolete")
         for row in cur.fetchall():
             data[row['name']] = set(row['replaces'].split())
 
         # update missing obsoletes data
-        missing_obsolete = package.upgrade_oldstyle_obsoletes(packages[arch], data.copy())
+        missing_obsolete = package.upgrade_oldstyle_obsoletes(packages, data.copy())
 
         # update
         for n, r in missing_obsolete.items():
             if n not in data:
-                conn.execute('INSERT INTO missing_obsolete (name, arch, replaces) VALUES (?, ? , ?)', (n, arch, ' '.join(r)))
+                conn.execute('INSERT INTO missing_obsolete (name, arch, replaces) VALUES (?, ? , ?)', (n, 'x8_64', ' '.join(r)))
             else:
-                conn.execute('UPDATE missing_obsolete SET replaces = ? WHERE name = ? AND arch = ?', (' '.join(r), n, arch))
+                conn.execute('UPDATE missing_obsolete SET replaces = ? WHERE name = ? AND arch = ?', (' '.join(r), n, 'x86_64'))
 
     return missing_obsolete
 

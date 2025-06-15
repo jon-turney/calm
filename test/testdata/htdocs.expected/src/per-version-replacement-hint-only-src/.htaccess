@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/src/per-version-replacement-hint-only-src/$ /packages/summary/per-version-replacement-hint-only-src.html
+ForceType text/html

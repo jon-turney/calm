@@ -1,2 +1,0 @@
-RedirectMatch temp /packages/x86_64/test-c-src/$ /packages/summary/test-c-src.html
-ForceType text/html

@@ -60,9 +60,8 @@ class ScanResult:
 #
 #
 
-def scan(scandir, m, all_packages, arch, args):
+def scan(scandir, m, all_packages, args):
     homedir = os.path.join(scandir, m.name)
-    basedir = os.path.join(homedir, arch)
 
     packages = {}
     move = MoveList(homedir)
@@ -73,22 +72,14 @@ def scan(scandir, m, all_packages, arch, args):
     mtimes = [('', 0)]
     ignored = 0
 
-    logging.debug('reading packages from %s' % (basedir))
-
-    # note mtime of any !ready file at top-level
-    for ready in [os.path.join(basedir, '!ready'), os.path.join(basedir, 'release', '!ready')]:
-        if os.path.exists(ready):
-            mtime = os.path.getmtime(ready)
-            mtimes.append(('', mtime))
-            logging.debug('processing files with mtime older than %d' % (mtime))
-            remove.append(ready)
+    logging.debug('reading packages from %s' % (homedir))
 
     # we record a timestamp when 'ignoring as there is no !ready' warnings were
     # last emitted
     logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (m.reminder_time, REMINDER_INTERVAL, m.reminder_time + REMINDER_INTERVAL, time.time()))
 
     # scan package directories
-    for (dirpath, _subdirs, files) in os.walk(os.path.join(basedir, 'release')):
+    for (dirpath, _subdirs, files) in os.walk(homedir):
         relpath = os.path.relpath(dirpath, homedir)
         removed_files = []
 
@@ -96,12 +87,6 @@ def scan(scandir, m, all_packages, arch, args):
         for f in sorted(files):
             if f.endswith('.bak'):
                 files.remove(f)
-
-        # skip uninteresting directories
-        if (not files) or (relpath == os.path.join(arch, 'release')):
-            continue
-
-        logging.debug('reading uploads from %s' % dirpath)
 
         # note the mtime of the !ready file
         if '!ready' in files:
@@ -123,7 +108,26 @@ def scan(scandir, m, all_packages, arch, args):
                 else:
                     mtimes.pop()
 
-        # only process files newer than !ready
+        # verify leading component of the path is a valid arch
+        splitpath = relpath.split(os.path.sep)
+        arch = splitpath[0]
+        if arch not in common_constants.ARCHES + ['noarch', 'src', '.'] + common_constants.ARCHIVED_ARCHES:
+            logging.warning("Ignoring unexpected arch directory '%s' " % (arch))
+            continue
+
+        # filter out expected maintainer-root detritus
+        if len(splitpath) <= 1:
+            for f in sorted(files):
+                if f in ['.last-seen', '.sftp-session-close', '!reminder-timestamp', '!scallywag', '!mail', '!email']:
+                    files.remove(f)
+
+        # skip uninteresting directories
+        if not files:
+            continue
+
+        logging.debug('reading uploads from %s' % dirpath)
+
+        # only process files older than !ready
         for f in sorted(files):
             fn = os.path.join(dirpath, f)
             file_mtime = os.path.getmtime(fn)
@@ -149,9 +153,8 @@ def scan(scandir, m, all_packages, arch, args):
         # (removal is only controlled by these checks, uploads are more complex,
         # with the full auth check in auth_check() below)
 
-        # package doesn't appear in package list at all
-        (_, _, pkgpath) = relpath.split(os.sep, 2)
-        superpackage = pkgpath.split(os.sep, 1)[0]
+        # package doesn't appear in package list at all?
+        superpackage = splitpath[2]
         if superpackage not in all_packages:
             logging.error("package '%s' is not in the package list" % superpackage)
             continue
@@ -219,11 +222,6 @@ def scan(scandir, m, all_packages, arch, args):
             rel_fn = os.path.join(relpath, f)
             logging.debug("processing %s" % rel_fn)
 
-            # ignore !mail and !email (which we have already read)
-            if f in ['!mail', '!email']:
-                files.remove(f)
-                continue
-
             # ignore in-progress sftp uploads. Net::SFTP::SftpServer uses
             # temporary upload filenames ending with '.SftpXFR.<pid>'
             if re.search(r'\.SftpXFR\.\d*$', f):
@@ -274,7 +272,7 @@ def scan(scandir, m, all_packages, arch, args):
                 continue
 
             # does file already exist in release area?
-            # XXX: this needs to be done later to be multipath aware
+            # XXX: this needs to be redone later to be multipath aware
             dest = os.path.join(args.rel_area, relpath, f)
             if os.path.isfile(dest):
                 if not f.endswith('.hint'):
@@ -321,7 +319,7 @@ def scan(scandir, m, all_packages, arch, args):
     # since we warned about files being ignored, warn again
     if ignored > 0:
         if (time.time() > (m.reminder_time + REMINDER_INTERVAL)):
-            logging.warning("ignored %d files in %s as there is no !ready" % (ignored, arch))
+            logging.warning("ignored %d files as there is no !ready" % (ignored))
             if not args.dryrun:
                 m.reminders_issued = True
 
@@ -364,11 +362,10 @@ def auth_check(args, m, scan_result, packages):
     # package. (i.e. you can upload a new version of a package in a different
     # place, if you are allowed to upload in the old place as well)
     for p in scan_result.packages:
-        for arch in packages:
-            if p in packages[arch]:
-                for ap in packages[arch][p].auth_path:
-                    if ap not in m.pkgs:
-                        logging.error("package '%s' needs authorization '%s' not in the package list for maintainer '%s'" % (p, ap, m.name))
-                        scan_result.error = True
-                    else:
-                        logging.debug("package '%s' has authorization '%s' in the package list for maintainer '%s'" % (p, ap, m.name))
+        if p in packages:
+            for ap in packages[p].auth_path:
+                if ap not in m.pkgs:
+                    logging.error("package '%s' needs authorization '%s' not in the package list for maintainer '%s'" % (p, ap, m.name))
+                    scan_result.error = True
+                else:
+                    logging.debug("package '%s' has authorization '%s' in the package list for maintainer '%s'" % (p, ap, m.name))
