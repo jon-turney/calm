@@ -39,7 +39,7 @@ from . import hint
 
 
 def hint_migrate(args):
-    for arch in common_constants.ARCHES + ['noarch']:
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
         basedir = os.path.join(args.rel_area, arch, 'release')
 
         for (dirpath, _subdirs, files) in os.walk(basedir):

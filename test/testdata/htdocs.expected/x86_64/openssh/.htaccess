@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/openssh/$ /packages/summary/openssh.html
+RedirectMatch temp /packages/src/openssh/$ /packages/summary/openssh.html
 ForceType text/html

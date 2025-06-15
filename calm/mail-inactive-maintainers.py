@@ -63,10 +63,8 @@ For further assistance, please contact us via email at <cygwin-apps@cygwin.com>
 def main(args):
     logging.getLogger().setLevel(logging.WARNING)
 
-    packages = {}
-    for arch in common_constants.ARCHES:
-        logging.debug("reading existing packages for arch %s" % (arch))
-        packages[arch], _ = package.read_packages(args.relarea, arch)
+    logging.debug("reading existing packages")
+    packages, _ = package.read_packages(args.relarea)
 
     activity_list = reports.maintainer_activity(args, packages)
 
@@ -83,7 +81,7 @@ def main(args):
 
         if last_activity < threshold:
             logging.info('%s %s %s %s', a.name, a.email, pkg2html.tsformat(last_activity), a.pkgs)
-            pkg_list = [packages[arch][p].orig_name for p in a.pkgs]
+            pkg_list = [packages[p].orig_name for p in a.pkgs]
 
             hdr = {}
             hdr['To'] = ','.join(a.email)

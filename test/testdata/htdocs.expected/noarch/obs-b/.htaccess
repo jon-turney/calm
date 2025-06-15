@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/src/obs-b/$ /packages/summary/obs-b.html
+ForceType text/html

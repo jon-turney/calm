@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/per-version-replacement-hint-only/$ /packages/summary/per-version-replacement-hint-only.html
+RedirectMatch temp /packages/src/per-version-replacement-hint-only/$ /packages/summary/per-version-replacement-hint-only.html
 ForceType text/html

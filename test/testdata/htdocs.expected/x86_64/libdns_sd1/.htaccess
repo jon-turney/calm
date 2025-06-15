@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/libdns_sd1/$ /packages/summary/libdns_sd1.html
+RedirectMatch temp /packages/src/libdns_sd1/$ /packages/summary/libdns_sd1.html
 ForceType text/html

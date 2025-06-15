@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/base-cygwin/$ /packages/summary/base-cygwin.html
+RedirectMatch temp /packages/src/base-cygwin/$ /packages/summary/base-cygwin.html
 ForceType text/html

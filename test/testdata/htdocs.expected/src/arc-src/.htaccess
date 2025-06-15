@@ -1,0 +1,2 @@
+RedirectMatch temp /packages/src/arc-src/$ /packages/summary/arc-src.html
+ForceType text/html

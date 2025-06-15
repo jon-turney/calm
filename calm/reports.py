@@ -100,10 +100,8 @@ def maintainer_packages(args, packages, maintainer, reportlist):
 
     um_list = []
 
-    arch = 'x86_64'
-    # XXX: look into how we can make this 'src', after x86 is dropped
-    for p in packages[arch]:
-        po = packages[arch][p]
+    for p in packages:
+        po = packages[p]
 
         if po.kind != package.Kind.source:
             continue
@@ -131,8 +129,8 @@ def maintainer_packages(args, packages, maintainer, reportlist):
         rdepends = set()
         build_rdepends = set()
         for subp in po.is_used_by:
-            rdepends.update(packages[arch][subp].rdepends)
-            build_rdepends.update(packages[arch][subp].build_rdepends)
+            rdepends.update(packages[subp].rdepends)
+            build_rdepends.update(packages[subp].build_rdepends)
 
         up = types.SimpleNamespace()
         up.pn = p
@@ -184,10 +182,8 @@ def maintainer_packages(args, packages, maintainer, reportlist):
 def deprecated(args, packages, reportlist):
     dep_list = []
 
-    arch = 'x86_64'
-    # XXX: look into how we can make this 'src', after x86 is dropped
-    for p in packages[arch]:
-        po = packages[arch][p]
+    for p in packages:
+        po = packages[p]
 
         if po.kind != package.Kind.binary:
             continue
@@ -203,7 +199,7 @@ def deprecated(args, packages, reportlist):
         if not es:
             continue
 
-        if packages[arch][es].best_version == bv:
+        if packages[es].best_version == bv:
             continue
 
         if po.tar(bv).is_empty:
@@ -220,12 +216,12 @@ def deprecated(args, packages, reportlist):
         depp.rdepends = []
         for d in po.rdepends:
             # have a different source package
-            bv = packages[arch][d].best_version
-            if packages[arch][d].srcpackage(bv) == es:
+            bv = packages[d].best_version
+            if packages[d].srcpackage(bv) == es:
                 continue
 
             # current version has the dependency of interest
-            dpl = package.deplist_without_versions(packages[arch][d].version_hints[bv]['depends'])
+            dpl = package.deplist_without_versions(packages[d].version_hints[bv]['depends'])
             if p not in dpl:
                 continue
 
@@ -245,10 +241,10 @@ def deprecated(args, packages, reportlist):
         print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>timestamp</th></tr>', file=body)
 
         for r in sorted(depp.rdepends):
-            po = packages[arch][r]
+            po = packages[r]
             bv = po.best_version
             spn = po.srcpackage(bv)
-            spo = packages[arch][spn]
+            spo = packages[spn]
 
             print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
                   (linkify(r, po), linkify(spn, spo), bv, pkg2html.tsformat(po.tar(bv).mtime)), file=body)
@@ -286,10 +282,8 @@ def deprecated(args, packages, reportlist):
 def unstable(args, packages, reportlist):
     unstable_list = []
 
-    arch = 'x86_64'
-    # XXX: look into how we can make this 'src', after x86 is dropped
-    for p in packages[arch]:
-        po = packages[arch][p]
+    for p in packages:
+        po = packages[p]
 
         if po.kind != package.Kind.source:
             continue
@@ -327,9 +321,6 @@ def unstable(args, packages, reportlist):
 def maintainer_activity(args, packages):
     activity_list = []
 
-    arch = 'x86_64'
-    # XXX: look into how we can make this 'src', after x86 is dropped
-
     ml = maintainers.maintainer_list(args)
     for m in ml.values():
         if m.name == 'ORPHANED':
@@ -351,10 +342,10 @@ def maintainer_activity(args, packages):
 
             pn = p.data + '-src'
             # do something reasonable for sourceless packages
-            if pn not in packages[arch]:
+            if pn not in packages:
                 pn = p.data
 
-            po = packages[arch].get(pn, None)
+            po = packages.get(pn, None)
             if po:
                 pkgs.append(pn)
 
@@ -383,7 +374,6 @@ def maintainer_activity(args, packages):
 # produce a report on maintainer (in)activity
 #
 def maintainer_activity_report(args, packages, reportlist):
-    arch = 'x86_64'
     activity_list = maintainer_activity(args, packages)
 
     body = io.StringIO()
@@ -394,7 +384,7 @@ def maintainer_activity_report(args, packages, reportlist):
 
     for a in sorted(activity_list, key=lambda i: max(i.last_seen, i.last_package)):
         def pkg_details(pkgs):
-            return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[arch][p]) for p in pkgs))
+            return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[p]) for p in pkgs))
 
         def maintainer_link(m):
             return '<a href="%s">%s</a>' % (filenameify(m), m)
@@ -413,10 +403,7 @@ def maintainer_activity_report(args, packages, reportlist):
 def provides_rebuild(args, packages, fn, provide_package, reportlist):
     pr_list = []
 
-    arch = 'x86_64'
-    # XXX: look into how we can change this, after x86 is dropped
-
-    pp_package = packages[arch].get(provide_package, None)
+    pp_package = packages.get(provide_package, None)
     pp_provide = None
 
     if pp_package:
@@ -424,11 +411,11 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
         pp_provide = pp_package.version_hints[pp_bv]['provides'][0]
         pp_provide_base = re.sub(r'\d+$', '', pp_provide)
 
-        for p in packages[arch]:
-            po = packages[arch][p]
+        for p in packages:
+            po = packages[p]
             bv = po.best_version
 
-            depends = packages[arch][p].version_hints[bv]['depends']
+            depends = packages[p].version_hints[bv]['depends']
             depends = package.deplist_without_versions(depends)
 
             for d in depends:
@@ -446,7 +433,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
                 pr.pn = p
                 pr.po = po
                 pr.spn = po.srcpackage(bv)
-                pr.spo = packages[arch][pr.spn]
+                pr.spo = packages[pr.spn]
                 pr.depends = d
                 pr.bv = bv
 
@@ -473,11 +460,8 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
 def python_rebuild(args, packages, fn, reportlist):
     pr_list = []
 
-    # XXX: look into how we can change this, after x86 is dropped
-    arch = 'x86_64'
-
     # assume that python3 depends only on the latest python3n package
-    py_package = packages[arch].get('python3', None)
+    py_package = packages.get('python3', None)
     if not py_package:
         return
 
@@ -485,14 +469,14 @@ def python_rebuild(args, packages, fn, reportlist):
 
     modules = {}
 
-    for p in packages[arch]:
-        po = packages[arch][p]
+    for p in packages:
+        po = packages[p]
         bv = po.best_version
 
         if po.obsoleted_by:
             continue
 
-        depends = packages[arch][p].version_hints[bv]['depends']
+        depends = packages[p].version_hints[bv]['depends']
         depends = package.deplist_without_versions(depends)
 
         for d in depends:
@@ -530,7 +514,7 @@ def python_rebuild(args, packages, fn, reportlist):
             pr.pn = p
             pr.po = po
             pr.spn = po.srcpackage(bv)
-            pr.spo = packages[arch][pr.spn]
+            pr.spo = packages[pr.spn]
             pr.depends = d
             pr.bv = bv
 
@@ -550,9 +534,9 @@ def python_rebuild(args, packages, fn, reportlist):
         # that it needs updating
         pr = types.SimpleNamespace()
         pr.pn = 'python' + str(highest_ver) + '-' + m
-        pr.po = packages[arch][pr.pn]
+        pr.po = packages[pr.pn]
         pr.spn = pr.po.srcpackage(pr.po.best_version)
-        pr.spo = packages[arch][pr.spn]
+        pr.spo = packages[pr.spn]
         pr.depends = 'python' + str(highest_ver)
         pr.bv = pr.po.best_version
 

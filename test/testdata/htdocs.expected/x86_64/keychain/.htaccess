@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/keychain/$ /packages/summary/keychain.html
+RedirectMatch temp /packages/src/keychain/$ /packages/summary/keychain.html
 ForceType text/html

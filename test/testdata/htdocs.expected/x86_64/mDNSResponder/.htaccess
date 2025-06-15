@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/mDNSResponder/$ /packages/summary/mDNSResponder.html
+RedirectMatch temp /packages/src/mDNSResponder/$ /packages/summary/mDNSResponder.html
 ForceType text/html

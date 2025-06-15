@@ -42,7 +42,7 @@ def untest(pvr):
     # remove '^test:' lines from any package and subpackage hints
     removed = 0
     total = 0
-    for arch in common_constants.ARCHES + ['noarch']:
+    for arch in common_constants.ARCHES + ['noarch', 'src']:
         for (dirpath, _subdirs, files) in os.walk(os.path.join(common_constants.FTP, arch, 'release', p)):
             for f in files:
                 if re.match(r'.*-' + re.escape(vr) + r'.*\.hint$', f):

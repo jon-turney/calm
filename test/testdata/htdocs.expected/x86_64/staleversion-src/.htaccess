@@ -1,2 +1,0 @@
-RedirectMatch temp /packages/x86_64/staleversion-src/$ /packages/summary/staleversion-src.html
-ForceType text/html

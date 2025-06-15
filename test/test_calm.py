@@ -40,7 +40,6 @@ import types
 import unittest
 
 import calm.calm
-import calm.common_constants as common_constants
 import calm.hint as hint
 import calm.maintainers as maintainers
 import calm.package as package
@@ -142,7 +141,6 @@ class CalmTest(unittest.TestCase):
 
         htdocs = 'testdata/htdocs'
         args = types.SimpleNamespace()
-        args.arch = 'x86_64'
         args.htdocs = htdocs
         args.rel_area = 'testdata/relarea'
         args.homedir = 'testdata/homes'
@@ -156,11 +154,8 @@ class CalmTest(unittest.TestCase):
         except FileNotFoundError:
             pass
 
-        packages = {}
-        for arch in common_constants.ARCHES:
-            packages[arch] = {}
-        packages[args.arch], _ = package.read_packages(args.rel_area, args.arch)
-        package.validate_packages(args, packages[args.arch])
+        packages, _ = package.read_packages(args.rel_area)
+        package.validate_packages(args, packages)
         pkg2html.update_package_listings(args, packages)
 
         # compare the output dirtree with expected
@@ -334,7 +329,7 @@ class CalmTest(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
-        scan_result = uploads.scan('testdata/homes', m, pkglist + ['not-on-maintainer-list'], args.arch, args)
+        scan_result = uploads.scan('testdata/homes', m, pkglist + ['not-on-maintainer-list'], args)
 
         os.chdir(oldcwd)
         shutil.rmtree(test_root)
@@ -360,7 +355,7 @@ class CalmTest(unittest.TestCase):
         args.release = 'testing'
         args.setup_version = '4.321'
 
-        packages, _ = package.read_packages(args.rel_area, args.arch)
+        packages, _ = package.read_packages(args.rel_area)
         package.delete(packages, 'x86_64/release/nonexistent', 'nosuchfile-1.0.0.tar.xz')
         self.assertEqual(package.validate_packages(args, packages), True)
         package.write_setup_ini(args, packages, args.arch)
@@ -486,7 +481,7 @@ class CalmTest(unittest.TestCase):
         self.assertTrue(packages)
 
         pkg2html.update_package_listings(args, packages)
-        package.write_setup_ini(args, packages['x86_64'], 'x86_64')
+        package.write_setup_ini(args, packages, 'x86_64')
         reports.do_reports(args, packages)
 
         with open(os.path.join(args.rel_area, 'setup.ini')) as inifile:

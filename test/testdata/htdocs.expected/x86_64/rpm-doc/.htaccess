@@ -1,2 +1,2 @@
-RedirectMatch temp /packages/x86_64/rpm-doc/$ /packages/summary/rpm-doc.html
+RedirectMatch temp /packages/src/rpm-doc/$ /packages/summary/rpm-doc.html
 ForceType text/html

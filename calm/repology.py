@@ -182,9 +182,8 @@ def annotate_packages(args, packages):
 
     for pn in last_data:
         spn = pn + '-src'
-        for arch in packages:
-            if spn in packages[arch]:
-                packages[arch][spn].upstream_version = seqmatch(packages[arch][spn].best_version, last_data[pn].upstream_version)
-                packages[arch][spn].repology_project_name = last_data[pn].repology_project_name
+        if spn in packages:
+            packages[spn].upstream_version = seqmatch(packages[spn].best_version, last_data[pn].upstream_version)
+            packages[spn].repology_project_name = last_data[pn].repology_project_name
 
     last_check = time.time()
