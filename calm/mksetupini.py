@@ -89,8 +89,8 @@ def stats(packages):
         histogram[c.lower()] = 0
 
     for p in packages.values():
-        if 'category' in p.hints:
-            for c in p.hints['category'].split():
+        if 'category' in p.hints(p.bv):
+            for c in p.hints(p.bv)['category'].split():
                 histogram.setdefault(c.lower(), 0)
                 histogram[c.lower()] += 1
 

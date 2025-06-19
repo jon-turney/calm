@@ -76,7 +76,7 @@ SUMMARY_REWRITE_INTERVAL = (24 * 60 * 60)
 # get sdesc for a package
 #
 def sdesc(po, bv):
-    header = po.version_hints[bv]['sdesc']
+    header = po.hints(bv)['sdesc']
     header = header.strip('"')
     return html.escape(header, quote=False)
 
@@ -85,8 +85,8 @@ def sdesc(po, bv):
 # ditto for ldesc
 #
 def ldesc(po, bv):
-    if 'ldesc' in po.version_hints[bv]:
-        header = po.version_hints[bv]['ldesc']
+    if 'ldesc' in po.hints(bv):
+        header = po.hints(bv)['ldesc']
     else:
         return sdesc(po, bv)
 
@@ -177,7 +177,7 @@ def update_package_listings(args, packages):
         # - or, hints have changed since it was written
         # - or, SUMMARY_REWRITE_INTERVAL has elapsed since it was last written
         # - or, forced
-        hint_mtime = po.hints[bv].mtime
+        hint_mtime = po.hint_data(bv).mtime
 
         summary_mtime = 0
         if os.path.exists(summary):
@@ -222,7 +222,7 @@ def update_package_listings(args, packages):
                     details_table = {}
                     details_table['summary'] = sdesc(po, bv)
                     details_table['description'] = ldesc(po, bv)
-                    details_table['categories'] = po.version_hints[bv].get('category', '')
+                    details_table['categories'] = po.hints(bv).get('category', '')
 
                     class PackageData(NamedTuple):
                         is_attr: bool = False
@@ -243,7 +243,7 @@ def update_package_listings(args, packages):
 
                     for key in details:
                         # XXX: multiarch TODO:
-                        # access to per-arch version_hints ???
+                        # access to per-arch & version hints ???
                         pos = {}
                         for arch in common_constants.ARCHES:
                             pos[arch] = po
@@ -257,7 +257,7 @@ def update_package_listings(args, packages):
                             if details[key].is_attr:
                                 value[arch] = getattr(pos[arch], key, set())
                             else:
-                                t = pos[arch].version_hints[pos[arch].best_version].get(key, [])
+                                t = pos[arch].hints(pos[arch].best_version).get(key, [])
                                 value[arch] = set(t)
                             values.update(value[arch])
 
@@ -281,11 +281,11 @@ def update_package_listings(args, packages):
                         install_packages = po.is_used_by
                         details_table['install package(s)'] = ', '.join([linkify_package(p) for p in sorted(install_packages)])
 
-                        homepage = po.version_hints[po.best_version].get('homepage', None)
+                        homepage = po.hints(po.best_version).get('homepage', None)
                         if homepage:
                             details_table['homepage'] = '<a href="%s">%s</a>' % (homepage, homepage)
 
-                        lic = po.version_hints[po.best_version].get('license', None)
+                        lic = po.hints(po.best_version).get('license', None)
                         if lic:
                             details_table['license'] = '%s <span class="smaller">(<a href="https://spdx.org/licenses/">SPDX</a>)</span>' % (lic)
                     else:
@@ -367,7 +367,7 @@ def update_package_listings(args, packages):
                         else:
                             target = "%s-%s-src" % (p.orig_name, v)
                         item.link = "../%s/%s/%s" % (p.tar(v).arch, pn, target)
-                        item.status = 'test' if 'test' in p.version_hints[v] else 'stable'
+                        item.status = 'test' if 'test' in p.hints(v) else 'stable'
                         item.ts = tsformat(p.tar(v).mtime)
                         item.arch = p.tar(v).arch
                         return item

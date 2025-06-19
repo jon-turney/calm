@@ -219,8 +219,8 @@ def _announce_upload(args, scan_result, maintainer, r):
             srcpkg = po
             assert len(po.versions()) == 1
             version = list(po.versions())[0]
-            ldesc = po.version_hints[version]['ldesc'].strip('"')
-            test = 'test' in po.version_hints[version]
+            ldesc = po.hints(version)['ldesc'].strip('"')
+            test = 'test' in po.hints(version)
 
         # not totally clear how we should name source packages, so omit them for
         # the moment

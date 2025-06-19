@@ -119,9 +119,10 @@ def spellcheck_hints(args, packages):
             continue
 
         # spell-check the spell-checkable keys
+        po = packages[p]
         for k in ['sdesc', 'ldesc', 'message']:
-            if k in packages[p].hints:
-                chkr.set_text(packages[p].hints[k])
+            if k in po.hints(po.bv):
+                chkr.set_text(po.hints(po.bv)[k])
                 # XXX: this is doing all the work to generate suggestions, which
                 # we then ignore, so could be written much more efficiently
                 for err in chkr:

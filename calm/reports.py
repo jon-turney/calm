@@ -201,7 +201,7 @@ def deprecated(args, packages, reportlist):
             continue
 
         bv = po.best_version
-        es = po.version_hints[bv].get('external-source', None)
+        es = po.hints(bv).get('external-source', None)
         if not es:
             continue
 
@@ -227,7 +227,7 @@ def deprecated(args, packages, reportlist):
                 continue
 
             # current version has the dependency of interest
-            dpl = package.deplist_without_versions(packages[d].version_hints[bv]['depends'])
+            dpl = package.deplist_without_versions(packages[d].hints(bv)['depends'])
             if p not in dpl:
                 continue
 
@@ -295,7 +295,7 @@ def unstable(args, packages, reportlist):
             continue
 
         latest_v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
-        if 'test' not in po.version_hints[latest_v]:
+        if 'test' not in po.hints(latest_v):
             continue
 
         unstablep = types.SimpleNamespace()
@@ -414,7 +414,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
 
     if pp_package:
         pp_bv = pp_package.best_version
-        pp_provide = pp_package.version_hints[pp_bv]['provides'][0]
+        pp_provide = pp_package.hints(pp_bv)['provides'][0]
         # provide_base is the start of the provide, up-to and including the
         # first '_' (assumed to be followed by digits and maybe separators), so
         # it doesn't accidentally match the package name we probably get without
@@ -425,7 +425,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
             po = packages[p]
             bv = po.best_version
 
-            depends = packages[p].version_hints[bv]['depends']
+            depends = packages[p].hints(bv)['depends']
             depends = package.deplist_without_versions(depends)
 
             for d in depends:
@@ -475,7 +475,7 @@ def python_rebuild(args, packages, fn, reportlist):
     if not py_package:
         return
 
-    latest_py = py_package.version_hints[py_package.best_version]['depends'][0]
+    latest_py = py_package.hints(py_package.best_version)['depends'][0]
 
     modules = {}
 
@@ -486,7 +486,7 @@ def python_rebuild(args, packages, fn, reportlist):
         if po.obsoleted_by:
             continue
 
-        depends = packages[p].version_hints[bv]['depends']
+        depends = packages[p].hints(bv)['depends']
         depends = package.deplist_without_versions(depends)
 
         for d in depends:
