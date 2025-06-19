@@ -408,6 +408,7 @@ def collect_files_package_dir(collected, basedir, dirpath, files):
 #
 def read_one_package(packages, p, basedir, files, kind, strict):
     warnings = False
+    error = False
 
     if not re.match(r'^[\w\-._+]*$', p):
         logging.error("package '%s' name contains illegal characters" % p)
@@ -480,7 +481,8 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         match = re.match(r'^' + re.escape(p) + r'-(.+)-(\d[0-9a-zA-Z._+]*)' + arch_re + r'\.(tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'|hint)$', f)
         if not match:
             logging.error("file '%s' in package '%s' doesn't follow naming convention" % (rp.fn, p))
-            return True
+            error = True
+            continue
         else:
             v = match.group(1)
             r = match.group(2)
@@ -517,18 +519,21 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             if not re.search(r'-src.*\.tar', f):
                 if kind == Kind.source:
                     logging.error("source package '%s' has install archives" % (p))
-                    return True
+                    error = True
+                    continue
             else:
                 if kind == Kind.binary:
                     logging.error("package '%s' has source archives" % (p))
-                    return True
+                    error = True
+                    continue
 
             # for each version, a package can contain at most one tar file (of
             # the appropriate type). Warn if we have too many (for e.g. both a
             # .xz and .bz2 install tar file).
             if vr in tars:
                 logging.error("package '%s' has more than one tar file for version '%s'" % (p, vr))
-                return True
+                error = True
+                continue
 
             # collect the attributes for each tar file
             t = Tar()
@@ -551,7 +556,8 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             hrp = RepoPath(rp.arch, rp.path, hint_fn)
             if hrp not in files:
                 logging.error("package %s has packages for version %s, but no %s" % (p, vr, hint_fn))
-                return True
+                error = True
+                continue
 
         else:
             # for each version, a package can contain at most one hint
@@ -559,11 +565,15 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             # archtag).
             if vr in hint_files:
                 logging.error("package '%s' has more than one hint file for version '%s'" % (p, vr))
-                return True
+                error = True
+                continue
             hint_files[vr] = rp
 
         # collect the superpackage names for authorization purposes
         auth_path.add(rp.path.split(os.sep, 1)[0])
+
+    if error:
+        return True
 
     # determine hints for each version we've encountered
     version_hints = {}
@@ -576,7 +586,9 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         pvr_hint = read_hints(p, rp.abspath(basedir), hint.pvr if kind == Kind.binary else hint.spvr, strict)
         if not pvr_hint:
             logging.error("error parsing %s" % (rp.fn))
-            return True
+            error = True
+            continue
+
         warnings = clean_hints(p, pvr_hint, warnings)
 
         # apply a version override
@@ -605,6 +617,8 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         hints[ovr] = hintobj
         if vr in tars:
             actual_tars[ovr] = tars[vr]
+    if error:
+        return True
 
     packages[pn] = Package()
     packages[pn].name = pn
