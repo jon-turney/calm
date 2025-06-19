@@ -1,4 +1,5 @@
 {'.': ['calm.db', 'packages.inc', 'packages_docs.inc', 'reports_list.inc', 'src_packages.inc'],
+ 'aarch64': ['.htaccess'],
  'doc': ['.htaccess'],
  'doc/keychain': ['keychain.README'],
  'noarch': ['.htaccess'],

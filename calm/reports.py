@@ -119,7 +119,8 @@ def maintainer_packages(args, packages, maintainer, reportlist):
                 continue
 
         # the highest version we have
-        v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
+        inst = sorted(po.iterator(), reverse=True)[0]
+        v = inst.vr
 
         # determine the number of unique rdepends over all subpackages (and
         # likewise build_rdepends)
@@ -136,7 +137,7 @@ def maintainer_packages(args, packages, maintainer, reportlist):
         up.pn = p
         up.po = po
         up.v = SetupVersion(v).V
-        up.ts = po.tar(v).mtime
+        up.ts = po.edition_tar(inst).mtime
         up.rdepends = len(rdepends)
         up.build_rdepends = len(build_rdepends)
         up.importance = po.importance
@@ -201,22 +202,22 @@ def deprecated(args, packages, reportlist):
             continue
 
         bv = po.best_version
-        es = po.hints(bv).get('external-source', None)
+        es = po.edition_hints(bv).get('external-source', None)
         if not es:
             continue
 
         if packages[es].best_version == bv:
             continue
 
-        if po.tar(bv).is_empty:
+        if po.edition_tar(bv).is_empty:
             continue
 
         # an old version of a shared library
         depp = types.SimpleNamespace()
         depp.pn = p
         depp.po = po
-        depp.v = bv
-        depp.ts = po.tar(bv).mtime
+        depp.v = bv.vr
+        depp.ts = po.edition_tar(bv).mtime
 
         # filter rdepends
         depp.rdepends = []
@@ -227,7 +228,7 @@ def deprecated(args, packages, reportlist):
                 continue
 
             # current version has the dependency of interest
-            dpl = package.deplist_without_versions(packages[d].hints(bv)['depends'])
+            dpl = package.deplist_without_versions(packages[d].edition_hints(bv)['depends'])
             if p not in dpl:
                 continue
 
@@ -253,7 +254,7 @@ def deprecated(args, packages, reportlist):
             spo = packages[spn]
 
             print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-                  (linkify(r, po), linkify(spn, spo), bv, pkg2html.tsformat(po.tar(bv).mtime)), file=body)
+                  (linkify(r, po), linkify(spn, spo), bv, pkg2html.tsformat(po.edition_tar(bv).mtime)), file=body)
 
         print('</table>', file=body)
 
@@ -294,15 +295,15 @@ def unstable(args, packages, reportlist):
         if po.kind != package.Kind.source:
             continue
 
-        latest_v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
-        if 'test' not in po.hints(latest_v):
+        latest_v = sorted(po.iterator(), reverse=True)[0]
+        if 'test' not in po.edition_hints(latest_v):
             continue
 
         unstablep = types.SimpleNamespace()
         unstablep.pn = p
         unstablep.po = po
-        unstablep.v = latest_v
-        unstablep.ts = po.tar(latest_v).mtime
+        unstablep.v = latest_v.vr
+        unstablep.ts = po.edition_tar(latest_v).mtime
 
         unstable_list.append(unstablep)
 
@@ -360,9 +361,9 @@ def maintainer_activity(args, packages):
                 if len(p.maintainers()) > 1:
                     continue
 
-                for v in po.versions():
-                    if po.tar(v).mtime > mtime:
-                        mtime = po.tar(v).mtime
+                for v in po.iterator():
+                    if po.edition_tar(v).mtime > mtime:
+                        mtime = po.edition_tar(v).mtime
 
         # ignore if all their packages are orphaned
         # (key should be already disabled in this case)
@@ -414,7 +415,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
 
     if pp_package:
         pp_bv = pp_package.best_version
-        pp_provide = pp_package.hints(pp_bv)['provides'][0]
+        pp_provide = pp_package.edition_hints(pp_bv)['provides'][0]
         # provide_base is the start of the provide, up-to and including the
         # first '_' (assumed to be followed by digits and maybe separators), so
         # it doesn't accidentally match the package name we probably get without
@@ -425,7 +426,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
             po = packages[p]
             bv = po.best_version
 
-            depends = packages[p].hints(bv)['depends']
+            depends = packages[p].edition_hints(bv)['depends']
             depends = package.deplist_without_versions(depends)
 
             for d in depends:
@@ -475,7 +476,7 @@ def python_rebuild(args, packages, fn, reportlist):
     if not py_package:
         return
 
-    latest_py = py_package.hints(py_package.best_version)['depends'][0]
+    latest_py = py_package.edition_hints(py_package.best_version)['depends'][0]
 
     modules = {}
 
@@ -486,7 +487,7 @@ def python_rebuild(args, packages, fn, reportlist):
         if po.obsoleted_by:
             continue
 
-        depends = packages[p].hints(bv)['depends']
+        depends = packages[p].edition_hints(bv)['depends']
         depends = package.deplist_without_versions(depends)
 
         for d in depends:
@@ -562,7 +563,7 @@ def python_rebuild(args, packages, fn, reportlist):
 
     for pr in sorted(pr_list, key=lambda i: (i.depends_ver, i.pn)):
         print('<tr><td>%s</td><td>%s</td><td>%s</td><td sorttable_customkey="%s">%s</td></tr>' %
-              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends_ver, pr.depends), file=body)
+              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv.vr, pr.depends_ver, pr.depends), file=body)
 
     print('</table>', file=body)
 

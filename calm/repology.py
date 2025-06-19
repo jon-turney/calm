@@ -207,7 +207,7 @@ def seqmatch(bv, uv):
 
 def up_to_date(po):
     # the highest version we have
-    v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
+    v = sorted(po.iterator(), reverse=True)[0].vr
 
     upstream_v = po.upstream_version
 
@@ -237,6 +237,6 @@ def annotate_packages(args, packages):
     for pn in last_data:
         spn = pn + '-src'
         if spn in packages:
-            packages[spn].upstream_version = seqmatch(packages[spn].best_version, last_data[pn].upstream_version)
+            packages[spn].upstream_version = seqmatch(packages[spn].best_version.vr, last_data[pn].upstream_version)
             packages[spn].repology_project_name = last_data[pn].repology_project_name
             packages[spn].up_to_date = up_to_date(packages[spn])

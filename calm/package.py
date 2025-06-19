@@ -34,8 +34,9 @@ import pprint
 import re
 import textwrap
 import time
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from enum import Enum, IntEnum, unique
+from functools import total_ordering
 
 import xtarfile
 
@@ -93,6 +94,25 @@ class RepoPath():
         return "RepoPath(%s, %s, %s)" % (self.arch, self.path, self.fn)
 
 
+# An 'edition' is an instance of a package. Currently, these are identified by a
+# specific arch and version-release.
+
+# ordering for EditionIndex as a mixin
+@total_ordering
+class EditionIndexOrdering(object):
+    __slots__ = ()  # objects of this class don't accept attributes
+
+    def __lt__(self, other):
+        vr_cmp = SetupVersion(self.vr).__cmp__(SetupVersion(other.vr))
+        if vr_cmp != 0:
+            return vr_cmp == -1
+        return self.arch < other.arch
+
+
+class EditionIndex(EditionIndexOrdering, namedtuple('EditionIndexTuple', 'arch vr')):
+    pass
+
+
 # information we keep about a package
 class Package(object):
     def __init__(self):
@@ -111,35 +131,40 @@ class Package(object):
             pprint.pformat(self.override_hints),
             self.not_for_output)
 
-    # accesses all data for an edition of the package
-    def edition(self, vr):
-        return (self._tarfiles[vr], self._hints[vr].hints)
-
-    # access the tar archive
-    def tar(self, vr):
-        return self._tarfiles[vr]
-
-    # access the hints
-    def hints(self, vr):
-        return self._hints[vr].hints
-
-    # access the hint object
-    def hint_data(self, vr):
-        return self._hints[vr]
-
-    # iterate over editions of the package
-    # XXX: also need a filtered-by arch version of this
-    def versions(self):
+    # returns an iterator over all the editions of a package
+    def iterator(self):
         return self._tarfiles.keys()
 
-    def srcpackage(self, vr, suffix=True):
+    # returns an iterator over all the version editions of a package for a given arch
+    def arch_iterator(self, arch):
+        return [k for k in self._tarfiles.keys() if k.arch in [arch, 'noarch']]
+
+    # returns an iterator over all the arch editions of a package of a given version
+    def version_iterator(self, vr):
+        return [k for k in self._tarfiles.keys() if k.vr == vr]
+
+    # accesses all data for an edition of the package
+    def edition(self, index):
+        return (self._tarfiles[index], self._hints[index].hints)
+
+    def edition_hints(self, index):
+        return self._hints[index].hints
+
+    # access the hint object
+    def edition_hint_data(self, index):
+        return self._hints[index]
+
+    def edition_tar(self, index):
+        return self._tarfiles[index]
+
+    def srcpackage(self, index, suffix=True):
         if self.kind == Kind.source:
             spn = self.name
         else:
             # source tarfile is in the external-source package, if specified,
             # otherwise it's in the sibling source package
             spn = self.name + '-src'
-            hints = self._hints.get(vr, None)
+            hints = self._hints.get(index, None)
             if hints:
                 spn = hints.hints.get('external-source', spn)
 
@@ -149,6 +174,14 @@ class Package(object):
                 spn = spn[:-4]
 
         return spn
+
+    # XXX: add a wrapper for 'best_version', as both 'best_edition' and 'best_vr' ???
+    # maybe take optional arch parameter?
+
+    # XXX: perhaps also useful to have the 'highest, ignoring test' logic
+
+    def arches(self):
+        return set(e.arch for e in self.iterator())
 
 
 # information we keep about a tar file
@@ -181,6 +214,8 @@ class Hint(object):
 def read_packages(rel_area):
     result = False
 
+    logging.debug('collecting packages from %s' % rel_area)
+
     # first collect all package files
     # all <arch>/, noarch/ and src/ directories are considered
     collected = {}
@@ -194,7 +229,8 @@ def read_packages(rel_area):
     logging.debug('reading packages from %s' % rel_area)
 
     packages = {}
-    for p in collected:
+    # XXX: probably should sort here, to avoid having to sort everywhere else?
+    for p in sorted(collected):
         fl = collected[p]
         for kind in Kind:
             if not fl[kind]:
@@ -490,8 +526,12 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         if kind == Kind.source:
             arch_re = r'(-src)'
         else:
-            # archtag is either missing, or the appropriate one for the path
-            arch_re = r'(-' + rp.arch + r'|)'
+            if rp.arch == 'aarch64':
+                # all aarch64 packages are new enough to always have an archtag
+                arch_re = r'(-' + rp.arch + r')'
+            else:
+                # x86/x86_64/noarch legacy packages may have a missing archtag
+                arch_re = r'(-' + rp.arch + r'|)'
 
         # warn if filename doesn't follow P-V-R naming convention
         #
@@ -505,6 +545,10 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         else:
             v = match.group(1)
             r = match.group(2)
+            # record the arch_tag (or what it would have been, if not omitted)
+            arch = match.group(3)[1:]
+            if not arch:
+                arch = rp.arch
 
             # historically, V can contain a '-' (since we can use the fact
             # we already know P to split unambiguously), but this is a bad
@@ -531,7 +575,8 @@ def read_one_package(packages, p, basedir, files, kind, strict):
 
             # if not there already, add to version-release list
             vr = '%s-%s' % (v, r)
-            vr_list.add(vr)
+            index_tuple = (arch, vr)
+            vr_list.add(index_tuple)
 
         if not f.endswith('.hint'):
             # a package can only contain tar archives of the appropriate type
@@ -549,7 +594,7 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             # for each version, a package can contain at most one tar file (of
             # the appropriate type). Warn if we have too many (for e.g. both a
             # .xz and .bz2 install tar file).
-            if vr in tars:
+            if index_tuple in tars:
                 logging.error("package '%s' has more than one tar file for version '%s'" % (p, vr))
                 error = True
                 continue
@@ -561,14 +606,9 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             t.is_empty = tarfile_is_empty(rp.abspath(basedir))
             t.mtime = os.path.getmtime(rp.abspath(basedir))
             t.sha512 = sha512_file(rp.abspath(basedir))
+            t.arch = arch
 
-            # record the arch_tag (or what it would have been, if not omitted)
-            if kind == Kind.source:
-                t.arch = 'src'
-            else:
-                t.arch = rp.arch
-
-            tars[vr] = t
+            tars[index_tuple] = t
 
             # it's an error to not have a corresponding pvr.hint in the same directory
             hint_fn = '%s-%s%s.hint' % (p, vr, match.group(3))
@@ -582,11 +622,12 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             # for each version, a package can contain at most one hint
             # file. Warn if we have too many (for e.g. both with and without an
             # archtag).
-            if vr in hint_files:
+            if index_tuple in hint_files:
                 logging.error("package '%s' has more than one hint file for version '%s'" % (p, vr))
                 error = True
                 continue
-            hint_files[vr] = rp
+
+            hint_files[index_tuple] = rp
 
         # collect the superpackage names for authorization purposes
         auth_path.add(rp.path.split(os.sep, 1)[0])
@@ -597,8 +638,8 @@ def read_one_package(packages, p, basedir, files, kind, strict):
     # determine hints for each version we've encountered
     actual_hints = {}
     actual_tars = {}
-    for vr in vr_list:
-        rp = hint_files[vr]
+    for (arch, vr) in vr_list:
+        rp = hint_files[(arch, vr)]
 
         # is there a PVR.hint file?
         pvr_hint = read_hints(p, rp.abspath(basedir), hint.pvr if kind == Kind.binary else hint.spvr, strict)
@@ -631,9 +672,10 @@ def read_one_package(packages, p, basedir, files, kind, strict):
         hintobj.hints = pvr_hint
         hintobj.mtime = os.path.getmtime(rp.abspath(basedir))
 
-        actual_hints[ovr] = hintobj
-        if vr in tars:
-            actual_tars[ovr] = tars[vr]
+        actual_hints[EditionIndex(arch, ovr)] = hintobj
+        if (arch, vr) in tars:
+            actual_tars[EditionIndex(arch, ovr)] = tars[(arch, vr)]
+
     if error:
         return True
 
@@ -712,9 +754,8 @@ def sort_key(k):
 def upgrade_oldstyle_obsoletes(packages, missing_obsolete):
     for p in sorted(packages):
         if packages[p].kind == Kind.binary:
-            for vr in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
+            for vr in sorted(packages[p].iterator(), reverse=True):
                 (tar, hints) = packages[p].edition(vr)
-
                 # we only really want to consider packages where the current
                 # version is obsolete.
                 #
@@ -800,8 +841,9 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
     for p in packages:
         valid_requires.add(p)
-        for vr in packages[p].versions():
-            hints = packages[p].hints(vr)
+        for inst in packages[p].iterator():
+            hints = packages[p].edition_hints(inst)
+
             valid_requires.update(hints.get('obsoletes', []))
             valid_requires.update(hints.get('provides', []))
 
@@ -825,8 +867,8 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
     # perform various package validations
     for p in sorted(packages.keys()):
-        for v in packages[p].versions():
-            hints = packages[p].hints(v)
+        for inst in packages[p].iterator():
+            hints = packages[p].edition_hints(inst)
             for (c, okmissing, valid, nonexistent) in [
                     ('depends', 'missing-depended-package', valid_requires, past_mistakes.nonexistent_provides),
                     ('obsoletes', 'missing-obsoleted-package', valid_obsoletes, []),
@@ -846,26 +888,26 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                         # a package should not appear in it's own hint
                         if r == p:
                             lvl = logging.WARNING if p not in past_mistakes.self_requires else logging.DEBUG
-                            logging.log(lvl, "package '%s' version '%s' %s itself" % (p, v, c))
+                            logging.log(lvl, "package '%s' version '%s' %s itself" % (p, inst, c))
 
                         # all packages listed in a hint must exist (unless the
                         # disable-check option says that's ok)
                         if (r not in valid) and (r not in past_mistakes.expired_provides) and (not any(re.match(nep + r'$', r) for nep in nonexistent)):
                             if okmissing not in getattr(args, 'disable_check', []):
-                                logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, v, c, r))
+                                logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, inst, c, r))
                                 error = True
                             continue
 
                         # package relation hint referencing a source package makes no sense
                         if r in packages and packages[r].kind == Kind.source:
-                            logging.error("package '%s' version '%s' %s source package '%s'" % (p, v, c, r))
+                            logging.error("package '%s' version '%s' %s source package '%s'" % (p, inst, c, r))
                             error = True
 
             # if external-source is used, the package must exist
             if 'external-source' in hints:
                 e = hints['external-source']
                 if e not in packages:
-                    logging.error("package '%s' version '%s' refers to non-existent or errored external-source '%s'" % (p, v, e))
+                    logging.error("package '%s' version '%s' refers to non-existent or errored external-source '%s'" % (p, inst, e))
                     error = True
 
             # some old packages are missing needed obsoletes:, add them where
@@ -874,8 +916,8 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
     for mo in [past_mistakes.missing_obsolete, missing_obsolete_extra]:
         for p in mo:
             if p in packages:
-                for v in packages[p].versions():
-                    hints = packages[p].hints(v)
+                for inst in packages[p].iterator():
+                    hints = packages[p].edition_hints(inst)
 
                     obsoletes = hints.get('obsoletes', [])
 
@@ -884,7 +926,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                             if n not in obsoletes:
                                 obsoletes.append(n)
                                 hints['obsoletes'] = obsoletes
-                                logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, v))
+                                logging.info("added 'obsoletes: %s' to package '%s' version '%s'" % (n, p, inst))
                                 logging.info("this should be in fixed in the cygport packaging")
 
                             # recurse so we don't drop transitive missing obsoletes
@@ -902,33 +944,39 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
         # occur since we might have synthesized the depends: from the requires:
         # in read_hints(), so fix that up here.
     for p in sorted(packages):
-        for v in packages[p].versions():
-            hints = packages[p].hints(v)
+        for inst in packages[p].iterator():
+            hints = packages[p].edition_hints(inst)
             obsoletes = hints.get('obsoletes', [])
             if obsoletes:
                 for o in deplist_without_versions(obsoletes):
                     if o in packages:
                         packages[o].obsolete = True
 
-                        for ov in packages[o].versions():
-                            ohints = packages[o].hints(ov)
+                        for oinst in packages[o].iterator():
+                            ohints = packages[o].edition_hints(oinst)
+
                             if 'depends' in ohints:
                                 depends = ohints['depends']
                                 if p in depends:
+                                    # XXX: check this mutates it's value in place
                                     depends = [d for d in depends if d != p]
                                     ohints['depends'] = depends
-                                    logging.debug("removed obsoleting '%s' from the depends: of package '%s'" % (p, o))
+                                    logging.debug("removed obsoleting '%s' from the depends: of package '%s' version '%s'" % (p, o, oinst))
                     else:
                         logging.debug("can't ensure package '%s' doesn't depends: on obsoleting '%s'" % (o, p))
 
+        #
         has_nonempty_install = False
+        obsolete = False
 
         if packages[p].kind == Kind.binary:
-            for vr in packages[p].versions():
-                if not packages[p].tar(vr).is_empty:
+            for inst in packages[p].iterator():
+                (tar, hints) = packages[p].edition(inst)
+                if not tar.is_empty:
                     has_nonempty_install = True
 
-        obsolete = any(['_obsolete' in packages[p].hints(vr).get('category', '') for vr in packages[p].versions()])
+                if '_obsolete' in hints.get('category', ''):
+                    obsolete = True
 
         # if the package has no non-empty install tarfiles, and no dependencies
         # installing it will do nothing (and making it appear in the package
@@ -943,51 +991,62 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                 packages[p].not_for_output = False
 
         # identify a 'best' version to take certain information from: this is
-        # the curr version, if we have one, otherwise, the highest version.
-        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
-            if 'test' not in packages[p].hints(v):
-                packages[p].best_version = v
+        # the highest non-test version, if we have one, otherwise, the highest
+        # version.
+        #
+        # XXX: if the highest version is the same in more than one arch, this
+        # is going to pick a random one
+        iterator = sorted(packages[p].iterator(), reverse=True)
+        for inst in iterator:
+            hints = packages[p].edition_hints(inst)
+            if 'test' not in hints:
+                packages[p].best_version = inst
+
                 break
         else:
-            if len(packages[p].versions()):
-                packages[p].best_version = sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
+            if len(iterator):
+                packages[p].best_version = iterator[0]
             else:
                 # the package must have some versions
                 logging.error("package '%s' doesn't have any versions" % (p))
                 packages[p].best_version = None
                 error = True
 
-        # error if the curr: version isn't the most recent non-test: version
-        mtimes = {}
-        for vr in packages[p].versions():
-            mtimes[vr] = packages[p].tar(vr).mtime
+        # error if the curr: version for each arch isn't the most recent
+        # non-test: version
+        # XXX: handle noarch??? mixes???
+        for arch in common_constants.ARCHES:
+            mtimes = {}
 
-        cv = None
-        nontest_versions = [v for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' not in packages[p].hints(v)]
-        if len(nontest_versions) >= 1:
-            cv = nontest_versions[0]
+            for inst in packages[p].arch_iterator(arch):
+                mtimes[inst] = packages[p].edition_tar(inst).mtime
 
-        for v in sorted(packages[p].versions(), key=lambda v: mtimes[v], reverse=True):
-            if 'test' in packages[p].hints(v):
-                continue
+            cv = None
+            nontest_versions = [v for v in sorted(packages[p].arch_iterator(arch), reverse=True) if 'test' not in packages[p].edition_hints(v)]
+            if len(nontest_versions) >= 1:
+                cv = nontest_versions[0]
 
-            if cv not in packages[p].versions():
-                continue
-
-            if cv != v:
-                if mtimes[v] == mtimes[cv]:
-                    # don't consider an equal mtime to be more recent
+            for v in sorted(packages[p].arch_iterator(arch), key=lambda v: mtimes[v], reverse=True):
+                if 'test' in packages[p].edition_hints(v):
                     continue
 
-                if (('curr-most-recent' in packages[p].override_hints.get('disable-check', '')) or
-                    ('curr-most-recent' in getattr(args, 'disable_check', []))):
-                    lvl = logging.DEBUG
-                else:
-                    lvl = logging.ERROR
-                    error = True
-                logging.log(lvl, "package '%s' ordering discrepancy in non-test versions: '%s' has most recent timestamp, but version '%s' is greatest" % (p, v, cv))
-            break
+                if cv != v:
+                    if mtimes[v] == mtimes[cv]:
+                        # don't consider an equal mtime to be more recent
+                        continue
 
+                    if (('curr-most-recent' in packages[p].override_hints.get('disable-check', '')) or
+                        ('curr-most-recent' in getattr(args, 'disable_check', []))):
+                        lvl = logging.DEBUG
+                    else:
+                        lvl = logging.ERROR
+                        error = True
+                    logging.log(lvl, "package '%s' ordering discrepancy in non-test versions: '%s' has most recent timestamp, but version '%s' is greatest" % (p, v, cv))
+                    logging.log(lvl, packages[p].arch_iterator(arch))
+                    logging.log(lvl, sorted(packages[p].arch_iterator(arch)))
+                break
+
+        # sanity check any 'replace-versions' override
         if 'replace-versions' in packages[p].override_hints:
             for rv in packages[p].override_hints['replace-versions'].split():
                 # warn if replace-versions lists a version which is less than
@@ -995,23 +1054,24 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                 # will replace it anyhow)
                 bv = packages[p].best_version
                 if bv:
-                    if SetupVersion(rv) <= SetupVersion(bv):
+                    if SetupVersion(rv) <= SetupVersion(bv.vr):
                         logging.warning("package '%s' replace-versions: uselessly lists version '%s', which is <= current version '%s'" % (p, rv, bv))
 
                 # warn if replace-versions lists a version which is also
                 # available to install (as this doesn't work as expected)
-                if rv in packages[p].versions():
-                    if ('test' in packages[p].hints(rv)) == ('test' in packages[p].hints(bv)):
-                        logging.warning("package '%s' replace-versions: lists version '%s', which is also available to install" % (p, rv))
+                for inst in packages[p].iterator():
+                    if inst.vr == rv:
+                        if ('test' in packages[p].hints(inst)) == ('test' in packages[p].hints(bv)):
+                            logging.warning("package '%s' replace-versions: lists version '%s', which is also available to install" % (p, rv))
 
         # If the install tarball is empty, we should probably either be marked
         # obsolete (if we have no dependencies) or virtual (if we do)
         if packages[p].kind == Kind.binary and not packages[p].not_for_output:
-            for vr in packages[p].versions():
-                if packages[p].tar(vr).is_empty:
+            for inst in packages[p].iterator():
+                if packages[p].edition_tar(inst).is_empty:
                     # this classification relies on obsoleting packages
                     # not being present in depends
-                    if packages[p].hints(vr).get('depends', []):
+                    if packages[p].edition_hints(inst).get('depends', []):
                         # also allow '_obsolete' because old obsoletion
                         # packages depend on their replacement, but are not
                         # obsoleted by it
@@ -1019,33 +1079,33 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                     else:
                         expected_categories = ['_obsolete']
 
-                    if all(c not in packages[p].hints(vr).get('category', '').lower() for c in expected_categories):
-                        if ((vr in past_mistakes.empty_but_not_obsolete.get(p, [])) or
-                            ('empty-obsolete' in packages[p].hints(vr).get('disable-check', ''))):
+                    if all(c not in packages[p].edition_hints(inst).get('category', '').lower() for c in expected_categories):
+                        if ((inst.vr in past_mistakes.empty_but_not_obsolete.get(p, [])) or
+                            ('empty-obsolete' in packages[p].edition_hints(inst).get('disable-check', ''))):
                             lvl = logging.DEBUG
                         else:
                             lvl = logging.ERROR
                             error = True
-                        logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in %s category" % (p, vr, expected_categories))
+                        logging.log(lvl, "package '%s' version '%s' has empty install tar file, but it's not in %s category" % (p, inst, expected_categories))
         # If the source tarball is empty, that can't be right!
         elif packages[p].kind == Kind.source:
-            for vr in packages[p].versions():
-                if packages[p].tar(vr).is_empty:
-                    if ((vr in past_mistakes.empty_source.get(p, [])) and
-                        '_obsolete' in packages[p].hints(vr).get('category', '')):
+            for inst in packages[p].iterator():
+                if packages[p].edition_tar(inst).is_empty:
+                    if ((inst.vr in past_mistakes.empty_source.get(p, [])) and
+                        '_obsolete' in packages[p].edition_hints(inst).get('category', '')):
                         lvl = logging.DEBUG
                     else:
                         error = True
                         lvl = logging.ERROR
-                    logging.log(lvl, "package '%s' version '%s' has empty source tar file" % (p, vr))
+                    logging.log(lvl, "package '%s' version '%s' has empty source tar file" % (p, inst))
 
     # build inverted relations:
     # the set of packages which depends: on this package (rdepends),
     # the set of packages which build-depends: on it (build_rdepends), and
     # the set of packages which obsoletes: it (obsoleted_by)
     for p in packages:
-        for vr in packages[p].versions():
-            hints = packages[p].hints(vr)
+        for inst in packages[p].iterator():
+            hints = packages[p].edition_hints(inst)
             for k, a in [
                     ('depends', 'rdepends'),
                     ('build-depends', 'build_rdepends'),
@@ -1063,23 +1123,24 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
     # make another pass to verify a source tarfile exists for every install
     # tarfile version
-    for p in packages.keys():
+    for p in packages:
         packages[p].is_used_by = set()
 
-    for p in sorted(packages.keys()):
+    for p in sorted(packages):
         if not packages[p].kind == Kind.binary:
             continue
 
-        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
+        for inst in sorted(packages[p].iterator()):
             sourceless = False
             missing_source = True
 
-            es_p = packages[p].srcpackage(v)
+            es_p = packages[p].srcpackage(inst)
 
             # mark the source tarfile as being used by an install tarfile
             if es_p in packages:
-                if v in packages[es_p].versions():
-                    packages[es_p].tar(v).is_used = True
+                src_inst = EditionIndex('src', inst.vr)
+                if src_inst in packages[es_p].iterator():
+                    packages[es_p].edition_tar(src_inst).is_used = True
                     packages[es_p].is_used_by.add(p)
                     missing_source = False
 
@@ -1088,12 +1149,12 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                     # (this is needed if we are going to compare best_version
                     # between install and source packages for some information,
                     # as we do in some places...)
-                    if ('test' in packages[p].hints(v)) != ('test' in packages[es_p].hints(v)):
-                        logging.error("package '%s' version '%s' test: label mismatches source package '%s'" % (p, v, es_p))
+                    if ('test' in packages[p].edition_hints(inst)) != ('test' in packages[es_p].edition_hints(src_inst)):
+                        logging.error("package '%s' version '%s' test: label mismatches source package '%s'" % (p, inst, es_p))
 
             if missing_source:
                 # unless the install tarfile is empty
-                if packages[p].tar(v).is_empty:
+                if packages[p].edition_tar(inst).is_empty:
                     sourceless = True
                     missing_source = False
 
@@ -1103,31 +1164,31 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                     missing_source = False
 
             # ... it's an error for this package to be missing source
-            packages[p].tar(v).sourceless = sourceless
+            packages[p].edition_tar(inst).sourceless = sourceless
             if missing_source:
-                logging.error("package '%s' version '%s' is missing source" % (p, v))
+                logging.error("package '%s' version '%s' is missing source" % (p, inst))
                 error = True
 
     # make another pass to verify that each non-empty source tarfile version has
     # at least one corresponding non-empty install tarfile, in some package.
-    for p in sorted(packages.keys()):
-        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v), reverse=True):
+    for p in sorted(packages):
+        for inst in sorted(packages[p].iterator(), reverse=True):
             if not packages[p].kind == Kind.source:
                 continue
 
-            if packages[p].tar(v).is_empty:
+            if packages[p].edition_tar(inst).is_empty:
                 continue
 
-            if '_obsolete' in packages[p].hints(v).get('category', ''):
+            if '_obsolete' in packages[p].edition_hints(inst).get('category', ''):
                 continue
 
-            if not packages[p].tar(v).is_used:
+            if not packages[p].edition_tar(inst).is_used:
                 logging.error("package '%s' version '%s' source has no non-empty install tarfiles" % (p, v))
                 error = True
 
     # do all the packages which use this source package have the same
     # current version?
-    for source_p in sorted(packages.keys()):
+    for source_p in sorted(packages):
         versions = defaultdict(list)
 
         for install_p in packages[source_p].is_used_by:
@@ -1138,7 +1199,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             # ignore obsolete packages
             if packages[install_p].obsolete:
                 continue
-            if any(['_obsolete' in packages[install_p].hints(vr).get('category', '') for vr in packages[install_p].versions()]):
+            if any(['_obsolete' in packages[install_p].edition_hints(inst).get('category', '') for inst in packages[install_p].iterator()]):
                 continue
 
             # ignore runtime library packages, as we may keep old versions of
@@ -1154,7 +1215,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             # ignore packages where best_version is a test version (i.e doesn't
             # have a current version, is test only), since the check we are
             # doing here is 'same current version'
-            if 'test' not in packages[install_p].hints(packages[install_p].best_version):
+            if 'test' not in packages[install_p].edition_hints(packages[install_p].best_version):
                 continue
 
             # ignore packages which have a different external-source:
@@ -1165,7 +1226,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
             # ignore specific packages we disable this check for
             if ((install_p in past_mistakes.nonunique_versions) or
-                ('unique-version' in packages[install_p].hints(packages[install_p].best_version).get('disable-check', ''))):
+                ('unique-version' in packages[install_p].edition_hints(packages[install_p].best_version).get('disable-check', ''))):
                 continue
 
             versions[packages[install_p].best_version].append(install_p)
@@ -1204,14 +1265,14 @@ def assign_importance(packages):
     # package the normal importance
     for po in packages.values():
         bv = po.best_version
-        es = po.hints(bv).get('external-source', None)
+        es = po.edition_hints(bv).get('external-source', None)
         if po.build_rdepends or any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends):
             po.importance = Importance.normal
 
     # recursively give dependencies of base packages the basedep importance
     def recursive_basedep(p):
         bv = p.best_version
-        requires = p.hints(bv).get('depends', [])
+        requires = p.edition_hints(bv).get('depends', [])
         requires = deplist_without_versions(requires)
         for r in requires:
             if r in packages:
@@ -1221,14 +1282,14 @@ def assign_importance(packages):
 
     for po in packages.values():
         bv = po.best_version
-        categories = po.hints(bv)['category'].lower().split()
+        categories = po.edition_hints(bv)['category'].lower().split()
         if 'base' in categories:
             recursive_basedep(po)
 
     # base packages have base importance
     for po in packages.values():
         bv = po.best_version
-        categories = po.hints(bv)['category'].lower().split()
+        categories = po.edition_hints(bv)['category'].lower().split()
         if 'base' in categories:
             po.importance = Importance.base
 
@@ -1256,7 +1317,7 @@ def validate_package_maintainers(args, packages):
         # ignore obsolete packages
         if packages[p].obsolete:
             continue
-        if any(['_obsolete' in packages[p].hints(vr).get('category', '') for vr in packages[p].versions()]):
+        if any(['_obsolete' in packages[p].edition_hints(inst).get('category', '') for inst in packages[p].iterator()]):
             continue
         # source which is superseded by a different package, but retained due to
         # old install versions can be unmaintained and non-obsolete
@@ -1274,7 +1335,7 @@ def validate_package_maintainers(args, packages):
             if es in packages:
                 es_pn = packages[es].orig_name
                 if es_pn not in all_packages and p not in all_packages:
-                    if bv not in past_mistakes.maint_anomalies.get(p, []):
+                    if bv.vr not in past_mistakes.maint_anomalies.get(p, []):
                         logging.error("package '%s' is not obsolete, but has no maintainer" % (p))
                         error = True
 
@@ -1292,14 +1353,15 @@ def validate_package_maintainers(args, packages):
 def packages_warnings(args, packages, *modified):
     for m in modified:
         for p in sorted(m):
-            for v in packages[p].versions():
-                if 'test' not in packages[p].hints(v):
-                    break
-            else:
-                # warn if no non-test ('curr') version exists
-                if (('missing-curr' not in packages[p].hints(packages[p].best_version).get('disable-check', '')) and
-                    ('missing-curr' not in getattr(args, 'disable_check', []))):
-                    logging.warning("package '%s' doesn't have any non-test versions (i.e. no curr: version)" % (p))
+            for arch in packages[p].arches():
+                for inst in packages[p].arch_iterator(arch):
+                    if 'test' not in packages[p].edition_hints(inst):
+                        break
+                else:
+                    # warn if no non-test ('curr') version exists
+                    if (('missing-curr' not in packages[p].edition_hints(packages[p].best_version).get('disable-check', '')) and
+                        ('missing-curr' not in getattr(args, 'disable_check', []))):
+                        logging.warning("package '%s' doesn't have any non-test versions for arch '%s' (i.e. no curr: version)" % (p, arch))
 
 
 #
@@ -1348,20 +1410,25 @@ def write_setup_ini(args, packages, arch):
             if po.not_for_output:
                 continue
 
-            # XXX: TODO for multiarch: filter version list where package exists
-            # for this arch (skip this package if it ends up empty)
+            pkg_arch = arch
+            if po.kind == Kind.source:
+                pkg_arch = 'src'
+
+            # skip this package if there are no versions to output
+            if len(po.arch_iterator(pkg_arch)) == 0:
+                continue
 
             # write package data
             print("\n@ %s" % pn, file=f)
 
             bv = po.best_version
-            print("sdesc: %s" % po.hints(bv)['sdesc'], file=f)
+            print("sdesc: %s" % po.edition_hints(bv)['sdesc'], file=f)
 
-            if 'ldesc' in po.hints(bv):
-                print("ldesc: %s" % po.hints(bv)['ldesc'], file=f)
+            if 'ldesc' in po.edition_hints(bv):
+                print("ldesc: %s" % po.edition_hints(bv)['ldesc'], file=f)
 
             # mark orphaned packages with the 'unmaintained' pseudo-category
-            category = po.hints(bv)['category']
+            category = po.edition_hints(bv)['category']
             if po.orphaned:
                 category += ' unmaintained'
             # for historical reasons, category names must start with a capital
@@ -1369,8 +1436,8 @@ def write_setup_ini(args, packages, arch):
             category = ' '.join(map(upper_first_character, category.split()))
             print("category: %s" % category, file=f)
 
-            if 'message' in po.hints(bv):
-                print("message: %s" % po.hints(bv)['message'], file=f)
+            if 'message' in po.edition_hints(bv):
+                print("message: %s" % po.edition_hints(bv)['message'], file=f)
 
             if 'replace-versions' in po.override_hints:
                 print("replace-versions: %s" % po.override_hints['replace-versions'], file=f)
@@ -1386,7 +1453,7 @@ def write_setup_ini(args, packages, arch):
             # due to a historic bug in setup (fixed in 78e4c7d7), we keep the
             # [curr] version first, to ensure that dependencies are used
             # correctly.
-            nontest_versions = [v for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' not in po.hints(v)]
+            nontest_versions = [inst for inst in sorted(po.arch_iterator(pkg_arch), reverse=True) if 'test' not in po.edition_hints(inst)]
             curr_version = None
             if len(nontest_versions) >= 1:
                 curr_version = nontest_versions[0]
@@ -1401,7 +1468,7 @@ def write_setup_ini(args, packages, arch):
 
             # ditto the 'test' version
             test_version = None
-            test_versions = [v for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True) if 'test' in po.hints(v)]
+            test_versions = [inst for inst in sorted(po.arch_iterator(pkg_arch), reverse=True) if 'test' in po.edition_hints(inst)]
             if len(test_versions) >= 1:
                 test_version = test_versions[0]
 
@@ -1412,13 +1479,16 @@ def write_setup_ini(args, packages, arch):
             # (to maintain historical behaviour, include versions which only
             # exist as a source package)
             #
-            versions = set(po.versions())
+            versions = [i for i in po.arch_iterator(pkg_arch)]
             if po.kind != Kind.source:
                 sibling_src = pn + '-src'
                 if sibling_src in packages:
-                    versions.update(packages[sibling_src].versions())
+                    # add any disjoint source versions
+                    for inst in packages[sibling_src].iterator():
+                        if not any(inst.vr == v.vr for v in versions):
+                            versions.append(inst)
 
-            for version in sorted(versions, key=lambda v: SetupVersion(v), reverse=True):
+            for version in sorted(versions, reverse=True):
                 # skip over versions which have a special place in the ordering:
                 # 'curr' has already been done, 'prev' and 'test' will be done
                 # later
@@ -1427,7 +1497,7 @@ def write_setup_ini(args, packages, arch):
                     continue
 
                 # test versions receive the test label
-                if (version in po.versions()) and ('test' in po.hints(version)):
+                if (version in po.iterator()) and ('test' in po.edition_hints(version)):
                     level = "test"
                 else:
                     level = "prev"
@@ -1446,17 +1516,21 @@ def write_setup_ini(args, packages, arch):
             if test_version:
                 vs.append((test_version, "test"))
 
+            # this can't happen!
+            if len(vs) == 0:
+                logging.error("no output versions for package '%s'" % (pn))
+
             # write the section for each version
-            for (version, tag) in vs:
+            for (inst, tag) in vs:
                 # [curr] can be omitted if it's the first section
                 if tag != 'curr':
                     print("[%s]" % tag, file=f)
-                print("version: %s" % version, file=f)
+                print("version: %s" % inst.vr, file=f)
 
                 if po.kind == Kind.source:
-                    tar_line(po, 'source', version, f)
+                    tar_line(po, 'source', inst, f)
 
-                    src_hints = po.hints(version)
+                    src_hints = po.edition_hints(inst)
                     bd = src_hints.get('build-depends', [])
 
                     # Ideally, we'd transform dependency atoms which aren't
@@ -1474,31 +1548,33 @@ def write_setup_ini(args, packages, arch):
 
                 is_empty = False
                 hints = {}
-                if version in po.versions():
-                    tar_line(po, 'install', version, f)
-                    is_empty = po.tar(version).is_empty
-                    hints = po.hints(version)
+
+                if inst in po.iterator():
+                    tar_line(po, 'install', inst, f)
+                    is_empty = po.edition_tar(inst).is_empty
 
                 # follow external-source
-                s = po.srcpackage(version)
+                s = po.srcpackage(inst)
                 if s not in packages:
                     s = None
 
                 # external-source points to a source archive in another package
                 if s:
-                    if version in packages[s].versions():
+                    src_inst = EditionIndex('src', inst.vr)
+                    if src_inst in packages[s].iterator():
                         # emit 'source:' line for the benefit of setup versions
                         # which don't understand 'srcpkg:'
-                        tar_line(packages[s], 'source', version, f)
+                        tar_line(packages[s], 'source', src_inst, f)
 
                         # emit a 'srcpkg:' line referencing the source package
                         # (the source package must also be emitted).
                         print("srcpkg: %s" % s, file=f)
                     else:
                         if not (is_empty or packages[s].orig_name in past_mistakes.self_source):
-                            logging.warning("package '%s' version '%s' has no source in '%s'" % (pn, version, packages[s].orig_name))
+                            logging.warning("package '%s' version '%s' has no source in '%s'" % (pn, inst.vr, packages[s].orig_name))
 
-                if version in po.versions():
+                if inst in po.iterator():
+                    hints = po.edition_hints(inst)
                     if hints.get('depends', ''):
                         print("depends2: %s" % ', '.join(hints.get('depends', [])), file=f)
 
@@ -1513,8 +1589,8 @@ def write_setup_ini(args, packages, arch):
 
 
 # helper function to output details for a particular tar file
-def tar_line(p, category, v, f):
-    to = p.tar(v)
+def tar_line(p, category, inst, f):
+    to = p.edition_tar(inst)
     fn = to.repopath.abspath()
     sha512 = to.sha512
     size = to.size
@@ -1551,32 +1627,30 @@ def write_repo_json(args, packages, f):
     pl = []
     for pn in sorted(packages):
         po = packages[pn]
-        arches = common_constants.ARCHES  # XXX: multiarch TODO: set of arches which have this package
-
-        def package(p):
-            if p in packages:
-                return packages[p]
-
-            # will lead to AttributeError as has no hints method
-            return None
-
+        arches = set()
         bv = po.best_version
 
         if po.kind != Kind.source:
             continue
 
+        # made complicated by the need to handle the case where a package is
+        # marked with different stability in different arches... at the moment
+        # we put it under 'test' if any edition is marked so.
         versions = {}
-        for vr in sorted(po.versions(), key=lambda v: SetupVersion(v)):
-            key = 'test' if 'test' in po.hints(vr) else 'stable'
-            versions[key] = versions.get(key, []) + [vr]
+        for vr in sorted(set(inst.vr for inst in po.iterator())):
+            key = 'stable'
+            for inst in [inst for inst in po.iterator() if inst.vr == vr]:
+                if 'test' in po.edition_hints(inst):
+                    key = 'test'
+
+            versions[key] = versions.get(key, []) + [inst.vr]
 
         up_to_date = getattr(po, 'up_to_date', 1)
 
         d = {
             'name': po.orig_name,
             'versions': versions,
-            'summary': po.hints(bv)['sdesc'].strip('"'),
-            'arches': arches,
+            'summary': po.edition_hints(bv)['sdesc'].strip('"'),
             'importance': str(po.importance),
             'up_to_date': 'no' if up_to_date < 0 else 'yes' if up_to_date == 0 else 'unknown',
         }
@@ -1586,17 +1660,20 @@ def write_repo_json(args, packages, f):
 
         spl = []
         for sp in sorted(po.is_used_by):
-            hints = package(sp).hints(package(sp).best_version)
+            arches.update(packages[sp].arches())
+
+            hints = packages[sp].edition_hints(packages[sp].best_version)
             sp = {'name': sp, 'categories': hints.get('category', '').split()}
             for k in ['depends', 'provides', 'obsoletes']:
                 if hints.get(k, None):
                     sp[k] = hints[k]
             spl.append(sp)
         d['subpackages'] = spl
+        d['arches'] = sorted(list(arches))
 
         for k in ['homepage', 'license', 'build-depends']:
-            if k in po.hints(bv):
-                d[k] = po.hints(bv)[k]
+            if k in po.edition_hints(bv):
+                d[k] = po.edition_hints(bv)[k]
 
         build_recipe = _find_build_recipe_file(args, po.orig_name)
         if build_recipe:
@@ -1711,15 +1788,15 @@ class Freshness(IntEnum):
     stale = 3
 
 
-def mark_package_fresh(packages, p, v, mark=Freshness.fresh):
-    packages[p].tar(v).fresh = mark
+def mark_package_fresh(packages, p, inst, mark=Freshness.fresh):
+    packages[p].edition_tar(inst).fresh = mark
 
 
 #
 # helper function evaluate if package needs marking for conditional retention
 #
 
-def mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests):
+def mark_fn(packages, po, inst, certain_age, obs_threshold, vault_requests):
     pn = po.name
     bv = po.best_version
 
@@ -1738,39 +1815,39 @@ def mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests):
     # different source package which depend on them, and are over a certain
     # age
     #
-    es = po.hints(bv).get('external-source', None)
+    es = po.edition_hints(bv).get('external-source', None)
     if (re.match(common_constants.SOVERSION_PACKAGE_RE, pn) and
         not any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends)):
-        if es and (packages[es].best_version != bv):
-            mtime = po.tar(v).mtime
+        if es and (packages[es].best_version.vr != bv.vr):
+            mtime = po.edition_tar(inst).mtime
             if mtime < certain_age:
-                logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
+                logging.debug("deprecated soversion package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, inst, time.strftime("%F %T %Z", time.localtime(mtime))))
                 return (Freshness.conditional, True)
 
     # - package is an old-style obsoletion, over a certain age, and not marked
     # as self-destruct
     #
-    if '_obsolete' in po.hints(v)['category']:
-        mtime = po.tar(v).mtime
+    if '_obsolete' in po.edition_hints(inst)['category']:
+        mtime = po.edition_tar(inst).mtime
         if mtime < obs_threshold:
-            provides = po.hints(v).get('provides', [])
+            provides = po.edition_hints(inst).get('provides', [])
             if '_self-destruct' not in provides:
-                logging.debug("obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
+                logging.debug("obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, inst, time.strftime("%F %T %Z", time.localtime(mtime))))
                 return (Freshness.conditional, False)
 
-    es = po.srcpackage(v, suffix=False)
+    es = po.srcpackage(inst, suffix=False)
     # - if package depends on anything in expired_provides
     #
-    requires = po.hints(v).get('depends', [])
+    requires = po.edition_hints(inst).get('depends', [])
     if any(ep in requires for ep in past_mistakes.expired_provides) and es.startswith('python') and not es.startswith('python-pyqt5'):
-        logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
+        logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, inst))
         return (Freshness.conditional, False)
 
     # - marked via 'calm-tool vault'
     #
     if es in vault_requests:
-        if v in vault_requests[es]:
-            logging.info("package '%s' version '%s' not retained due to vault request" % (pn, v))
+        if inst.vr in vault_requests[es]:
+            logging.info("package '%s' version '%s' not retained due to vault request" % (pn, inst.vr))
             return (Freshness.conditional, False)
 
     # otherwise, make no change
@@ -1792,55 +1869,63 @@ def stale_packages(packages, vault_requests):
     obs_threshold = time.time() - (OBSOLETE_AGE_THRESHOLD_YEARS * 365.25 * 24 * 60 * 60)
     logging.debug("cut-off date for obsolete package to be considered old is %s" % (time.strftime("%F %T %Z", time.localtime(obs_threshold))))
 
-    # mark install packages for freshness
+    # mark packages for freshness
     for pn, po in packages.items():
-        # mark as fresh any versions explicitly listed in the keep: override
-        # hint (unconditionally)
+        # mark as fresh in all arches any versions explicitly listed in the
+        # keep: override hint (unconditionally)
         for v in po.override_hints.get('keep', '').split():
-            if v in po.versions():
-                mark_package_fresh(packages, pn, v)
-            else:
+            exists = False
+            for arch in common_constants.ARCHES + ['noarch', 'src']:
+                inst = EditionIndex(arch, v)
+                if inst in po.iterator():
+                    mark_package_fresh(packages, pn, inst)
+                    exists = True
+
+            if not exists:
                 logging.error("package '%s' has non-existent keep: version '%s'" % (pn, v))
 
         # mark as fresh the highest n non-test versions, where n is given by the
         # keep-count: override hint, (defaulting to DEFAULT_KEEP_COUNT)
-        keep_count = int(po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT))
-        for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True):
-            if 'test' not in po.hints(v):
-                if keep_count <= 0:
-                    break
-                mark_package_fresh(packages, pn, v)
-                keep_count = keep_count - 1
+        for arch in common_constants.ARCHES + ['src']:
+            keep_count = int(po.override_hints.get('keep-count', common_constants.DEFAULT_KEEP_COUNT))
+            for v in sorted(po.arch_iterator(arch), reverse=True):
+                if 'test' not in po.edition_hints(v):
+                    if keep_count <= 0:
+                        break
+                    mark_package_fresh(packages, pn, v)
+                    keep_count = keep_count - 1
 
         # mark as fresh the highest n test versions, where n is given by the
         # keep-count-test: override hint, (defaulting to DEFAULT_KEEP_COUNT_TEST)
         #
         # only consider versions not superseded by non-test versions (unless
         # 'keep-superseded-test' is present).
-        keep_count = int(po.override_hints.get('keep-count-test', common_constants.DEFAULT_KEEP_COUNT_TEST))
-        for v in sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True):
-            if 'test' in po.hints(v):
-                if keep_count <= 0:
-                    break
-                mark_package_fresh(packages, pn, v)
-                keep_count = keep_count - 1
-            else:
-                if 'keep-superseded-test' not in po.override_hints:
-                    break
+        for arch in common_constants.ARCHES + ['src']:
+            keep_count = int(po.override_hints.get('keep-count-test', common_constants.DEFAULT_KEEP_COUNT_TEST))
+            for v in sorted(po.arch_iterator(arch), reverse=True):
+                if 'test' in po.edition_hints(v):
+                    if keep_count <= 0:
+                        break
+                    mark_package_fresh(packages, pn, v)
+                    keep_count = keep_count - 1
+                else:
+                    if 'keep-superseded-test' not in po.override_hints:
+                        break
 
         # mark as fresh all versions after the first one which is newer than
         # the keep-days: override hint, (defaulting to DEFAULT_KEEP_DAYS)
         # (as opposed to checking the mtime for each version to determine if
         # it is included)
         keep_days = po.override_hints.get('keep-days', common_constants.DEFAULT_KEEP_DAYS)
-        newer = False
-        for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
-            if not newer:
-                if po.tar(v).mtime > (time.time() - (keep_days * 24 * 60 * 60)):
-                    newer = True
+        for arch in common_constants.ARCHES + ['src']:
+            newer = False
+            for v in sorted(po.arch_iterator(arch)):
+                if not newer:
+                    if po.edition_tar(v).mtime > (time.time() - (keep_days * 24 * 60 * 60)):
+                        newer = True
 
-            if newer:
-                mark_package_fresh(packages, pn, v)
+                if newer:
+                    mark_package_fresh(packages, pn, v)
 
     for pn, po in packages.items():
         if po.kind != Kind.binary:
@@ -1848,84 +1933,87 @@ def stale_packages(packages, vault_requests):
 
         # overwrite with 'conditional' package retention mark if it meets
         # various criteria
-        for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
-            (mark, others) = mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests)
+        for inst in sorted(po.iterator()):
+            (mark, others) = mark_fn(packages, po, inst, certain_age, obs_threshold, vault_requests)
             if mark != Freshness.fresh:
-                mark_package_fresh(packages, pn, v, mark)
+                mark_package_fresh(packages, pn, inst, mark)
 
             # also look over the other install packages generated by the
             # source...
             if others:
-                es = po.hints(v).get('external-source', None)
+                es = po.srcpackage(inst)
                 if es:
                     es_po = packages[es]
                     # ... if the source package version doesn't count as kept ...
                     #
                     # (set above using same critera as for install package
                     # e.g. we have an excess number of packages)
-                    logging.debug("considering other packages from source package '%s' version '%s'" % (es, v))
-                    if getattr(es_po.tar(v), 'fresh', Freshness.stale) != Freshness.fresh:
+                    logging.debug("considering other packages from source package '%s' version '%s'" % (es, inst.vr))
+                    src_inst = EditionIndex('src', inst.vr)
+                    if getattr(es_po.edition_tar(src_inst), 'fresh', Freshness.stale) != Freshness.fresh:
                         # ...  additionally mark anything with no other-source
                         # rdepends
                         for opn in sorted(es_po.is_used_by):
-                            if v in packages[opn].versions():
-                                if not any(packages[p].srcpackage(v) != es for p in packages[opn].rdepends):
-                                    mark_package_fresh(packages, opn, v, mark)
+                            if inst in packages[opn].iterator():
+                                if not any(packages[p].srcpackage(inst) != es for p in packages[opn].rdepends):
+                                    mark_package_fresh(packages, opn, inst, mark)
                                 else:
-                                    logging.debug("package '%s' version '%s' retained due to being used" % (opn, v))
+                                    logging.debug("package '%s' version '%s' retained due to being used" % (opn, inst))
 
     # mark source packages as fresh if any install package which uses it is fresh
     for po in packages.values():
         if po.kind == Kind.source:
-            for v in po.versions():
+            for src_inst in po.iterator():
                 mark = Freshness.stale
                 for ip in po.is_used_by:
-                    if v in packages[ip].versions():
-                        mark = min(getattr(packages[ip].tar(v), 'fresh', Freshness.stale), mark)
+                    for inst in packages[ip].iterator():
+                        if src_inst.vr == inst.vr:
+                            mark = min(getattr(packages[ip].edition_tar(inst), 'fresh', Freshness.stale), mark)
 
                 # if conditional is the best we could do, mark this source
                 # package as stale, otherwise we are fresh
                 if mark == Freshness.conditional:
                     mark = Freshness.stale
 
-                mark_package_fresh(packages, po.name, v, mark)
+                mark_package_fresh(packages, po.name, src_inst, mark)
 
                 # update install packages which use this source package to the
                 # matching state
                 for ip in po.is_used_by:
-                    if v in packages[ip].versions():
-                        if getattr(packages[ip].tar(v), 'fresh', Freshness.stale) == Freshness.conditional:
-                            mark_package_fresh(packages, ip, v, mark)
+                    for inst in packages[ip].iterator():
+                        if src_inst.vr == inst.vr:
+                            if getattr(packages[ip].edition_tar(inst), 'fresh', Freshness.stale) == Freshness.conditional:
+                                mark_package_fresh(packages, ip, inst, mark)
 
     # build a move list of stale versions
     stale = MoveList()
     for pn, po in packages.items():
         all_stale = {}
 
-        for v in sorted(po.versions(), key=lambda v: SetupVersion(v)):
-            all_stale[v] = True
-            if getattr(po.tar(v), 'fresh', Freshness.stale) != Freshness.fresh:
-                to = po.tar(v)
+        for inst in sorted(po.iterator()):
+            all_stale[inst] = True
+            to = po.edition_tar(inst)
+            if getattr(to, 'fresh', Freshness.stale) != Freshness.fresh:
                 stale.add(*to.repopath.move())
-                logging.debug("package '%s' version '%s' is stale" % (pn, v))
+                logging.debug("package '%s' version '%s' is stale" % (pn, inst))
             else:
-                all_stale[v] = False
+                all_stale[inst] = False
 
         # we use _hints.keys() rather than versions() here so we notice that
         # there are hints to remove in the case when a tar file has been
         # explicitly removed by a remove file
-        for v in po._hints.keys():
+        for inst in po._hints.keys():
             # if there's a pvr.hint without a fresh source or install of the
             # same version (including version: overrides), move it as well
-            ov = po.hints(v).get('original-version', v)
-            if all_stale.get(v, True) and all_stale.get(ov, True):
-                stale.add(*po.hint_data(v).repopath.move())
-                logging.debug("package '%s' version '%s' hint is stale" % (pn, v))
+            ov = po.edition_hints(inst).get('original-version', inst.vr)
+            if all_stale.get(inst, True) and all_stale.get(EditionIndex(inst.arch, ov), True):
+                stale.add(*po.edition_hint_data(inst).repopath.move())
+                logging.debug("package '%s' version '%s' hint is stale" % (pn, inst))
 
         # clean up freshness mark
-        for v in po.versions():
+        for inst in po.iterator():
             try:
-                del po.tar(v).fresh
+                del po.edition_tar(inst).fresh
             except AttributeError:
                 pass
 

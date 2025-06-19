@@ -76,7 +76,7 @@ SUMMARY_REWRITE_INTERVAL = (24 * 60 * 60)
 # get sdesc for a package
 #
 def sdesc(po, bv):
-    header = po.hints(bv)['sdesc']
+    header = po.edition_hints(bv)['sdesc']
     header = header.strip('"')
     return html.escape(header, quote=False)
 
@@ -85,8 +85,8 @@ def sdesc(po, bv):
 # ditto for ldesc
 #
 def ldesc(po, bv):
-    if 'ldesc' in po.hints(bv):
-        header = po.hints(bv)['ldesc']
+    if 'ldesc' in po.edition_hints(bv):
+        header = po.edition_hints(bv)['ldesc']
     else:
         return sdesc(po, bv)
 
@@ -177,7 +177,7 @@ def update_package_listings(args, packages):
         # - or, hints have changed since it was written
         # - or, SUMMARY_REWRITE_INTERVAL has elapsed since it was last written
         # - or, forced
-        hint_mtime = po.hint_data(bv).mtime
+        hint_mtime = po.edition_hint_data(bv).mtime
 
         summary_mtime = 0
         if os.path.exists(summary):
@@ -222,7 +222,7 @@ def update_package_listings(args, packages):
                     details_table = {}
                     details_table['summary'] = sdesc(po, bv)
                     details_table['description'] = ldesc(po, bv)
-                    details_table['categories'] = po.hints(bv).get('category', '')
+                    details_table['categories'] = po.edition_hints(bv).get('category', '')
 
                     class PackageData(NamedTuple):
                         is_attr: bool = False
@@ -242,32 +242,44 @@ def update_package_listings(args, packages):
                         }
 
                     for key in details:
-                        # XXX: multiarch TODO:
-                        # access to per-arch & version hints ???
-                        pos = {}
-                        for arch in common_constants.ARCHES:
-                            pos[arch] = po
+                        # identify the 'best-version' for each arch
+                        editions = {}
+                        for arch in common_constants.ARCHES + ['src']:
+                            iterator = sorted(packages[p].arch_iterator(arch), reverse=True)
+                            for i in iterator:
+                                hints = packages[p].edition_hints(i)
+                                if 'test' not in hints:
+                                    editions[arch] = i
+                                    break
+                            else:
+                                if len(iterator):
+                                    editions[arch] = iterator[0]
+                                # else, no versions for this arch
 
                         # make the union of the package list for this detail
                         # across arches, and then annotate any items which don't
                         # appear for all arches
                         value = {}
                         values = set()
-                        for arch in pos:
+                        for arch in editions:
                             if details[key].is_attr:
-                                value[arch] = getattr(pos[arch], key, set())
+                                value[arch] = getattr(po, key, set())
                             else:
-                                t = pos[arch].hints(pos[arch].best_version).get(key, [])
+                                if editions[arch]:
+                                    t = po.edition_hints(editions[arch]).get(key, [])
+                                else:
+                                    t = []
                                 value[arch] = set(t)
+
                             values.update(value[arch])
 
                         if values:
                             detail = []
                             for detail_pkg in sorted(values):
-                                if all(detail_pkg in value[arch] for arch in pos):
+                                if all(detail_pkg in value[arch] for arch in editions):
                                     detail.append(linkify_package(detail_pkg))
                                 else:
-                                    detail.append(linkify_package(detail_pkg) + ' (%s)' % (','.join([arch for arch in pos if detail_pkg in value[arch]])))
+                                    detail.append(linkify_package(detail_pkg) + ' (%s)' % (','.join([arch for arch in editions if detail_pkg in value[arch]])))
 
                             limit = details[key].summarize_limit
                             if limit and len(detail) > limit:
@@ -281,11 +293,11 @@ def update_package_listings(args, packages):
                         install_packages = po.is_used_by
                         details_table['install package(s)'] = ', '.join([linkify_package(p) for p in sorted(install_packages)])
 
-                        homepage = po.hints(po.best_version).get('homepage', None)
+                        homepage = po.edition_hints(po.best_version).get('homepage', None)
                         if homepage:
                             details_table['homepage'] = '<a href="%s">%s</a>' % (homepage, homepage)
 
-                        lic = po.hints(po.best_version).get('license', None)
+                        lic = po.edition_hints(po.best_version).get('license', None)
                         if lic:
                             details_table['license'] = '%s <span class="smaller">(<a href="https://spdx.org/licenses/">SPDX</a>)</span>' % (lic)
                     else:
@@ -358,23 +370,23 @@ def update_package_listings(args, packages):
                     # output package versions table
                     versions_table = []
 
-                    def tar_line(pn, p, v):
+                    def tar_line(pn, p, inst):
                         item = types.SimpleNamespace()
-                        item.version = v
-                        item.size = int(math.ceil(p.tar(v).size / 1024))
+                        item.version = inst.vr
+                        item.size = int(math.ceil(p.edition_tar(inst).size / 1024))
                         if p.kind == package.Kind.binary:
-                            target = "%s-%s" % (p.orig_name, v)
+                            target = "%s-%s" % (p.orig_name, inst.vr)
                         else:
-                            target = "%s-%s-src" % (p.orig_name, v)
-                        item.link = "../%s/%s/%s" % (p.tar(v).arch, pn, target)
-                        item.status = 'test' if 'test' in p.hints(v) else 'stable'
-                        item.ts = tsformat(p.tar(v).mtime)
-                        item.arch = p.tar(v).arch
+                            target = "%s-%s-src" % (p.orig_name, inst.vr)
+                        item.link = "../%s/%s/%s" % (p.edition_tar(inst).arch, pn, target)
+                        item.status = 'test' if 'test' in p.edition_hints(inst) else 'stable'
+                        item.ts = tsformat(p.edition_tar(inst).mtime)
+                        item.arch = p.edition_tar(inst).arch
                         return item
 
-                    # XXX: multiarch TODO: iterate over all versions and arches per version?
-                    for version in packages[p].versions():
-                        versions_table.append(tar_line(p, packages[p], version))
+                    # iterate over all versions and arches per version
+                    for inst in packages[p].iterator():
+                        versions_table.append(tar_line(p, packages[p], inst))
 
                     print('<table class="pkgtable">', file=f)
                     print('<tr><th>Version</th><th>Arch</th><th>Package Size</th><th>Date</th><th>Files</th><th>Status</th></tr>', file=f)
@@ -588,15 +600,14 @@ def write_package_listings(args, packages):
         # for each tarfile, write tarfile listing
         #
 
-        # XXX: multiarch TODO: iterate over all versions and arches per version?
-        for v in sorted(packages[p].versions(), key=lambda v: SetupVersion(v)):
-            to = packages[p].tar(v)
+        for inst in sorted(packages[p].iterator()):
+            to = packages[p].edition_tar(inst)
 
             dirpath = os.path.join(args.htdocs, to.arch, p)
             # the way this filename is built is pretty arbitrary, but is linked
             # to from the summary page, and package-grep relies on its knowledge
             # of the scheme when producing its output
-            fn = packages[p].orig_name + '-' + v + ('-src' if packages[p].kind == package.Kind.source else '')
+            fn = packages[p].orig_name + '-' + inst.vr + ('-src' if packages[p].kind == package.Kind.source else '')
             listing = os.path.join(dirpath, fn)
 
             check_directory_setup(dirpath)

@@ -65,7 +65,7 @@ TRUSTEDMAINT = '/'.join([
 ])
 
 # architectures we support
-ARCHES = ['x86_64']
+ARCHES = ['x86_64', 'aarch64']
 
 # architectures we no longer support
 ARCHIVED_ARCHES = ['x86']
