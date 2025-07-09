@@ -228,11 +228,15 @@ def _announce_upload(args, scan_result, maintainer, r):
             ldesc = po.version_hints[version]['ldesc'].strip('"')
             test = 'test' in po.version_hints[version]
 
-        pkglist.add(po.orig_name)
+        # not totally clear how we should name source packages, so omit them for
+        # the moment
+        if po.kind == package.Kind.binary:
+            pkglist.add(po.orig_name)
 
     if not srcpkg:
         logging.error("could not locate source package in upload")
         return
+
     logging.debug("source package is %s, version %s, test %s", srcpkg.orig_name, version, test)
 
     # find source tarfile for this particular package version
@@ -248,7 +252,7 @@ def _announce_upload(args, scan_result, maintainer, r):
         cl = ''
         with xtarfile.open(tf, mode='r') as a:
             files = a.getnames()
-            for readme in ['README', srcpkg.orig_name + '.README', 'ANNOUNCE']:
+            for readme in ['README', srcpkg.orig_name + '.README', 'ANNOUNCE', 'ChangeLog']:
                 fn = srcpkg.orig_name + '-' + version + '.src/' + readme
                 if fn in files:
                     logging.debug("extracting %s from archive for changelog" % readme)
