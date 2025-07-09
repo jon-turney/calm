@@ -188,7 +188,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
         uploads.auth_check(args, m, scan_result, state.packages)
 
     if scan_result.error:
-        logging.error("error while reading uploadedpackages from maintainer %s" % (m.name))
+        logging.error("error while reading uploaded packages from maintainer %s" % (m.name))
         success = False
 
     if success:

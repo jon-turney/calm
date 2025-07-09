@@ -156,11 +156,13 @@ def scan(scandir, m, all_packages, args):
         # package doesn't appear in package list at all?
         superpackage = splitpath[2]
         if superpackage not in all_packages:
+            error = True
             logging.error("package '%s' is not in the package list" % superpackage)
             continue
 
         # only process packages for which we are listed as a maintainer, or we are a trusted maintainer
         if not ((superpackage in m.pkgs) or (m.name in args.trustedmaint.split('/'))):
+            error = True
             logging.warning("package '%s' is not in the package list for maintainer '%s'" % (superpackage, m.name))
             continue
 
