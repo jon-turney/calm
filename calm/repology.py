@@ -32,6 +32,7 @@ import time
 import urllib.error
 import urllib.request
 from collections import namedtuple
+from enum import Enum, auto, unique
 
 from .version import SetupVersion
 
@@ -53,6 +54,17 @@ use_legacy = {'qt': [LegacyData('5', []),
               }
 
 RepologyData = namedtuple('RepologyData', ['upstream_version', 'repology_project_name'])
+
+
+@unique
+class UnknownVersion(Enum):
+    noscheme = auto()
+    unique = auto()
+    unclassified = auto()
+    unknown = auto()
+
+    def __str__(self):
+        return self.name
 
 
 def repology_fetch_data():
@@ -112,11 +124,22 @@ def repology_fetch_data():
                     if SetupVersion(v) > SetupVersion(legacy_versions.get(prefix, '0')):
                         legacy_versions[prefix] = v
 
+            # if we couldn't find a newest_version...
             if not newest_version:
-                continue
-
-            # XXX: if everything is noscheme, we can probably record that
-            # information as well.
+                # if everything is noscheme, that's the reason
+                if all(i['status'] in ['noscheme', 'rolling'] for i in p):
+                    newest_version.append(UnknownVersion.noscheme)
+                # if this package is unique to cygwin, that's the reason
+                elif all(i['status'] in ['unique'] for i in p):
+                    newest_version.append(UnknownVersion.unique)
+                # if repology's not sure what upstream this package belongs to
+                elif pn.endswith('unclassified'):
+                    newest_version.append(UnknownVersion.unclassified)
+                # if repology (probably correctly) thinks there's something
+                # weird about this package...
+                else:
+                    newest_version.append(UnknownVersion.unknown)
+                    logging.info("repology can't help with latest version for project %s" % (pn))
 
             # next, assign that version to all the corresponding cygwin source
             # packages

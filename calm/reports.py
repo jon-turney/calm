@@ -136,12 +136,21 @@ def maintainer_packages(args, packages, maintainer, reportlist):
         up.pn = p
         up.po = po
         up.v = SetupVersion(v).V
-        up.upstream_v = getattr(po, 'upstream_version', 'unknown')
         up.ts = po.tar(v).mtime
         up.rdepends = len(rdepends)
         up.build_rdepends = len(build_rdepends)
         up.importance = po.importance
-        up.status = SetupVersion._compare(SetupVersion(v)._V, SetupVersion(up.upstream_v)._V)
+
+        up.upstream_v = getattr(po, 'upstream_version', None)
+        if isinstance(up.upstream_v, str):
+            up.status = SetupVersion._compare(SetupVersion(v)._V, SetupVersion(up.upstream_v)._V)
+        else:
+            if up.upstream_v is None:
+                up.upstream_v = 'unknown'
+            else:
+                up.upstream_v = 'unknown (%s)' % up.upstream_v
+
+            up.status = 1  # uncertainty
 
         um_list.append(up)
 

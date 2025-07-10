@@ -311,8 +311,13 @@ def update_package_listings(args, packages):
 
                         repology_pn = getattr(po, 'repology_project_name', None)
                         if repology_pn:
-                            upstream_version = getattr(po, 'upstream_version', '')
-                            details_table['repology info'] = '<a href="https://repology.org/project/%s/information">%s</a> (%s)' % (repology_pn, repology_pn, upstream_version)
+                            upstream_version = getattr(po, 'upstream_version', None)
+                            if isinstance(upstream_version, str):
+                                upstream_version = '(%s)' % upstream_version
+                            else:
+                                upstream_version = ''
+
+                            details_table['repology info'] = '<a href="https://repology.org/project/%s/information">%s</a> %s' % (repology_pn, repology_pn, upstream_version)
 
                     if po.kind == package.Kind.binary:
                         doc_path = os.path.join(args.htdocs, 'doc', pn)
