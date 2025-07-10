@@ -28,6 +28,7 @@
 
 import json
 import logging
+import re
 import time
 import urllib.error
 import urllib.request
@@ -40,18 +41,13 @@ REPOLOGY_API_URL = 'https://repology.org/api/v1/projects/'
 last_check = 0
 last_data = {}
 
-LegacyData = namedtuple('LegacyData', ['version', 'ignores'])
-use_legacy = {'qt': [LegacyData('5', []),
-                     LegacyData('4', []),
-                     LegacyData('3', [])],
-              'gtk': [LegacyData('3', ['3.9', '+']),
-                      LegacyData('2', [])],
-              'gtksourceview': [LegacyData('2', []),
-                                LegacyData('3', []),
-                                LegacyData('4', []),
-                                LegacyData('5', []),
-                                ]
-              }
+LegacyData = namedtuple('LegacyData', ['version_re', 'ignores'])
+use_legacy = {
+    'automake': LegacyData(r'\d.\d+', ['+']),
+    'gtk': LegacyData(r'\d', ['3.9', '+', '-']),
+    'gtksourceview': LegacyData(r'\d', []),
+    'qt': LegacyData(r'\d', ['p']),
+}
 
 RepologyData = namedtuple('RepologyData', ['upstream_version', 'repology_project_name'])
 
@@ -105,17 +101,17 @@ def repology_fetch_data():
                     newest_version.append(v)
 
                 if (pn in use_legacy) and (i['status'] in ['legacy', 'outdated']):
-                    prefix = None
-                    for ld in use_legacy[pn]:
-                        if v.startswith(ld.version):
-                            prefix = ld.version
-                            break
+                    ld = use_legacy[pn]
+                    prefix_re = ld.version_re
 
-                    if not prefix:
+                    m = re.match(r'^(' + prefix_re + r')', v)
+                    if m:
+                        prefix = m.group(1)
+                    else:
                         continue
 
-                    # blacklist versions containing substrings (pre-release
-                    # versions etc.)
+                    # blacklist versions containing certain substrings
+                    # (pre-release versions etc.)
                     if any(ignore in v for ignore in ld.ignores):
                         continue
 
@@ -153,12 +149,16 @@ def repology_fetch_data():
                     # if package name contains legacy version
                     if pn in use_legacy:
                         prefix = None
-                        for ld in use_legacy[pn]:
-                            if (pn + ld.version) in source_pn:
-                                prefix = ld.version
+                        for p in legacy_versions:
+                            if (pn + p) in source_pn:
+                                prefix = p
+                                break
 
-                        if prefix and prefix in legacy_versions:
-                            upstream_version = legacy_versions[prefix]
+                        if prefix:
+                            upstream_version = [legacy_versions[prefix]]
+                        else:
+                            upstream_version = newest_version
+
                     else:
                         # otherwise, just use the newest version(s)
                         upstream_version = newest_version
