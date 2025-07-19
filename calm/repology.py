@@ -41,12 +41,17 @@ REPOLOGY_API_URL = 'https://repology.org/api/v1/projects/'
 last_check = 0
 last_data = {}
 
-LegacyData = namedtuple('LegacyData', ['version_re', 'ignores'])
+LegacyData = namedtuple('LegacyData', ['version_re', 'ignores', 'transform', 'source'])
 use_legacy = {
-    'automake': LegacyData(r'\d.\d+', ['+']),
-    'gtk': LegacyData(r'\d', ['3.9', '+', '-']),
-    'gtksourceview': LegacyData(r'\d', []),
-    'qt': LegacyData(r'\d', ['p']),
+    'automake': LegacyData(r'\d.\d+', ['+'], None, None),
+    'gnupg': LegacyData(r'\d', [], lambda v: '' if v == '1' else v, None),
+    'gtk': LegacyData(r'\d', ['3.9', '+', '-'], None, None),
+    'gtksourceview': LegacyData(r'\d', [], None, None),
+    'guile': LegacyData(r'\d.\d', ['+'], None, None),
+    'python': LegacyData(r'\d.\d+', ['-', '_', '~'], lambda v: v.replace('.', ''), None),
+    'python-docs': LegacyData(r'\d.\d+', ['-', '_', '~'], lambda v: v.replace('.', ''), lambda v: 'python' + v + '-doc'),
+    'qt': LegacyData(r'\d', ['p'], None, None),
+    'xdelta': LegacyData(r'\d', [], lambda v: '' if v == '1' else v, None),
 }
 
 RepologyData = namedtuple('RepologyData', ['upstream_version', 'repology_project_name'])
@@ -100,7 +105,7 @@ def repology_fetch_data():
                 if i['status'] == 'newest':
                     newest_version.append(v)
 
-                if (pn in use_legacy) and (i['status'] in ['legacy', 'outdated']):
+                if (pn in use_legacy) and (i['status'] in ['legacy', 'outdated', 'newest']):
                     ld = use_legacy[pn]
                     prefix_re = ld.version_re
 
@@ -109,6 +114,9 @@ def repology_fetch_data():
                         prefix = m.group(1)
                     else:
                         continue
+
+                    if ld.transform:
+                        prefix = ld.transform(prefix)
 
                     # blacklist versions containing certain substrings
                     # (pre-release versions etc.)
@@ -146,15 +154,22 @@ def repology_fetch_data():
                 if i['repo'] == "cygwin":
                     source_pn = i['srcname']
 
-                    # if package name contains legacy version
                     if pn in use_legacy:
+                        # if source package name contains legacy version
+                        #
+                        # the empty string is (in some cases), a possible value
+                        # for prefix, so ensure that longest match wins
                         prefix = None
-                        for p in legacy_versions:
-                            if (pn + p) in source_pn:
-                                prefix = p
-                                break
+                        for p in sorted(legacy_versions):
+                            source = pn + p
 
-                        if prefix:
+                            if use_legacy[pn].source:
+                                source = use_legacy[pn].source(p)
+
+                            if source in source_pn:
+                                prefix = p
+
+                        if prefix is not None:
                             upstream_version = [legacy_versions[prefix]]
                         else:
                             upstream_version = newest_version
