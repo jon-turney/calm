@@ -799,6 +799,10 @@ def do_daemon(args, state):
                 logging.error("exception %s" % (type(e).__name__), exc_info=True)
             stop_reason = "calm daemon stopped due to unhandled exception"
 
+            # loiter here for a while before exiting, so we don't get punished
+            # by systemd for restarting too quickly...
+            time.sleep(60)
+
         else:
             stop_reason = "calm daemon stopped for unknown reason"
 
