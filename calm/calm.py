@@ -660,7 +660,7 @@ class Event(Flag):
 def do_daemon(args, state):
     import daemon
     import inotify.adapters
-    import lockfile.pidlockfile
+    import pidlockfile
 
     logging.getLogger('inotify.adapters').propagate = False
 
@@ -678,7 +678,7 @@ def do_daemon(args, state):
         stderr=sys.stderr,
         files_preserve=getLogFileDescriptors(logging.getLogger()),
         umask=0o002,
-        pidfile=lockfile.pidlockfile.PIDLockFile(args.daemon))
+        pidfile=pidlockfile.PIDLockFile(args.daemon))
 
     # XXX: running flag isn't actually doing anything anymore so can be removed
     running = True
