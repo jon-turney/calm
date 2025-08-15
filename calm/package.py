@@ -935,8 +935,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                     # don't consider an equal mtime to be more recent
                     continue
 
-                if ((p in past_mistakes.mtime_anomalies) or
-                    ('curr-most-recent' in packages[p].override_hints.get('disable-check', '')) or
+                if (('curr-most-recent' in packages[p].override_hints.get('disable-check', '')) or
                     ('curr-most-recent' in getattr(args, 'disable_check', []))):
                     lvl = logging.DEBUG
                 else:

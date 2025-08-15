@@ -37,17 +37,9 @@ illegal_char_in_version = {
     'gendef': ['1.0-svn2931'],
     'gendef-debuginfo': ['1.0-svn2931'],
     'gt5': ['1.5.0~20111220+bzr29'],
-    'hidapi': ['0.8.0-rc1'],
-    'hidapi-debuginfo': ['0.8.0-rc1'],
-    'libhidapi-devel': ['0.8.0-rc1'],
-    'libhidapi0': ['0.8.0-rc1'],
     'libmangle': ['1.0-svn2930'],
     'libmangle-debuginfo': ['1.0-svn2930'],
     'man-pages-posix': ['2013-a'],
-    'mingw64-i686-hidapi': ['0.8.0-rc1'],
-    'mingw64-i686-hidapi-debuginfo': ['0.8.0-rc1'],
-    'mingw64-x86_64-hidapi': ['0.8.0-rc1'],
-    'mingw64-x86_64-hidapi-debuginfo': ['0.8.0-rc1'],
     'recode': ['3.7-beta2'],
     'recode-debuginfo': ['3.7-beta2'],
 }
@@ -62,7 +54,6 @@ self_requires = [
 # function as their own source
 self_source = [
     'R_autorebase',
-    '_update-info-dir',
     'base-cygwin',
     'chere',
     'cygcheck-dep',
@@ -108,21 +99,8 @@ nonunique_versions = [
 # don't add to this list, use 'disable-check: empty-obsolete' in pvr.hint instead
 empty_but_not_obsolete = {
     'isl': ['0.16.1-1'],                                   # useless empty package, not autosupressed as it has depends
-    'libpopt-devel': ['1.16-1'],                           # version 1.16-1 was empty (x86_64)
-    'libpopt0': ['1.16-1'],                                # version 1.16-1 was empty
     'mbedtls': ['2.16.0-1'],                               # useless empty package, not autosupressed as it has depends
-    'mpclib': ['1.1.0-1'],                                 # useless empty package, not autosupressed as it has depends
-    'mpfr': ['4.0.2-1'],                                   # useless empty package, not autosupressed as it has depends
-    'serf-debuginfo': ['1.3.8-1', '1.3.9-1'],              # empty presumably due to build problems
 }
-
-# packages with timestamp anomalies
-#
-# don't add to this list, use 'disable-check: curr-most-recent' in override.hint instead
-mtime_anomalies = [
-    'gcc-tools-epoch2-autoconf',
-    'gcc-tools-epoch2-autoconf-src',
-]
 
 # packages with maintainer anomalies
 #
