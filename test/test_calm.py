@@ -542,7 +542,7 @@ class CalmTest(unittest.TestCase):
                    (os.path.join(relarea_arch, 'per-version', 'per-version-4.0-1-src.tar.xz'), '2017-04-09'),
                    (os.path.join(relarea_arch, 'rpm-doc', 'rpm-doc-4.1-2.tar.bz2'), '2016-11-02'),
                    (os.path.join(relarea_arch, 'rpm-doc', 'rpm-doc-4.1-2-src.tar.bz2'), '2016-11-02'),
-                   (os.path.join(relarea_arch, 'rpm-doc', 'rpm-doc-999-1.tar.bz2'), '2019-03-02'),
+                   (os.path.join(relarea_arch, 'rpm-doc', 'rpm-doc-999-1.tar.bz2'), '2024-03-02'),
                    (os.path.join(relarea_arch, 'staleversion', 'staleversion-240-1.tar.xz'), '2017-04-07'),
                    (os.path.join(relarea_arch, 'staleversion', 'staleversion-240-1-src.tar.xz'), '2017-04-07'),
                    (os.path.join(relarea_arch, 'staleversion', 'staleversion-242-0.tar.xz'), '2017-04-08'),
