@@ -583,6 +583,11 @@ def read_one_package(packages, p, basedir, files, kind, strict):
             ovr = pvr_hint['version']
             # also record the version before the override
             pvr_hint['original-version'] = vr
+        # add epoch to version
+        elif 'epoch' in pvr_hint:
+            ovr = pvr_hint['epoch'] + ':' + vr
+            # also record the version before the override
+            pvr_hint['original-version'] = vr
         else:
             ovr = vr
 

@@ -64,6 +64,7 @@ commonkeys = {
     'sdesc': 'val',
     'test': 'noval',   # mark the package as a test version
     'version': 'val',  # version override
+    'epoch': 'val',    # epoch
     'disable-check': 'val',
     'notes': 'val',    # tool notes; not significant to calm itself
 }
