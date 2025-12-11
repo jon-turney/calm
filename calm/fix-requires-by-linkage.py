@@ -115,7 +115,11 @@ def fix_hints(args):
                 if root.endswith('-src'):
                     continue
 
-                pn = root.rsplit('-', 2)[0]
+                # strip optional arch
+                pn = re.sub('-(' + '|'.join(common_constants.ARCHES) + ')$', '', root)
+
+                # strip version
+                pn = pn.rsplit('-', 2)[0]
 
                 # is pn in the list of packages (if specified)?
                 if args.package and (pn not in args.package):
