@@ -418,7 +418,11 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
     if pp_package:
         pp_bv = pp_package.best_version
         pp_provide = pp_package.version_hints[pp_bv]['provides'][0]
-        pp_provide_base = re.sub(r'\d+$', '', pp_provide)
+        # provide_base is the start of the provide, up-to and including the
+        # first '_' (assumed to be followed by digits and maybe separators), so
+        # it doesn't accidentally match the package name we probably get without
+        # the '_'.
+        pp_provide_base = re.sub(r'^(.*?_).*$', r'\1', pp_provide)
 
         for p in packages:
             po = packages[p]
