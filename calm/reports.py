@@ -581,6 +581,7 @@ def do_reports(args, packages):
 
     provides_rebuild(args, packages, 'perl_rebuilds.html', 'perl_base', reportlist)
     provides_rebuild(args, packages, 'ruby_rebuilds.html', 'ruby', reportlist)
+    provides_rebuild(args, packages, 'php_rebuilds.html', 'php', reportlist)
     python_rebuild(args, packages, 'python_rebuilds.html', reportlist)
 
     maintainer_activity_report(args, packages, reportlist)
