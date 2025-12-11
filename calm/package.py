@@ -1870,7 +1870,7 @@ def stale_packages(packages, vault_requests):
         # clean up freshness mark
         for v in po.versions():
             try:
-                delattr(po.tar(v), 'fresh')
+                del po.tar(v).fresh
             except AttributeError:
                 pass
 
