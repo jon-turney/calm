@@ -764,7 +764,7 @@ def do_daemon(args, state):
                                 # files in the arch directory
                                 if (filename != 'sha512.sum') and ((path.count(os.path.sep) > depth) or filename == ".touch"):
                                     action |= Event.read_relarea
-                            elif path.startswith(args.stagingdir) and not path.endswith('/tmp'):
+                            elif path.startswith(args.stagingdir) and (filename == '.touch'):
                                 action |= Event.read_uploads
                             elif (path.startswith(args.homedir)) and (filename == ".sftp-session-close"):
                                 action |= Event.read_uploads
