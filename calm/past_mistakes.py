@@ -107,7 +107,6 @@ empty_but_not_obsolete = {
 # don't add to this list, fix the package
 maint_anomalies = {
     'manlint': ['1.6g-2'],  # unclear why this is under man
-    'python3-h5py-debuginfo': ['2.9.0-1'],  # superceded by python-h5py-debuginfo
 }
 
 # packages missing obsoletions
