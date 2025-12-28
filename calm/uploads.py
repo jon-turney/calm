@@ -148,6 +148,10 @@ def scan(scandir, m, all_packages, args):
         if not files:
             continue
 
+        if len(splitpath) <= 2:
+            logging.warning("unexpected files %s which don't belong to any package" % files)
+            continue
+
         # two quick checks if the upload is allowed
         #
         # (removal is only controlled by these checks, uploads are more complex,
