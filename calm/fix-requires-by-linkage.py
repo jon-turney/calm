@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import warnings
 
 import xtarfile
 
@@ -39,6 +40,9 @@ from . import hint
 #
 #
 #
+
+# otherwise RedHat-patched python warns everytime we extract from tar archive...
+warnings.simplefilter("ignore", RuntimeWarning)
 
 
 def fix_one_hint(args, dirpath, hintfile, tf):

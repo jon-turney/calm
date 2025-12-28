@@ -181,6 +181,8 @@ nonexistent_provides = historical_provides + [
     'python2-cython',
     'python2-wheel',
     'python2-cairo-devel',
+    # random depends
+    'libtidy0_99_0',
     # general
     '_windows',
     r'perl5_\d+',

@@ -33,7 +33,7 @@ from . import pkg2html
 from . import reports
 from . import utils
 
-MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 3
+MAINTAINER_ACTIVITY_THRESHOLD_YEARS = 5
 
 template = '''
 Hi {},
