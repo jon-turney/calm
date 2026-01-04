@@ -43,7 +43,7 @@ def vault(pvr):
     args = types.SimpleNamespace()
     args.htdocs = os.path.join(common_constants.HTDOCS, 'packages')
 
-    db.vault_request_add(args, p, vr)
+    db.vault_request_add(args, p, vr, os.environ['CYGNAME'])
     logging.info("package '%s' version '%s' marked as expirable" % (p, vr))
 
 

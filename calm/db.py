@@ -46,7 +46,8 @@ def connect(args):
 
     conn.execute('''CREATE TABLE IF NOT EXISTS vault_requests
                     (srcpackage TEXT NOT NULL,
-                     vr TEXT NOT NULL
+                     vr TEXT NOT NULL,
+                     request_by TEXT NOT NULL
                     )''')
 
     conn.execute('''CREATE TABLE IF NOT EXISTS missing_obsolete
@@ -59,6 +60,12 @@ def connect(args):
                     (srcpackage TEXT NOT NULL PRIMARY KEY,
                      msgid TEXT NOT NULL
                     )''')
+
+    # migrations
+    cursor = conn.execute("SELECT * FROM vault_requests LIMIT 1")
+    cols = [row[0] for row in cursor.description]
+    if 'request_by' not in cols:
+        cursor.execute("ALTER TABLE vault_requests ADD COLUMN request_by TEXT NOT NULL")
 
     conn.commit()
 
@@ -92,28 +99,29 @@ def update_package_names(args, packages):
 #
 # vault requests made via 'calm-tool vault'
 #
-def vault_requests(args):
+def vault_requests(args, m):
     requests = {}
 
     with connect(args) as conn:
         conn.row_factory = sqlite3.Row
 
-        cur = conn.execute("SELECT * FROM vault_requests")
+        cur = conn.execute("SELECT * FROM vault_requests WHERE request_by = ?", (m,))
         for row in cur.fetchall():
             spkg = row['srcpackage']
             if spkg not in requests:
                 requests[spkg] = set()
+            requests[spkg].add(row)
             requests[spkg].add(row['vr'])
 
         # remove all rows
-        cur = conn.execute("DELETE FROM vault_requests")
+        cur = conn.execute("DELETE FROM vault_requests WHERE request_by = ?", (m,))
 
     return requests
 
 
-def vault_request_add(args, p, v):
+def vault_request_add(args, p, v, m):
     with connect(args) as conn:
-        conn.execute('INSERT INTO vault_requests (srcpackage, vr) VALUES (?,?)', (p, v))
+        conn.execute('INSERT INTO vault_requests (srcpackage, vr, request_by) VALUES (?,?, ?)', (p, v, m))
 
 
 #
