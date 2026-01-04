@@ -393,6 +393,7 @@ class CalmTest(unittest.TestCase):
         os.system('touch "%s"' % (os.path.join(m_homedir, 'x86_64', 'release', 'staleversion', '!ready')))
 
         state = calm.calm.CalmState()
+        state.args = args
         state.packages = calm.calm.process_relarea(args, state)
         state.packages = calm.calm.process_uploads(args, state)
         self.assertTrue(state.packages)
@@ -428,6 +429,7 @@ class CalmTest(unittest.TestCase):
         os.system('touch "%s"' % (os.path.join(m_homedir, 'x86_64', 'release', 'testpackage', '!ready')))
 
         state = calm.calm.CalmState()
+        state.args = args
         state.packages = calm.calm.process_relarea(args, state)
         state.packages = calm.calm.process_uploads(args, state)
         self.assertTrue(state.packages)

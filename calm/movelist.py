@@ -55,6 +55,13 @@ class MoveList(object):
     def remove(self, relpath):
         del self.movelist[relpath]
 
+    def update(self, other):
+        if hasattr(self, 'basedir'):
+            assert self.basedir == other.basedir
+
+        for relpath in other.movelist:
+            self.movelist[relpath].extend(other.movelist[relpath])
+
     def _move(self, args, fromdir, todir, verb):
         for p in sorted(self.movelist):
             # a clunky way of determining the package which owns these files

@@ -119,19 +119,13 @@ def process_relarea(args, state):
         return None
 
     # packages can be stale due to changes made directly in the release
-    # area, so first check here if there are any stale packages to vault
+    # area, or vault requests, so first check here if there are any stale
+    # packages to vault
     if args.stale:
-        fresh_packages = copy.deepcopy(packages)
-
-        stale_to_vault = remove_stale_packages(args, fresh_packages, state)
-        if stale_to_vault is not None:
-            logging.info("vaulting %d old package(s)" % (len(stale_to_vault)))
-            stale_to_vault.move_to_vault(args)
-        else:
+        packages = remove_stale_packages(args, packages, state)
+        if packages is None:
             logging.error("error while evaluating stale packages")
             return None
-
-        packages = fresh_packages
 
     # clean up any empty directories
     if not args.dryrun:
@@ -362,7 +356,7 @@ def _process_maintainer_uploads(scan_result, args, state, all_packages, m, based
     # check for packages which are stale as a result of this upload,
     # which we will want in the same report
     if args.stale:
-        stale_to_vault = remove_stale_packages(args, merged_packages, state)
+        stale_to_vault = identify_stale_packages(args, merged_packages, state)
 
         # if an error occurred ...
         if stale_to_vault is None:
@@ -431,24 +425,59 @@ def process(args, state):
 
 
 #
-# remove stale packages
+# identify and remove stale packages
 #
 
 def remove_stale_packages(args, packages, state):
-    vault_requests = db.vault_requests(args)
+    # first do other removal reasons
+    packages = _execute_stale_removal(args, packages, state, "old package(s)")
+    if packages is None:
+        return None
 
+    # then do vault requests, so we can send results to the requester
+    for m in maintainers.maintainer_list(state.args):
+        vault_requests = db.vault_requests(args, m)
+
+        if vault_requests:
+            logging.debug("processing vault requests by %s" % (m))
+
+            with logfilters.AttrFilter(maint=m):
+                packages = _execute_stale_removal(args, packages, state, "package(s) for %s" % m, vault_requests)
+                if packages is None:
+                    return None
+
+    return packages
+
+
+def _execute_stale_removal(args, packages, state, reason, vault_requests=None):
+    fresh_packages = copy.deepcopy(packages)
+
+    stale_to_vault = identify_stale_packages(args, fresh_packages, state, vault_requests)
+    if stale_to_vault is not None:
+        logging.info("vaulting %d %s" % (len(stale_to_vault), reason))
+        stale_to_vault.move_to_vault(args)
+    else:
+        return None
+
+    return fresh_packages
+
+
+def identify_stale_packages(args, packages, state, vault_requests=None):
     logging.debug("checking for stale packages")
+
+    if vault_requests is None:
+        vault_requests = []
 
     # find stale packages
     to_vault = package.stale_packages(packages, vault_requests)
-
-    # remove stale packages from package set
-    to_vault.map(lambda p, f: package.delete(packages, p, f))
 
     # if there are no stale packages, we don't have anything to do
     if not to_vault:
         logging.debug("nothing is stale")
         return to_vault
+
+    # remove stale packages from package set
+    to_vault.map(lambda p, f: package.delete(packages, p, f))
 
     # re-validate package sets
     # (this shouldn't fail, but we check just to sure...)
