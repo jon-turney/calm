@@ -1718,7 +1718,7 @@ def mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests):
     es = po.srcpackage(v, suffix=False)
     if es in vault_requests:
         if v in vault_requests[es]:
-            logging.info("package '%s' version '%s' not retained due vault request" % (pn, v))
+            logging.info("package '%s' version '%s' not retained due to vault request" % (pn, v))
             return (Freshness.conditional, False)
 
     # otherwise, make no change

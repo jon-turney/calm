@@ -65,7 +65,7 @@ def connect(args):
     cursor = conn.execute("SELECT * FROM vault_requests LIMIT 1")
     cols = [row[0] for row in cursor.description]
     if 'request_by' not in cols:
-        cursor.execute("ALTER TABLE vault_requests ADD COLUMN request_by TEXT NOT NULL")
+        cursor.execute("ALTER TABLE vault_requests ADD COLUMN request_by TEXT NOT NULL DEFAULT ''")
 
     conn.commit()
 
