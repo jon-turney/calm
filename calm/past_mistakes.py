@@ -145,10 +145,6 @@ historical_provides = [
 # we use regex patterns to match version provides which might have been expired,
 # or not uploaded yet.
 nonexistent_provides = historical_provides + [
-    # python3
-    'python35',
-    'python35-gi',
-    'glade3',
     # python2
     'python2',
     'python2-devel',
@@ -173,8 +169,18 @@ nonexistent_provides = historical_provides + [
     'python2-pykde4',
     'python2-pyqt4',
     'python2-pyqt5',
+    # python35
+    'python35',
+    'python35-gi',
+    # python 36
+    'python36',
+    'python36-devel',
+    'python36-test',
+    'python36-tkinter',
+    # other
+    'glade3',
     'libtidy0_99_0',
-    # general
+    # general & future version patterns
     '_windows',
     r'perl5_\d+',
     r'ruby_\d+',
