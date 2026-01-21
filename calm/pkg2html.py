@@ -30,7 +30,7 @@
 # -- for each tar file
 # --- if a package listing HTML file doesn't already exist
 # ---- write a HTML package listing file listing the tar file contents
-# -- write a summary file, if set of versions changed
+# -- write a summary file (unless we don't think it's changed)
 # - write packages.inc, the list of packages
 # - remove any .htaccess or listing files for which there was no package
 # - remove any directories which are now empty
@@ -66,6 +66,10 @@ from . import package
 from . import reports
 from . import utils
 from .version import SetupVersion
+
+
+summary_last_touched = {}
+SUMMARY_REWRITE_INTERVAL = (24 * 60 * 60)
 
 
 #
@@ -149,6 +153,8 @@ def update_package_listings(args, packages):
         logging.debug('package linkification failed for %s' % p)
         return p
 
+    now = time.time()
+
     for p in packages:
         #
         # write package summary
@@ -169,6 +175,7 @@ def update_package_listings(args, packages):
         # - it doesn't already exist,
         # - or, listing files (i.e packages versions) were added or removed,
         # - or, hints have changed since it was written
+        # - or, SUMMARY_REWRITE_INTERVAL has elapsed since it was last written
         # - or, forced
         hint_mtime = po.hints[bv].mtime
 
@@ -176,8 +183,9 @@ def update_package_listings(args, packages):
         if os.path.exists(summary):
             summary_mtime = os.path.getmtime(summary)
 
-        if (p in update_summary) or (summary_mtime < hint_mtime) or args.force:
+        if (p in update_summary) or (summary_mtime < hint_mtime) or (now > summary_last_touched.get(p, 0) + SUMMARY_REWRITE_INTERVAL) or args.force:
             if not args.dryrun:
+                summary_last_touched[p] = now
                 with utils.open_amifc(summary) as f:
                     os.fchmod(f.fileno(), 0o755)
 
