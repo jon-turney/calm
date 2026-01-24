@@ -188,6 +188,12 @@ nonexistent_provides = historical_provides + [
     r'tl_basic_\d+',
 ]
 
+# ditto, but just for build_requires
+nonexistent_build_requires = [
+    'python2',
+    'python27-.*',
+]
+
 # provides which don't exist, and were obsoleted by something else which we've
 # forgotten about..
 substitute_dependency = {

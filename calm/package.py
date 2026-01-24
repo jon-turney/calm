@@ -791,10 +791,10 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
     # perform various package validations
     for p in sorted(packages.keys()):
         for (v, hints) in packages[p].version_hints.items():
-            for (c, okmissing, valid) in [
-                    ('depends', 'missing-depended-package', valid_requires),
-                    ('obsoletes', 'missing-obsoleted-package', valid_obsoletes),
-                    ('build-depends', 'missing-build-depended-package', valid_requires),
+            for (c, okmissing, valid, nonexistent) in [
+                    ('depends', 'missing-depended-package', valid_requires, past_mistakes.nonexistent_provides),
+                    ('obsoletes', 'missing-obsoleted-package', valid_obsoletes, []),
+                    ('build-depends', 'missing-build-depended-package', valid_requires, past_mistakes.nonexistent_build_requires),
             ]:
                 # if c is in hints, and not the empty string
                 if hints.get(c, ''):
@@ -814,7 +814,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
                         # all packages listed in a hint must exist (unless the
                         # disable-check option says that's ok)
-                        if (r not in valid) and (r not in past_mistakes.expired_provides) and (not any(re.match(nep + r'$', r) for nep in past_mistakes.nonexistent_provides)):
+                        if (r not in valid) and (r not in past_mistakes.expired_provides) and (not any(re.match(nep + r'$', r) for nep in nonexistent)):
                             if okmissing not in getattr(args, 'disable_check', []):
                                 logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, v, c, r))
                                 error = True
