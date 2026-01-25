@@ -157,9 +157,9 @@ def maintainer_packages(args, packages, maintainer, reportlist):
     body = io.StringIO()
 
     if maintainer:
-        print('<p>Packages maintained by %s.</p>' % maintainer, file=body)
+        print('<p>%d packages maintained by %s.</p>' % (len(um_list), maintainer), file=body)
     else:
-        print('<p>Packages without a maintainer.</p>', file=body)
+        print('<p>%d packages without a maintainer.</p>' % (len(um_list)), file=body)
 
     print('<table class="grid sortable">', file=body)
     print('<tr><th>last updated</th><th>package</th><th>version</th><th>upstream version</th><th>status</th><th>rdepends</th><th>build_rdepends</th><th>importance</th></tr>', file=body)
