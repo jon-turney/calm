@@ -661,9 +661,10 @@ def do_output(args, state):
         except (OSError):
             pass
 
+    repology.annotate_packages(args, state.packages)
+
     # write reports
     if (update_json or args.force) and args.reports:
-        repology.annotate_packages(args, state.packages)
         reports.do_reports(args, state.packages)
 
     # update packages listings
