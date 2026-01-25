@@ -334,6 +334,8 @@ def update_package_listings(args, packages):
 
                             details_table['repology info'] = '<a href="https://repology.org/project/%s/information">%s</a> %s' % (repology_pn, repology_pn, upstream_version)
 
+                    details_table['importance'] = po.importance
+
                     if po.kind == package.Kind.binary:
                         doc_path = os.path.join(args.htdocs, 'doc', pn)
                         if os.path.exists(doc_path):
@@ -347,6 +349,7 @@ def update_package_listings(args, packages):
                     # output details table
                     print('<table class="pkgdetails">', file=f)
                     for d, v in details_table.items():
+                        v = str(v)
                         if not v.startswith('<p>'):
                             v = '<p>' + v + '</p>'
                         print('<tr><td><p><span class="detail">%s</span>:</p></td><td>%s</td></tr>' % (d, v), file=f)

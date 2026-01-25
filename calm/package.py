@@ -60,7 +60,8 @@ class Kind(Enum):
 class Importance(IntEnum):
     base = 1     # has base category
     basedep = 2  # doesn't have base category, but is depended on by something that does
-    other = 3    # all others
+    normal = 3   # normal
+    leaf = 4     # dependency leaf
 
     def __str__(self):
         return self.name
@@ -1158,7 +1159,15 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 def assign_importance(packages):
     # XXX: if we had some package popularity data, we'd use it here
     for po in packages.values():
-        po.importance = Importance.other
+        po.importance = Importance.leaf
+
+    # give packages which are dependencies or build-dependencies of another
+    # package the normal importance
+    for po in packages.values():
+        bv = po.best_version
+        es = po.version_hints[bv].get('external-source', None)
+        if po.build_rdepends or any(packages[p].srcpackage(packages[p].best_version) != es for p in po.rdepends):
+            po.importance = Importance.normal
 
     # recursively give dependencies of base packages the basedep importance
     def recursive_basedep(p):
@@ -1167,7 +1176,7 @@ def assign_importance(packages):
         requires = deplist_without_versions(requires)
         for r in requires:
             if r in packages:
-                if packages[r].importance == Importance.other:
+                if packages[r].importance >= Importance.normal:
                     packages[r].importance = Importance.basedep
                     recursive_basedep(packages[r])
 
@@ -1522,6 +1531,7 @@ def write_repo_json(args, packages, f):
             'versions': versions,
             'summary': po.version_hints[bv]['sdesc'].strip('"'),
             'arches': arches,
+            'importance': str(po.importance),
         }
 
         spl = []
