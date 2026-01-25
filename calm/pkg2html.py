@@ -186,6 +186,13 @@ def update_package_listings(args, packages):
         if (p in update_summary) or (summary_mtime < hint_mtime) or (now > summary_last_touched.get(p, 0) + SUMMARY_REWRITE_INTERVAL) or args.force:
             if not args.dryrun:
                 summary_last_touched[p] = now
+
+                # if older than hint, touch it so we don't keep on trying to
+                # update it here, if hint has changed in a way that doesn't
+                # affect summary page
+                if summary_mtime < hint_mtime:
+                    utils.touch(summary, now)
+
                 with utils.open_amifc(summary) as f:
                     os.fchmod(f.fileno(), 0o755)
 

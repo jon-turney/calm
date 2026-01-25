@@ -38,6 +38,9 @@ from contextlib import contextmanager
 # touch a file
 #
 def touch(fn, times=None):
+    if times is not None:
+        times = (times, times)
+
     try:
         with open(fn, 'a'):  # ensure fn exists
             os.utime(fn, times)
