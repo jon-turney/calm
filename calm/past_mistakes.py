@@ -190,8 +190,11 @@ nonexistent_provides = historical_provides + [
 
 # ditto, but just for build_requires
 nonexistent_build_requires = [
+    'python-gobject-devel',
     'python2',
     'python27-.*',
+    'python36',
+    'python36-.*'
 ]
 
 # provides which don't exist, and were obsoleted by something else which we've
