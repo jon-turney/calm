@@ -1210,15 +1210,15 @@ def validate_package_maintainers(args, packages):
             continue
         if any(['_obsolete' in packages[p].version_hints[vr].get('category', '') for vr in packages[p].version_hints]):
             continue
-        # validate that the package's auth_paths are all in the package list
-        for a in packages[p].auth_path:
-            if a not in all_packages:
-                logging.error("package '%s' exists in '%s', which isn't in the package list" % (p, a))
-                error = True
         # source which is superseded by a different package, but retained due to
         # old install versions can be unmaintained and non-obsolete
         if packages[p].kind == Kind.source:
             continue
+        # validate that at least one of the package's auth_paths is in the package list
+        # (XXX: should be the auth_path of the highest version?)
+        if not any(a in all_packages for a in packages[p].auth_path):
+            logging.error("package '%s' exists in '%s', none of which are in the package list" % (p, packages[p].auth_path))
+            error = True
         # validate that the source package has a maintainer
         bv = packages[p].best_version
         if bv:
