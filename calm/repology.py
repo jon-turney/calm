@@ -199,7 +199,7 @@ def seqmatch(bv, uv):
 
     seq_count = len(SetupVersion(bv)._V)
     for v in uv:
-        if len(SetupVersion(bv)._V) == seq_count:
+        if len(SetupVersion(v)._V) == seq_count:
             return v
 
     return uv[0]
