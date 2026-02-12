@@ -1706,16 +1706,16 @@ def mark_fn(packages, po, v, certain_age, obs_threshold, vault_requests):
                 logging.debug("obsolete package '%s' version '%s' mtime '%s' is over cut-off age" % (pn, v, time.strftime("%F %T %Z", time.localtime(mtime))))
                 return (Freshness.conditional, False)
 
+    es = po.srcpackage(v, suffix=False)
     # - if package depends on anything in expired_provides
     #
     requires = po.version_hints[v].get('depends', [])
-    if any(ep in requires for ep in past_mistakes.expired_provides):
+    if any(ep in requires for ep in past_mistakes.expired_provides) and es.startswith('python') and not es.startswith('python-pyqt5'):
         logging.debug("package '%s' version '%s' not retained as it requires a provide known to be expired" % (pn, v))
         return (Freshness.conditional, False)
 
     # - marked via 'calm-tool vault'
     #
-    es = po.srcpackage(v, suffix=False)
     if es in vault_requests:
         if v in vault_requests[es]:
             logging.info("package '%s' version '%s' not retained due to vault request" % (pn, v))

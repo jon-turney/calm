@@ -194,7 +194,7 @@ nonexistent_build_requires = [
     'python2',
     'python27-.*',
     'python36',
-    'python36-.*'
+    'python36-.*',
 ]
 
 # provides which don't exist, and were obsoleted by something else which we've
@@ -244,6 +244,7 @@ substitute_dependency = {
 expired_provides = [
     'python34',
     'python35',
+    'python36',
 ]
 
 # empty source packages
