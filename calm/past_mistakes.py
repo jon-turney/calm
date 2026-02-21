@@ -177,6 +177,8 @@ nonexistent_provides = historical_provides + [
     'python36-devel',
     'python36-test',
     'python36-tkinter',
+    # python 36 modules
+    'python36-.*',
     # other
     'glade3',
     'libtidy0_99_0',
