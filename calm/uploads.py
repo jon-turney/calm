@@ -165,7 +165,7 @@ def scan(scandir, m, all_packages, args):
             continue
 
         # only process packages for which we are listed as a maintainer, or we are a trusted maintainer
-        if not ((superpackage in m.pkgs) or (m.name in args.trustedmaint.split('/'))):
+        if not ((superpackage in m.pkgs) or (m.is_trusted)):
             error = True
             logging.warning("package '%s' is not in the package list for maintainer '%s'" % (superpackage, m.name))
             continue
@@ -357,9 +357,15 @@ def remove(args, remove):
 # uploaded, the uploader is authorized for all the existing places (auth_paths)
 # the package exists as well...
 #
-def auth_check(args, m, scan_result, packages):
+def auth_check(args, m, scan_result, packages, direct_upload):
     # if uploader is a trusted maintainer, it's ok
-    if m.name in args.trustedmaint.split('/'):
+    if m.is_trusted:
+        return
+
+    # direct uploads must now be explicitly enabled for a maintainer
+    if packages and direct_upload and not m.uploads_allowed:
+        logging.error("direct uploads are not enabled for maintainer '%s'" % (m.name))
+        scan_result.error = True
         return
 
     # A package upload (perhaps at a new path (= from a different source

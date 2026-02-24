@@ -41,6 +41,8 @@ import os
 import re
 from collections import UserString
 
+from . import common_constants
+from . import db
 from . import utils
 
 
@@ -85,7 +87,8 @@ class Maintainer(object):
         self.email = email
         self.pkgs = pkgs
         self.quiet = False
-        self.has_homedir = os.path.isdir(self.homedir())
+        self.uploads_allowed = False
+        self.is_trusted = (self.name in common_constants.TRUSTEDMAINT.split('/'))
 
         # the mtime of this file records the timestamp
         reminder_file = os.path.join(self.homedir(), '!reminder-timestamp')
@@ -289,6 +292,9 @@ def maintainer_list(args):
     # read information from homedirs
     mlist = add_directories(mlist, args.homedir)
 
+    # read and update information in db
+    db.maintainer_info(args, mlist)
+
     # check all maintainers have an email
     for m in mlist.values():
         if m.name == 'ORPHANED':
@@ -319,6 +325,5 @@ def all_packages(pkglist):
 #
 
 if __name__ == "__main__":
-    from . import common_constants
     p = pkg_list(common_constants.PKGMAINT)
     print(p['xwininfo'].maintainers())

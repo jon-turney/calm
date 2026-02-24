@@ -295,6 +295,8 @@ class CalmTest(unittest.TestCase):
         args = types.SimpleNamespace()
         args.homedir = 'testdata/homes'
         args.pkglist = 'testdata/pkglist/cygwin-pkg-maint'
+        args.htdocs = 'testdata/htdocs'
+
         mlist = {}
         mlist = maintainers.maintainer_list(args)
 
@@ -506,6 +508,9 @@ class CalmTest(unittest.TestCase):
 
         for d in ARGDIRS:
             shutil.rmtree(getattr(args, d))
+
+    def setUp(self):
+        db._uploads_allowed_default = True
 
     def tearDown(self):
         # after every test, reset the implicit global state hidden in db
