@@ -36,6 +36,8 @@ from . import utils
 
 # database instance
 _db = None
+# tests currently need to be able to adjust this default
+_uploads_allowed_default = False
 
 
 # Get or create the global database instance, and initialize tables
@@ -47,7 +49,7 @@ def get_db(args):
         logging.debug("sqlite3 database %s" % (dbfn))
         _db = peewee.SqliteDatabase(dbfn, autoconnect=False)
 
-        models = [HistoricPackageName, VaultRequest, MissingObsolete, AnnounceMsgid]
+        models = [HistoricPackageName, VaultRequest, MissingObsolete, AnnounceMsgid, Maintainer]
 
         # set the database for all models
         for model in models:
@@ -120,8 +122,21 @@ class AnnounceMsgid(BaseModel):
         table_name = 'announce_msgid'
 
 
+class Maintainer(BaseModel):
+    name = peewee.TextField(primary_key=True)
+    email = peewee.TextField(null=True)
+    last_reminder = peewee.DateTimeField(null=True)
+    last_seen = peewee.DateTimeField(null=True)
+    is_trusted = peewee.BooleanField(default=False)
+    uploads_allowed = peewee.BooleanField(default=False)
+
+    class Meta:
+        table_name = 'maintainers'
+
+
 # connect to the database
 def connect(args):
+
     return get_db(args)
 
 
@@ -234,3 +249,25 @@ def announce_msgid_set(args, srcpackage, msgid):
 
     with db.connection_context():
         AnnounceMsgid.create(srcpackage=srcpackage, msgid=msgid)
+
+
+def maintainer_info(args, mlist):
+    db = connect(args)
+
+    with db.connection_context():
+        for m in mlist.values():
+            if m.name == 'ORPHANED':
+                continue
+
+            mi = Maintainer.get_or_none(Maintainer.name == m.name)
+            if mi:
+                m.uploads_allowed = mi.uploads_allowed
+            else:
+                mi = Maintainer.create(name=m.name)
+                mi.uploads_allowed = _uploads_allowed_default
+
+            mi.email = ','.join(m.email)
+            mi.last_reminder = m.reminder_time
+            mi.last_seen = m.last_seen
+            mi.is_trusted = m.is_trusted
+            mi.save()

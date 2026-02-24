@@ -179,7 +179,7 @@ def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scru
 
     # check upload is authorized
     if not scan_result.error:
-        uploads.auth_check(args, m, scan_result, state.packages)
+        uploads.auth_check(args, m, scan_result, state.packages, record is None)
 
     if scan_result.error:
         logging.error("error while reading uploaded packages from maintainer %s" % (m.name))
@@ -922,7 +922,6 @@ def main():
     htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
     homedir_default = common_constants.HOMEDIR
     stagingdir_default = common_constants.STAGINGDIR
-    trustedmaint_default = common_constants.TRUSTEDMAINT
     pidfile_default = '/sourceware/cygwin-staging/lock/calm.pid'
     pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
@@ -940,7 +939,6 @@ def main():
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--key', action='append', metavar='KEYID', help="key to use to sign setup.ini", default=key_default, dest='keys')
     parser.add_argument('--logdir', action='store', metavar='DIR', help="log directory (default: '" + logdir_default + "')", default=logdir_default)
-    parser.add_argument('--trustedmaint', action='store', metavar='NAMES', help="trusted package maintainers (default: '" + trustedmaint_default + "')", default=trustedmaint_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--release', action='store', help='value for setup-release key (default: cygwin)', default='cygwin')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
