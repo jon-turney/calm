@@ -5,6 +5,7 @@ flake8-builtins
 flake8-import-order
 license_expression
 markdown
+peewee
 pidlockfile
 pycodestyle
 python-daemon

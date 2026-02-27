@@ -40,6 +40,7 @@ import types
 import unittest
 
 import calm.calm
+import calm.db as db
 import calm.hint as hint
 import calm.maintainers as maintainers
 import calm.package as package
@@ -505,6 +506,10 @@ class CalmTest(unittest.TestCase):
 
         for d in ARGDIRS:
             shutil.rmtree(getattr(args, d))
+
+    def tearDown(self):
+        # after every test, reset the implicit global state hidden in db
+        db.reset_db()
 
     @classmethod
     def setUpClass(cls):
