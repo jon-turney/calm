@@ -25,51 +25,104 @@
 # package db
 #
 
-
 import logging
 import os
-import sqlite3
+
+import peewee
 
 from . import package
 from . import utils
 
 
+# database instance
+_db = None
+
+
+# Get or create the global database instance, and initialize tables
+def get_db(args):
+    global _db
+    if _db is None:
+        utils.makedirs(args.htdocs)
+        dbfn = os.path.join(args.htdocs, 'calm.db')
+        logging.debug("sqlite3 database %s" % (dbfn))
+        _db = peewee.SqliteDatabase(dbfn, autoconnect=False)
+
+        models = [HistoricPackageName, VaultRequest, MissingObsolete, AnnounceMsgid]
+
+        # set the database for all models
+        for model in models:
+            model.initialize(_db)
+
+        # create tables, if they don't exist
+        with _db.connection_context():
+            _db.create_tables(models)
+
+    return _db
+
+
+# Reset the global database instance
+def reset_db():
+    global _db
+    if _db is not None:
+        _db.close()
+        _db = None
+
+
+# Model definitions
+class BaseModel(peewee.Model):
+    class Meta:
+        database = peewee.SqliteDatabase(None)  # Will be set dynamically
+
+    @classmethod
+    def initialize(cls, db):
+        cls._meta.database = db
+
+
+# table which tracks all the package names we have ever seen
+class HistoricPackageName(BaseModel):
+    name = peewee.TextField(primary_key=True)
+
+    class Meta:
+        table_name = 'historic_package_names'
+
+
+# table for vault requests made via 'calm-tool vault'
+class VaultRequest(BaseModel):
+    request_by = peewee.TextField()
+    srcpackage = peewee.TextField()
+    vr = peewee.TextField()
+
+    class Meta:
+        table_name = 'vault_requests'
+        primary_key = False
+
+
+# table recording accumulated missing_obsoletes data for packages
+class MissingObsolete(BaseModel):
+    arch = peewee.TextField()
+    name = peewee.TextField()
+    replaces = peewee.TextField()
+
+    class Meta:
+        table_name = 'missing_obsolete'
+        indexes = (
+            (('name', 'arch'), True),  # Unique composite primary key
+        )
+        primary_key = peewee.CompositeKey('arch', 'name')
+
+
+# table recording reply-to message ID for package announcements
+class AnnounceMsgid(BaseModel):
+    msgid = peewee.TextField()
+    srcpackage = peewee.TextField(primary_key=True)
+
+    class Meta:
+        table_name = 'announce_msgid'
+
+
+# connect to the database
 def connect(args):
-    utils.makedirs(args.htdocs)
-    dbfn = os.path.join(args.htdocs, 'calm.db')
-    logging.debug("sqlite3 database %s" % (dbfn))
-
-    conn = sqlite3.connect(dbfn, detect_types=sqlite3.PARSE_DECLTYPES)
-    conn.execute('''CREATE TABLE IF NOT EXISTS historic_package_names
-                    (name TEXT NOT NULL PRIMARY KEY
-                    )''')
-
-    conn.execute('''CREATE TABLE IF NOT EXISTS vault_requests
-                    (srcpackage TEXT NOT NULL,
-                     vr TEXT NOT NULL,
-                     request_by TEXT NOT NULL
-                    )''')
-
-    conn.execute('''CREATE TABLE IF NOT EXISTS missing_obsolete
-                    (name TEXT NOT NULL,
-                     arch TEXT NOT NULL,
-                     replaces TEXT NOT NULL,
-                     PRIMARY KEY (name, arch)
-                    )''')
-    conn.execute('''CREATE TABLE IF NOT EXISTS announce_msgid
-                    (srcpackage TEXT NOT NULL PRIMARY KEY,
-                     msgid TEXT NOT NULL
-                    )''')
-
-    # migrations
-    cursor = conn.execute("SELECT * FROM vault_requests LIMIT 1")
-    cols = [row[0] for row in cursor.description]
-    if 'request_by' not in cols:
-        cursor.execute("ALTER TABLE vault_requests ADD COLUMN request_by TEXT NOT NULL DEFAULT ''")
-
-    conn.commit()
-
-    return conn
+    return get_db(args)
 
 
 #
@@ -77,17 +130,19 @@ def connect(args):
 # ones which aren't in the set of names for current package
 #
 def update_package_names(args, packages):
+    db = connect(args)
     current_names = set(packages.keys())
 
-    with connect(args) as conn:
-        conn.row_factory = sqlite3.Row
-
-        cur = conn.execute("SELECT name FROM historic_package_names")
-        historic_names = set([row['name'] for row in cur.fetchall()])
+    with db.connection_context():
+        # get all historic names
+        historic_names = set(
+            row.name for row in HistoricPackageName.select()
+        )
 
         # add newly appearing names to current_names
-        for n in (current_names - historic_names):
-            conn.execute('INSERT INTO historic_package_names (name) VALUES (?)', (n,))
+        new_names = current_names - historic_names
+        for n in new_names:
+            HistoricPackageName.create(name=n)
             logging.debug("package '%s' name is added" % (n))
 
     # this is data isn't quite perfect for this purpose: it doesn't know about:
@@ -100,28 +155,29 @@ def update_package_names(args, packages):
 # vault requests made via 'calm-tool vault'
 #
 def vault_requests(args, m):
+    db = connect(args)
     requests = {}
 
-    with connect(args) as conn:
-        conn.row_factory = sqlite3.Row
-
-        cur = conn.execute("SELECT * FROM vault_requests WHERE request_by = ?", (m,))
-        for row in cur.fetchall():
-            spkg = row['srcpackage']
+    with db.connection_context():
+        # get all requests for this user
+        for row in VaultRequest.select().where(VaultRequest.request_by == m):
+            spkg = row.srcpackage
             if spkg not in requests:
                 requests[spkg] = set()
-            requests[spkg].add(row)
-            requests[spkg].add(row['vr'])
+            requests[spkg].add(row.vr)
 
-        # remove all rows
-        cur = conn.execute("DELETE FROM vault_requests WHERE request_by = ?", (m,))
+        # remove all rows for this user
+        VaultRequest.delete().where(VaultRequest.request_by == m).execute()
 
     return requests
 
 
+# Add a vault request
 def vault_request_add(args, p, v, m):
-    with connect(args) as conn:
-        conn.execute('INSERT INTO vault_requests (srcpackage, vr, request_by) VALUES (?,?, ?)', (p, v, m))
+    db = connect(args)
+
+    with db.connection_context():
+        VaultRequest.create(srcpackage=p, vr=v, request_by=m)
 
 
 #
@@ -131,41 +187,50 @@ def vault_request_add(args, p, v, m):
 # N.B. missing_obsolete data only exists for historic, and should be only
 # applied to, x86_64 packages
 def update_missing_obsolete(args, packages):
+    db = connect(args)
     data = {}
-    with connect(args) as conn:
-        conn.row_factory = sqlite3.Row
 
-        # read
-        cur = conn.execute("SELECT name, replaces FROM missing_obsolete")
-        for row in cur.fetchall():
-            data[row['name']] = set(row['replaces'].split())
+    with db.connection_context():
+        # read ...
+        for row in MissingObsolete.select():
+            data[row.name] = set(row.replaces.split())
 
-        # update missing obsoletes data
-        missing_obsolete = package.upgrade_oldstyle_obsoletes(packages, data.copy())
+        # then update missing obsoletes data
+        missing_obsolete = package.upgrade_oldstyle_obsoletes(
+            packages, data.copy()
+        )
 
-        # update
-        for n, r in missing_obsolete.items():
-            if n not in data:
-                conn.execute('INSERT INTO missing_obsolete (name, arch, replaces) VALUES (?, ? , ?)', (n, 'x8_64', ' '.join(r)))
+        # write updated records
+        for name, replaces in missing_obsolete.items():
+            replaces_str = ' '.join(replaces)
+            if name not in data:
+                MissingObsolete.create(
+                    name=name,
+                    arch='x86_64',
+                    replaces=replaces_str
+                )
             else:
-                conn.execute('UPDATE missing_obsolete SET replaces = ? WHERE name = ? AND arch = ?', (' '.join(r), n, 'x86_64'))
+                (MissingObsolete.update(replaces=replaces_str)
+                 .where((MissingObsolete.name == name) &
+                        (MissingObsolete.arch == 'x86_64'))
+                 .execute())
 
     return missing_obsolete
 
 
 def announce_msgid_get(args, srcpackage):
-    msgid = None
-    with connect(args) as conn:
-        conn.row_factory = sqlite3.Row
+    db = connect(args)
 
-        cur = conn.execute("SELECT msgid FROM announce_msgid WHERE srcpackage = ?", (srcpackage,))
-        row = cur.fetchone()
-        if row:
-            msgid = row['msgid']
-
-    return msgid
+    with db.connection_context():
+        try:
+            row = AnnounceMsgid.get_by_id(srcpackage)
+            return row.msgid
+        except AnnounceMsgid.DoesNotExist:
+            return None
 
 
 def announce_msgid_set(args, srcpackage, msgid):
-    with connect(args) as conn:
-        conn.execute('INSERT INTO announce_msgid (srcpackage, msgid) VALUES (?, ?)', (srcpackage, msgid))
+    db = connect(args)
+
+    with db.connection_context():
+        AnnounceMsgid.create(srcpackage=srcpackage, msgid=msgid)
