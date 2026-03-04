@@ -363,7 +363,7 @@ def auth_check(args, m, scan_result, packages, direct_upload):
         return
 
     # direct uploads must now be explicitly enabled for a maintainer
-    if packages and direct_upload and not m.uploads_allowed:
+    if scan_result.packages and direct_upload and not m.uploads_allowed:
         logging.error("direct uploads are not enabled for maintainer '%s'" % (m.name))
         scan_result.error = True
         return
