@@ -1526,13 +1526,19 @@ def write_repo_json(args, packages, f):
             key = 'test' if 'test' in po.version_hints[vr] else 'stable'
             versions[key] = versions.get(key, []) + [vr]
 
+        up_to_date = getattr(po, 'up_to_date', 1)
+
         d = {
             'name': po.orig_name,
             'versions': versions,
             'summary': po.version_hints[bv]['sdesc'].strip('"'),
             'arches': arches,
             'importance': str(po.importance),
+            'up_to_date': 'no' if up_to_date < 0 else 'yes' if up_to_date == 0 else 'unknown',
         }
+
+        if hasattr(po, 'upstream_version'):
+            d['upstream_version'] = str(po.upstream_version)
 
         spl = []
         for sp in sorted(po.is_used_by):

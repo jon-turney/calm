@@ -205,6 +205,20 @@ def seqmatch(bv, uv):
     return uv[0]
 
 
+def up_to_date(po):
+    # the highest version we have
+    v = sorted(po.versions(), key=lambda v: SetupVersion(v), reverse=True)[0]
+
+    upstream_v = po.upstream_version
+
+    if isinstance(upstream_v, str):
+        status = SetupVersion._compare(SetupVersion(v)._V, SetupVersion(upstream_v)._V)
+    else:
+        status = 1  # uncertainty
+
+    return status
+
+
 def annotate_packages(args, packages):
     global last_check
     global last_data
@@ -225,3 +239,4 @@ def annotate_packages(args, packages):
         if spn in packages:
             packages[spn].upstream_version = seqmatch(packages[spn].best_version, last_data[pn].upstream_version)
             packages[spn].repology_project_name = last_data[pn].repology_project_name
+            packages[spn].up_to_date = up_to_date(packages[spn])

@@ -645,6 +645,9 @@ def do_output(args, state):
                         keys = ' '.join(['-u' + k for k in args.keys])
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
 
+    # add information from repology to packages
+    repology.annotate_packages(args, state.packages)
+
     # write packages.json
     jsonfile = os.path.join(args.htdocs, 'packages.json.xz')
     if update_json or not os.path.exists(jsonfile):
@@ -660,8 +663,6 @@ def do_output(args, state):
             os.chmod(jsonfile, 0o644)
         except (OSError):
             pass
-
-    repology.annotate_packages(args, state.packages)
 
     # write reports
     if (update_json or args.force) and args.reports:
