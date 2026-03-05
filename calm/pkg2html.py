@@ -334,7 +334,7 @@ def update_package_listings(args, packages):
 
                             details_table['repology info'] = '<a href="https://repology.org/project/%s/information">%s</a> %s' % (repology_pn, repology_pn, upstream_version)
 
-                    details_table['importance'] = po.importance
+                        details_table['importance'] = po.importance
 
                     if po.kind == package.Kind.binary:
                         doc_path = os.path.join(args.htdocs, 'doc', pn)
