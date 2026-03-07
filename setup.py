@@ -13,13 +13,19 @@ setup(
     entry_points={
         'console_scripts': [
             'calm = calm.calm:main',
-            'mksetupini = calm.mksetupini:main',
             'calm-tool = calm.tool:main',
+            'mkgitoliteconf = calm.mkgitoliteconf:main',
+            'mksetupini = calm.mksetupini:main',
         ],
     },
     url='https://cygwin.com/git/?p=cygwin-apps/calm.git',
     test_suite='tests',
     install_requires=[
+        'license_expression',
+        'markdown',
+        'peewee',
+        'pidlockfile',
+        'python-daemon',
         'xtarfile[zstd]',
     ],
 )
