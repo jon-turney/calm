@@ -526,6 +526,7 @@ def python_rebuild(args, packages, fn, reportlist):
             pr.spn = po.srcpackage(bv)
             pr.spo = packages[pr.spn]
             pr.depends = d
+            pr.depends_ver = int(d[6:])
             pr.bv = bv
 
             pr_list.append(pr)
@@ -548,6 +549,7 @@ def python_rebuild(args, packages, fn, reportlist):
         pr.spn = pr.po.srcpackage(pr.po.best_version)
         pr.spo = packages[pr.spn]
         pr.depends = 'python' + str(highest_ver)
+        pr.depends_ver = highest_ver
         pr.bv = pr.po.best_version
 
         pr_list.append(pr)
@@ -556,11 +558,11 @@ def python_rebuild(args, packages, fn, reportlist):
     print('<p>Packages for python module or binding for, or linkage to, a python version other than %s.</p>' % latest_py, file=body)
 
     print('<table class="grid sortable">', file=body)
-    print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
+    print('<tr><th>package</th><th>srcpackage</th><th>version</th><th sorttable_columntype="numeric">depends</th></tr>', file=body)
 
-    for pr in sorted(pr_list, key=lambda i: (i.depends, i.pn)):
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends), file=body)
+    for pr in sorted(pr_list, key=lambda i: (i.depends_ver, i.pn)):
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td sorttable_customkey="%s">%s</td></tr>' %
+              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends_ver, pr.depends), file=body)
 
     print('</table>', file=body)
 
