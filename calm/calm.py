@@ -645,6 +645,11 @@ def do_output(args, state):
                         keys = ' '.join(['-u' + k for k in args.keys])
                         utils.system('/usr/bin/gpg ' + keys + ' --batch --yes -b ' + extfile)
 
+    # update a marker file indicating when repository was updated
+    # (for the benefit of quickly checking of mirrors are up to date)
+    if update_json:
+        utils.touch(os.path.join(args.rel_area, '.last-updated'))
+
     # add information from repology to packages
     repology.annotate_packages(args, state.packages)
 
