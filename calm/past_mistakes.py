@@ -147,7 +147,6 @@ historical_provides = [
 nonexistent_provides = historical_provides + [
     # python2
     'python2',
-    'python2-devel',
     'python27',
     'python27-.*',
     'python-appindicator',
@@ -174,11 +173,12 @@ nonexistent_provides = historical_provides + [
     'python35-gi',
     # python 36
     'python36',
-    'python36-devel',
-    'python36-test',
     'python36-tkinter',
     # python 36 modules
     'python36-.*',
+    # python 37
+    'python37',
+    'python37-tkinter',
     # other
     'glade3',
     'libtidy0_99_0',
@@ -197,6 +197,9 @@ nonexistent_build_requires = [
     'python27-.*',
     'python36',
     'python36-.*',
+    'python37',
+    'python37-devel',
+    'python37-test',
 ]
 
 # provides which don't exist, and were obsoleted by something else which we've
