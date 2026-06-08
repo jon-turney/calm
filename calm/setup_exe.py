@@ -45,7 +45,7 @@ import re
 def extract_version(fn):
     # check the file exists
     if not os.path.exists(fn):
-        raise FileNotFoundError
+        return None
 
     # canonicalize the pathname
     fn = os.path.realpath(fn)

@@ -1328,15 +1328,15 @@ def write_setup_ini(args, packages, arch):
         print("arch: %s" % arch, file=f)
         print("setup-timestamp: %d" % tz, file=f)
 
+        # this token exists in the lexer, but not in the grammar up until
+        # 2.878 (when it was removed), so will cause a parse error with
+        # versions prior to that.
+        print("include-setup: setup <2.878 not supported", file=f)
+
+        # not implemented until 2.890, ignored by earlier versions
+        print("setup-minimum-version: 2.903", file=f)
+
         if args.setup_version:
-            # this token exists in the lexer, but not in the grammar up until
-            # 2.878 (when it was removed), so will cause a parse error with
-            # versions prior to that.
-            print("include-setup: setup <2.878 not supported", file=f)
-
-            # not implemented until 2.890, ignored by earlier versions
-            print("setup-minimum-version: 2.903", file=f)
-
             # for setup to check if a setup upgrade is possible
             print("setup-version: %s" % args.setup_version, file=f)
 

@@ -8,6 +8,8 @@
  'release: repo-label\n'
  'arch: x86_64\n'
  'setup-timestamp: 1680890562\n'
+ 'include-setup: setup <2.878 not supported\n'
+ 'setup-minimum-version: 2.903\n'
  '\n'
  '@ arc\n'
  'sdesc: "The ARC archive utility"\n'
