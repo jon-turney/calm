@@ -710,12 +710,16 @@ def write_package_listings(args, packages):
 
 if __name__ == "__main__":
     htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
+    pkglist_default = common_constants.PKGMAINT
     relarea_default = common_constants.FTP
+    repodir_default = '/git/cygwin-packages'
 
     parser = argparse.ArgumentParser(description='Write HTML package listings')
     parser.add_argument('--force', action='store_true', help="overwrite existing files")
     parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
+    parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='rel_area')
+    parser.add_argument('--repodir', action='store', metavar='DIR', help="packaging repositories directory (default: " + repodir_default + ")", default=repodir_default)
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't do anything")
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output')
     (args) = parser.parse_args()
@@ -726,4 +730,5 @@ if __name__ == "__main__":
     logging.basicConfig(format=os.path.basename(sys.argv[0]) + ': %(message)s')
 
     packages, _ = package.read_packages(args.rel_area)
-    write_doc_inc(args)
+    package.validate_packages(args, packages)
+    update_package_listings(args, packages)
