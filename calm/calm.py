@@ -647,6 +647,7 @@ def do_output(args, state):
 
     # update a marker file indicating when repository was updated
     # (for the benefit of quickly checking if mirrors are up to date)
+    update_json = True
     if update_json:
         utils.touch(os.path.join(args.rel_area, 'last-updated'))
 
@@ -655,7 +656,7 @@ def do_output(args, state):
 
     # write packages.json
     jsonfile = os.path.join(args.htdocs, 'packages.json.xz')
-    if update_json or not os.path.exists(jsonfile):
+    if True or update_json or not os.path.exists(jsonfile):
         with tempfile.NamedTemporaryFile(mode='wb', delete=False) as tmpfile:
             logging.debug('writing %s' % (tmpfile.name))
             with lzma.open(tmpfile, 'wt') as lzf:

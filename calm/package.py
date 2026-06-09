@@ -1368,9 +1368,15 @@ def packages_warnings(args, packages, *modified):
 # write setup.ini
 #
 def write_setup_ini(args, packages, arch):
-
     logging.debug('writing %s' % (args.inifile))
 
+    if arch in ['x86_64', 'x86']:
+        write_setup_ini_compatible(args, packages, arch)
+    else:
+        write_setup_ini_modern(args, packages, arch)
+
+
+def write_setup_ini_compatible(args, packages, arch):
     with open(args.inifile, 'w') as f:
         tz = time.time()
         # write setup.ini header
@@ -1574,6 +1580,150 @@ def write_setup_ini(args, packages, arch):
                             logging.warning("package '%s' version '%s' has no source in '%s'" % (pn, inst.vr, packages[s].orig_name))
 
                 if inst in po.iterator():
+                    hints = po.edition_hints(inst)
+                    if hints.get('depends', ''):
+                        print("depends2: %s" % ', '.join(hints.get('depends', [])), file=f)
+
+                    if hints.get('obsoletes', ''):
+                        print("obsoletes: %s" % ', '.join(hints['obsoletes']), file=f)
+
+                    if hints.get('provides', ''):
+                        print("provides: %s" % ', '.join(hints['provides']), file=f)
+
+                    if hints.get('conflicts', ''):
+                        print("conflicts: %s" % ', '.join(hints['conflicts']), file=f)
+
+
+def write_setup_ini_modern(args, packages, arch):
+    with open(args.inifile, 'w') as f:
+        tz = time.time()
+        # write setup.ini header
+        print(textwrap.dedent('''\
+        # This file was automatically generated at %s.
+        #
+        # If you edit it, your edits will be discarded next time the file is
+        # generated.
+        #
+        # See https://sourceware.org/cygwin-apps/setup.ini.html for a description
+        # of the format.''')
+              % (time.strftime("%F %T %Z", time.localtime(tz))),
+              file=f)
+
+        if args.release:
+            print("release: %s" % args.release, file=f)
+        print("arch: %s" % arch, file=f)
+        print("setup-timestamp: %d" % tz, file=f)
+
+        # this token exists in the lexer, but not in the grammar up until
+        # 2.878 (when it was removed), so will cause a parse error with
+        # versions prior to that.
+        print("include-setup: setup <2.878 not supported", file=f)
+
+        # not implemented until 2.890, ignored by earlier versions
+        print("setup-minimum-version: 2.939", file=f)
+
+        if args.setup_version:
+            # for setup to check if a setup upgrade is possible
+            print("setup-version: %s" % args.setup_version, file=f)
+
+        # list of packages which either have versions for this arch, or are
+        # source package for package which have versions in this arch
+        visible_packages = []
+        for po in packages.values():
+            if len(po.arch_iterator(arch)) > 0:
+                visible_packages.append(po.name)
+
+            for inst in po.arch_iterator(arch):
+                s = po.srcpackage(inst)
+                if s and s in packages:
+                    visible_packages.append(s)
+
+        # for each package
+        for pn in sorted(visible_packages, key=sort_key):
+            po = packages[pn]
+
+            # do nothing if not_for_output
+            if po.not_for_output:
+                continue
+
+            # write package data
+            print("\n@ %s" % pn, file=f)
+
+            bv = po.best_version
+            print("sdesc: %s" % po.edition_hints(bv)['sdesc'], file=f)
+
+            if 'ldesc' in po.edition_hints(bv):
+                print("ldesc: %s" % po.edition_hints(bv)['ldesc'], file=f)
+
+            # mark orphaned packages with the 'unmaintained' pseudo-category
+            category = po.edition_hints(bv)['category']
+            if po.orphaned:
+                category += ' unmaintained'
+            # for historical reasons, category names must start with a capital
+            # letter
+            category = ' '.join(map(upper_first_character, category.split()))
+            print("category: %s" % category, file=f)
+
+            if 'message' in po.edition_hints(bv):
+                print("message: %s" % po.edition_hints(bv)['message'], file=f)
+
+            if 'replace-versions' in po.override_hints:
+                print("replace-versions: %s" % po.override_hints['replace-versions'], file=f)
+
+            # write the section for each version
+            first_tag = True
+            for inst in sorted(po.iterator(), reverse=True):
+                if inst.arch not in [arch, 'noarch', 'src']:
+                    continue
+
+                if 'test' in po.edition_hints(inst):
+                    tag = 'test'
+                elif first_tag:
+                    tag = 'curr'
+                    first_tag = False
+                else:
+                    tag = 'prev'
+
+                print("[%s]" % tag, file=f)
+                print("version: %s" % inst.vr, file=f)
+
+                if po.kind == Kind.source:
+                    tar_line(po, 'source', inst, f)
+
+                    src_hints = po.edition_hints(inst)
+                    bd = src_hints.get('build-depends', [])
+
+                    # Ideally, we'd transform dependency atoms which aren't
+                    # cygwin package names into package names. For the moment,
+                    # we don't have the information to do that, so filter them
+                    # all out.
+                    bd = [atom for atom in bd if '(' not in atom]
+
+                    if bd:
+                        print("build-depends: %s" % ', '.join(bd), file=f)
+
+                else:
+                    # otherwise, Kind.binary
+
+                    tar_line(po, 'install', inst, f)
+                    is_empty = po.edition_tar(inst).is_empty
+
+                    # follow external-source
+                    s = po.srcpackage(inst)
+                    if s not in packages:
+                        s = None
+
+                    # external-source points to a source archive in another package
+                    if s:
+                        src_inst = EditionIndex('src', inst.vr)
+                        if src_inst in packages[s].iterator():
+                            # emit a 'srcpkg:' line referencing the source package
+                            # (the source package must also be emitted).
+                            print("srcpkg: %s" % s, file=f)
+                        else:
+                            if not (is_empty or packages[s].orig_name in past_mistakes.self_source):
+                                logging.warning("package '%s' version '%s' has no source in '%s'" % (pn, inst.vr, packages[s].orig_name))
+
                     hints = po.edition_hints(inst)
                     if hints.get('depends', ''):
                         print("depends2: %s" % ', '.join(hints.get('depends', [])), file=f)
