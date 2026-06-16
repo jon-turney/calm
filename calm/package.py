@@ -1753,7 +1753,10 @@ def mark_fn(packages, po, v, certain_age, vault_requests):
         provides = po.hints(v).get('provides', [])
         if '_self-destruct' not in provides:
             logging.debug("obsoletion package '%s' version '%s' not retained as old-style" % (pn, v))
-            return (Freshness.conditional, False)
+            if pn.startswith('python3-'):
+                return (Freshness.conditional, False)
+            else:
+                return (Freshness.stale, False)
 
     es = po.srcpackage(v, suffix=False)
     # - if package depends on anything in expired_provides
