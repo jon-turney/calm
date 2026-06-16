@@ -1888,14 +1888,14 @@ def stale_packages(packages, vault_requests):
                 if mark == Freshness.conditional:
                     mark = Freshness.stale
 
-                po.tar(v).fresh = mark
+                mark_package_fresh(packages, po.name, v, mark)
 
                 # update install packages which use this source package to the
                 # matching state
                 for ip in po.is_used_by:
                     if v in packages[ip].versions():
                         if getattr(packages[ip].tar(v), 'fresh', Freshness.stale) == Freshness.conditional:
-                            packages[ip].tar(v).fresh = mark
+                            mark_package_fresh(packages, ip, v, mark)
 
     # build a move list of stale versions
     stale = MoveList()
