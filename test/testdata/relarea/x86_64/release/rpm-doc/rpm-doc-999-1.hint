@@ -1,2 +1,3 @@
 sdesc: "Obsolete package for RPM package management system manual pages (extra text to so repr is not one line)"
 category: _obsolete
+requires: base-cygwin

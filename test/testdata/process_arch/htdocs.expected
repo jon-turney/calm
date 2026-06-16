@@ -131,7 +131,6 @@
              'per-version.html',
              'perl-Net-SMTP-SSL-src.html',
              'perl-Net-SMTP-SSL.html',
-             'rpm-doc.html',
              'staleversion-src.html',
              'staleversion.html',
              'test-c-src.html',
@@ -160,7 +159,6 @@
  'x86_64/openssh': ['.htaccess', 'openssh-7.2p2-1'],
  'x86_64/per-version': ['.htaccess', 'per-version-4.0-1', 'per-version-4.8-1', 'per-version-5.0-1'],
  'x86_64/per-version-replacement-hint-only': ['.htaccess', 'per-version-replacement-hint-only-1.0-1'],
- 'x86_64/rpm-doc': ['.htaccess', 'rpm-doc-999-1'],
  'x86_64/staleversion': ['.htaccess', 'staleversion-243-0', 'staleversion-250-0', 'staleversion-260-0'],
  'x86_64/testpackage': ['.htaccess', 'testpackage-1.0-1'],
  'x86_64/testpackage-subpackage': ['.htaccess', 'testpackage-subpackage-1.0-1']}
