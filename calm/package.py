@@ -1654,21 +1654,21 @@ def write_setup_ini_modern(args, packages, arch):
             print("setup-version: %s" % args.setup_version, file=f)
 
         # list of packages which (i) are available to this arch (noarch packages
-        # where the dependcies also exist), (ii) have versions for this arch, or
-        # (iii) are a source package for package which have versions in this
+        # where the dependencies also exist), (ii) have versions for this arch,
+        # or (iii) are a source package for package which have versions in this
         # arch
-        visible_packages = []
+        visible_packages = set()
         for po in packages.values():
             if arch in po.unavailable_arch:
                 continue
 
             if len(po.arch_iterator(arch)) > 0:
-                visible_packages.append(po.name)
+                visible_packages.add(po.name)
 
             for inst in po.arch_iterator(arch):
                 s = po.srcpackage(inst)
                 if s and s in packages:
-                    visible_packages.append(s)
+                    visible_packages.add(s)
 
         # for each package
         for pn in sorted(visible_packages, key=sort_key):
