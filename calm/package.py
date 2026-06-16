@@ -855,6 +855,7 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
             packages[p].build_rdepends = set()
             packages[p].obsoleted_by = set()
             packages[p].orphaned = False
+            packages[p].unavailable_arch = set()
 
     # it's also valid to requires: packages which are named in a synthetic
     # obsoletes:
@@ -898,6 +899,32 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
                                 logging.error("package '%s' version '%s' %s: '%s', but nothing satisfies that" % (p, inst, c, r))
                                 error = True
                             continue
+
+                        # depended packages must be available in an arch-
+                        # compatible edition
+                        if (c == 'depends') and (r in packages):
+                            avail_arches = packages[r].arches()
+
+                            # noarch packages are always good, otherwise...
+                            if 'noarch' not in avail_arches:
+                                # ... check if it's available in all required arches
+                                if inst.arch != 'noarch':
+                                    required_arches = [inst.arch]
+                                    mark_unavailable = False
+                                else:
+                                    required_arches = common_constants.ARCHES
+                                    mark_unavailable = True
+
+                                for a in required_arches:
+                                    if a not in avail_arches:
+                                        if mark_unavailable:
+                                            # for the moment, if it's required by a noarch package, instead of an
+                                            # error, we just internally mark this package as unavailable on that arch
+                                            packages[p].unavailable_arch.add(a)
+                                            logging.debug("package '%s' version '%s' needs a '%s' compatible '%s', but nothing satisfies that, marked unavailable" % (p, inst, a, r))
+                                        else:
+                                            logging.error("package '%s' version '%s' needs a '%s' compatible '%s', but nothing satisfies that" % (p, inst, a, r))
+                                            error = True
 
                         # package relation hint referencing a source package makes no sense
                         if r in packages and packages[r].kind == Kind.source:
@@ -1629,11 +1656,16 @@ def write_setup_ini_modern(args, packages, arch):
             # for setup to check if a setup upgrade is possible
             print("setup-version: %s" % args.setup_version, file=f)
 
-        # list of packages which either have versions for this arch, or are
-        # source package for package which have versions in this arch
+        # list of packages which (i) are available to this arch (noarch packages
+        # where the dependencies also exist), (ii) have versions for this arch,
+        # or (iii) are a source package for package which have versions in this
+        # arch
         visible_packages = set()
 
         for po in packages.values():
+            if arch in po.unavailable_arch:
+                continue
+
             if len(po.arch_iterator(arch)) > 0:
                 visible_packages.add(po.name)
 
