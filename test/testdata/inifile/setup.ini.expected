@@ -434,6 +434,7 @@
  'version: 999-1\n'
  'install: x86_64/release/rpm-doc/rpm-doc-999-1.tar.bz2 42 '
  '28c70b843fe01d90a3eeab4a3617551d236cd0b7d69668d1b1b6c8b14a9fd050e4039c192894c93bdf31575771c58c1fea2a41c24c8da22d10080d8b032b6369\n'
+ 'depends2: base-cygwin\n'
  '[prev]\n'
  'version: 4.1-2\n'
  'install: x86_64/release/rpm-doc/rpm-doc-4.1-2.tar.bz2 50941 '
