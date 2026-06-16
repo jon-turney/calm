@@ -443,7 +443,7 @@ class CalmTest(unittest.TestCase):
                 compare_with_expected_file(self, 'testdata/upload_bad_auth', dirlist, d)
                 shutil.rmtree(getattr(args, d))
 
-    def test_process(self):
+    def test_process_normal(self):
         self.maxDiff = None
 
         args = types.SimpleNamespace()
