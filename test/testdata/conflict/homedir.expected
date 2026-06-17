@@ -1,8 +1,8 @@
 {'.': [],
  'Blooey McFooey': [],
+ 'Blooey McFooey/src': [],
+ 'Blooey McFooey/src/release': [],
+ 'Blooey McFooey/src/release/staleversion': ['staleversion-230-1-src.hint', 'staleversion-230-1-src.tar.xz'],
  'Blooey McFooey/x86_64': [],
  'Blooey McFooey/x86_64/release': [],
- 'Blooey McFooey/x86_64/release/staleversion': ['staleversion-230-1-src.hint',
-                                                'staleversion-230-1-src.tar.xz',
-                                                'staleversion-230-1.hint',
-                                                'staleversion-230-1.tar.xz']}
+ 'Blooey McFooey/x86_64/release/staleversion': ['staleversion-230-1.hint', 'staleversion-230-1.tar.xz']}

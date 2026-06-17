@@ -332,6 +332,9 @@ class CalmTest(unittest.TestCase):
         for (f, t) in ready_fns:
             os.system('touch %s "%s"' % (t, f))
 
+        replicated_ready_files = [f for (f, t) in ready_fns] + [f.replace('x86_64', 'src') for (f, t) in ready_fns]
+
+        uploads.move_srcpkg_to_src('testdata/homes', m, args)
         scan_result = uploads.scan('testdata/homes', m, pkglist + ['not-on-maintainer-list'], args)
 
         os.chdir(oldcwd)
@@ -340,7 +343,7 @@ class CalmTest(unittest.TestCase):
         self.assertEqual(scan_result.error, False)
         compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.to_relarea.movelist), 'move')
         self.assertCountEqual(scan_result.to_vault.movelist, {'x86_64/release/testpackage': ['x86_64/release/testpackage/testpackage-0.1-1.tar.bz2']})
-        self.assertCountEqual(scan_result.remove_always, [f for (f, t) in ready_fns])
+        self.assertCountEqual(scan_result.remove_always, replicated_ready_files)
         self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86_64/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86_64/release/testpackage/-testpackage-0.1-1.tar.bz2'])
         with pprint_patch():
             compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.packages), 'pkglist')

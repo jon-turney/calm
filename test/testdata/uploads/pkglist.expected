@@ -4,7 +4,7 @@
           'Like it’s you’re Markup Language™ Nokogiri’s tool―that Bézier."',
  'category': 'Devel',
  'depends': ['cygwin']})}, {}, False),
- 'testpackage-src': Package('testpackage-src', {'1.0-1': Tar('testpackage-1.0-1-src.tar.bz2', 'x86_64/release/testpackage', 'acfd77df3347e6432ccf29c12989964bc680a158d574f85dfa7ef222759f411006c7bd2773e37c5abdee628bea769b2da9aae213db615cd91402fd385373933d', 266, False)}, {'1.0-1': Hint('testpackage-1.0-1-src.hint', {'sdesc': '"A test package"',
+ 'testpackage-src': Package('testpackage-src', {'1.0-1': Tar('testpackage-1.0-1-src.tar.bz2', 'src/release/testpackage', 'acfd77df3347e6432ccf29c12989964bc680a158d574f85dfa7ef222759f411006c7bd2773e37c5abdee628bea769b2da9aae213db615cd91402fd385373933d', 266, False)}, {'1.0-1': Hint('testpackage-1.0-1-src.hint', {'sdesc': '"A test package"',
  'ldesc': '"A test package\n'
           "It's description might contains some unicode junk\n"
           'Like it’s you’re Markup Language™ Nokogiri’s tool―that Bézier."',
@@ -21,7 +21,7 @@
  'sdesc': '"test package (zstd compressed)"',
  'ldesc': '"test package (zstd compressed)"',
  'depends': []})}, {}, False),
- 'testpackage-zstd-src': Package('testpackage-zstd-src', {'1.0-1': Tar('testpackage-zstd-1.0-1-src.tar.zst', 'x86_64/release/testpackage-zstd', '90561ec4dad76268773856cbdda891b0e7b53f26492777f1ff76757844cb47124396feb76f1e30bc1baa680f1d788de21d89e612faeb30b5039b210ca9186434', 313, False)}, {'1.0-1': Hint('testpackage-zstd-1.0-1-src.hint', {'category': 'Base',
+ 'testpackage-zstd-src': Package('testpackage-zstd-src', {'1.0-1': Tar('testpackage-zstd-1.0-1-src.tar.zst', 'src/release/testpackage-zstd', '90561ec4dad76268773856cbdda891b0e7b53f26492777f1ff76757844cb47124396feb76f1e30bc1baa680f1d788de21d89e612faeb30b5039b210ca9186434', 313, False)}, {'1.0-1': Hint('testpackage-zstd-1.0-1-src.hint', {'category': 'Base',
  'build-depends': ['cygport'],
  'sdesc': '"test package (zstd compressed)"',
  'ldesc': '"test package (zstd compressed)"',

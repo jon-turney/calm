@@ -168,6 +168,8 @@ def process_uploads(args, state):
 
 
 def process_maintainer_uploads(args, state, all_packages, m, basedir, desc, scrub=False, record=None):
+    uploads.move_srcpkg_to_src(basedir, m, args)
+
     success = True
     logging.debug("reading uploaded packages from maintainer %s" % (m.name))
 

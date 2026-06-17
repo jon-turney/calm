@@ -29,6 +29,7 @@ import filecmp
 import logging
 import os
 import re
+import shutil
 import time
 
 import xtarfile
@@ -36,6 +37,7 @@ import xtarfile
 from . import common_constants
 from . import fixes
 from . import package
+from . import utils
 from .movelist import MoveList
 
 # reminders will be issued weekly
@@ -56,8 +58,52 @@ class ScanResult:
 
 
 #
+# move source packages to src/
 #
-#
+
+def move_srcpkg_to_src(scandir, m, args):
+    homedir = os.path.join(scandir, m.name)
+    logging.debug('fixing packages in %s' % (homedir))
+
+    def wrangle_path(relpath):
+        newpath = re.sub('.*?/', 'src/', relpath, count=1)
+        newpath = os.path.join(homedir, newpath)
+        return newpath
+
+    replicate_ready = False
+
+    for (dirpath, _subdirs, files) in os.walk(homedir):
+        relpath = os.path.relpath(dirpath, homedir)
+
+        for f in sorted(files):
+            match = re.match(r'^([^-].*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
+            if match:
+                # move source files to 'src' path (if different)
+                newpath = wrangle_path(relpath)
+                if newpath != dirpath:
+                    utils.makedirs(newpath)
+                    logging.info("moving %s to %s" % (f, newpath))
+                    shutil.move(os.path.join(dirpath, f), os.path.join(newpath, f))
+
+                    # also move src.hint, if present
+                    src_hint = match.group(1) + '-src.hint'
+                    if src_hint in files:
+                        shutil.move(os.path.join(dirpath, src_hint), os.path.join(newpath, src_hint))
+
+                    replicate_ready = True
+
+    # if we moved any files, also copy !ready files
+    if replicate_ready:
+        for (dirpath, _subdirs, files) in os.walk(homedir):
+            relpath = os.path.relpath(dirpath, homedir)
+            if '!ready' in files:
+                newpath = wrangle_path(relpath)
+                ready = os.path.join(newpath, '!ready')
+                if not os.path.exists(ready):
+                    utils.makedirs(newpath)
+                    logging.info("copying %s" % ready)
+                    shutil.copy2(os.path.join(dirpath, '!ready'), ready)
+
 
 def scan(scandir, m, all_packages, args):
     homedir = os.path.join(scandir, m.name)
