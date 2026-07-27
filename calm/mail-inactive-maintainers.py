@@ -102,12 +102,14 @@ def main(args):
 
 
 if __name__ == "__main__":
+    htdocs_default = os.path.join(common_constants.HTDOCS, 'packages')
     relarea_default = common_constants.FTP
     homedir_default = common_constants.HOMEDIR
     pkglist_default = common_constants.PKGMAINT
 
     parser = argparse.ArgumentParser(description='Send mail to inactive maintainers')
     parser.add_argument('--homedir', action='store', metavar='DIR', help="maintainer home directory (default: " + homedir_default + ")", default=homedir_default)
+    parser.add_argument('--htdocs', action='store', metavar='DIR', help="htdocs output directory (default: " + htdocs_default + ")", default=htdocs_default)
     parser.add_argument('--pkglist', action='store', metavar='FILE', help="package maintainer list (default: " + pkglist_default + ")", default=pkglist_default)
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
     parser.add_argument('-n', '--dry-run', action='store_true', dest='dryrun', help="don't send mails")
