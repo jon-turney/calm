@@ -1506,7 +1506,11 @@ def write_setup_ini(args, packages, arch):
                         print("obsoletes: %s" % ', '.join(hints['obsoletes']), file=f)
 
                     if hints.get('provides', ''):
-                        print("provides: %s" % ', '.join(hints['provides']), file=f)
+                        # this is a work-around for an overcautious
+                        # implementation in setup, which defaults provides to
+                        # obsoletes, but does not implicitly add them if
+                        # provides has an explicit value
+                        print("provides: %s" % ', '.join(hints['provides'] + hints.get('obsoletes', [])), file=f)
 
                     if hints.get('conflicts', ''):
                         print("conflicts: %s" % ', '.join(hints['conflicts']), file=f)
