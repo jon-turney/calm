@@ -77,6 +77,17 @@ def filenameify(m):
     return 'maintainer_' + re.sub(r'[ .]', r'_', m.lower()) + '.html'
 
 
+def maintainer_link(m):
+    return '<a href="%s">%s</a>' % (filenameify(m), m)
+
+
+def linkify_maintainers(mp):
+    if mp.is_orphaned():
+        return 'ORPHANED'
+    else:
+        return ','.join(maintainer_link(m) for m in mp.maintainers())
+
+
 def status(s):
     if s < 0:
         style = "red"
@@ -392,9 +403,6 @@ def maintainer_activity_report(args, packages, reportlist):
         def pkg_details(pkgs):
             return '<details><summary>%d</summary>%s</details>' % (len(pkgs), ', '.join(linkify(p, packages[p]) for p in pkgs))
 
-        def maintainer_link(m):
-            return '<a href="%s">%s</a>' % (filenameify(m), m)
-
         print('<tr><td>%s</td><td sorttable_customkey="%d">%s</td><td>%s</td><td>%s</td></tr>' %
               (maintainer_link(a.name), len(a.pkgs), pkg_details(a.pkgs), pkg2html.tsformat(a.last_seen), pkg2html.tsformat(a.last_package)), file=body)
 
@@ -408,6 +416,7 @@ def maintainer_activity_report(args, packages, reportlist):
 #
 def provides_rebuild(args, packages, fn, provide_package, reportlist):
     pr_list = []
+    pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     pp_package = packages.get(provide_package, None)
     pp_provide = None
@@ -447,6 +456,10 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
                 pr.depends = d
                 pr.bv = bv
 
+                pr.maintainers = []
+                if pr.spo.orig_name in pkg_maintainers:
+                    pr.maintainers = pkg_maintainers[pr.spo.orig_name]
+
                 pr_list.append(pr)
                 break
 
@@ -454,11 +467,11 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
     print('<p>Packages whose latest version depends on a version provides: other than %s.</p>' % pp_provide, file=body)
 
     print('<table class="grid sortable">', file=body)
-    print('<tr><th>package</th><th>srcpackage</th><th>version</th><th>depends</th></tr>', file=body)
+    print('<tr><th>package</th><th>srcpackage</th><th>Maintainer</th><th>version</th><th>depends</th></tr>', file=body)
 
     for pr in sorted(pr_list, key=lambda i: (i.depends, i.pn)):
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends), file=body)
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), linkify_maintainers(pr.maintainers), pr.bv, pr.depends), file=body)
 
     print('</table>', file=body)
 
