@@ -482,6 +482,7 @@ def provides_rebuild(args, packages, fn, provide_package, reportlist):
 # non-latest version of python
 def python_rebuild(args, packages, fn, reportlist):
     pr_list = []
+    pkg_maintainers = maintainers.pkg_list(args.pkglist)
 
     # assume that python3 depends only on the latest python3n package
     py_package = packages.get('python3', None)
@@ -542,6 +543,10 @@ def python_rebuild(args, packages, fn, reportlist):
             pr.depends_ver = int(d[6:])
             pr.bv = bv
 
+            pr.maintainers = []
+            if pr.spo.orig_name in pkg_maintainers:
+                pr.maintainers = pkg_maintainers[pr.spo.orig_name]
+
             pr_list.append(pr)
 
             break
@@ -565,17 +570,21 @@ def python_rebuild(args, packages, fn, reportlist):
         pr.depends_ver = highest_ver
         pr.bv = pr.po.best_version
 
+        pr.maintainers = []
+        if pr.spo.orig_name in pkg_maintainers:
+            pr.maintainers = pkg_maintainers[pr.spo.orig_name]
+
         pr_list.append(pr)
 
     body = io.StringIO()
     print('<p>Packages for python module or binding for, or linkage to, a python version other than %s.</p>' % latest_py, file=body)
 
     print('<table class="grid sortable">', file=body)
-    print('<tr><th>package</th><th>srcpackage</th><th>version</th><th sorttable_columntype="numeric">depends</th></tr>', file=body)
+    print('<tr><th>package</th><th>srcpackage</th><th>maintainer</th><th>version</th><th sorttable_columntype="numeric">depends</th></tr>', file=body)
 
     for pr in sorted(pr_list, key=lambda i: (i.depends_ver, i.pn)):
-        print('<tr><td>%s</td><td>%s</td><td>%s</td><td sorttable_customkey="%s">%s</td></tr>' %
-              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), pr.bv, pr.depends_ver, pr.depends), file=body)
+        print('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td sorttable_customkey="%s">%s</td></tr>' %
+              (linkify(pr.pn, pr.po), linkify(pr.spn, pr.spo), linkify_maintainers(pr.maintainers), pr.bv, pr.depends_ver, pr.depends), file=body)
 
     print('</table>', file=body)
 
