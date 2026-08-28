@@ -670,7 +670,7 @@ def do_output(args, state):
             pass
 
     # write reports
-    if (update_json or args.force) and args.reports:
+    if True:
         reports.do_reports(args, state.packages)
 
     # update packages listings
