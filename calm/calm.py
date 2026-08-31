@@ -742,10 +742,18 @@ def do_daemon(args, state):
 
         state.packages = {}
 
+        # block for one minute until we see an actionable events, then block for
+        # one second to allow us to wait until a flurry of events goes quiescent
+        # before we start processing
+        def block_duration():
+            if actionable_event:
+                return 1
+            return 60
+
         # watch for changes in relarea, upload and staging directories
         i = inotify.adapters.InotifyTrees([args.rel_area, args.homedir, args.stagingdir],
                                           mask=inotify.constants.IN_CREATE | inotify.constants.IN_DELETE | inotify.constants.IN_CLOSE_WRITE | inotify.constants.IN_ATTRIB | inotify.constants.IN_MOVED_TO,
-                                          block_duration_s=60)
+                                          block_duration_s=block_duration)
 
         try:
             while running:
@@ -785,12 +793,8 @@ def do_daemon(args, state):
                 depth = args.rel_area.count(os.path.sep) + 1
 
                 try:
-                    # It would be nice to use inotify.adaptor's timeout feature so
-                    # we go at least a few seconds without events, to ensure that we
-                    # don't start processing in the middle of a flurry of events.
-                    # Unfortunately, that goes back to waiting for the full
-                    # block_duration_s if timeout hasn't expired...
-                    for event in i.event_gen(yield_nones=True):
+                    actionable_event = False
+                    for event in i.event_gen(timeout_s=1):
                         if event is not None:
                             logging.debug("inotify event %s" % str(event))
                             saw_events = True
@@ -804,10 +808,19 @@ def do_daemon(args, state):
                                 action |= Event.read_uploads
                             elif (path.startswith(args.homedir)) and (filename == ".sftp-session-close"):
                                 action |= Event.read_uploads
+
+                            # once we see an actionable event, go into timeout
+                            # mode to wait for the end of a potential flurry of
+                            # events.
+                            if action:
+                                actionable_event = True
                         else:
-                            # None means no more events are currently available, so
-                            # break to process actions
-                            break
+                            pass
+                            # None just means that we've consumed what epoll()
+                            # gave us, it doesn't mean "no more events". We
+                            # continue to iterate over events from generator
+                            # until it stops, when we reach the timeout.
+
                 except inotify.calls.InotifyError:
                     # can occur if a just created directory is (re)moved before
                     # we set a watch on it
