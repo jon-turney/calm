@@ -75,12 +75,20 @@ def python_virtual_migrate(args, dirpath, hintfile, modules):
     updated = 'python' + args.pyversion + '-' + module_name
     if requires[0] == updated:
         logging.info('%s is already has correct requires:' % (hintfile))
-        return
-
-    if re.match(r'python\d+-' + module_name, requires[0]):
+    elif re.match(r'python\d+-' + module_name, requires[0]):
         requires[0] = updated
         hints['requires'] = ' '.join(requires)
         modified = True
+    else:
+        logging.error('Unexpected requires: %s in virtual package %s' % (requires[0], hintfile))
+        return
+
+    for h in ['sdesc', 'ldesc']:
+        desc = hints[h]
+        new_desc = re.sub(r'python\d{2,}', 'python' + args.pyversion, desc)
+        if new_desc != desc:
+            hints[h] = new_desc
+            modified = True
 
     if not modified:
         return
@@ -90,7 +98,7 @@ def python_virtual_migrate(args, dirpath, hintfile, modules):
     # write updated hints
     shutil.copy2(fn, fn + '.bak')
     hint.hint_file_write(fn, hints)
-    if args.verbose:
+    if args.diffs:
         os.system('/usr/bin/diff -uBZ %s %s' % (fn + '.bak', fn))
 
 
@@ -137,6 +145,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Update python virtual package requires: for latest python version')
     parser.add_argument('--pyversion', action='store', dest='pyversion', help='target python version', required=True)
     parser.add_argument('-v', '--verbose', action='count', dest='verbose', help='verbose output', default=0)
+    parser.add_argument('--diffs', action='store_true', help='show diffs of changes made')
     parser.add_argument('--releasearea', action='store', metavar='DIR', help="release directory (default: " + relarea_default + ")", default=relarea_default, dest='relarea')
     (args) = parser.parse_args()
 
