@@ -29,7 +29,6 @@ import filecmp
 import logging
 import os
 import re
-import shutil
 import time
 
 import xtarfile
@@ -183,23 +182,12 @@ def scan(scandir, m, all_packages, args):
             match = re.match(r'^([^-].*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 pvr = match.group(1)
-                old = pvr + '.hint'
-                new = pvr + '-src.hint'
-                # see if we can fix-up missing -src.hint file
-                if (old in files) and (new not in files):
-                    logging.warning("copying '%s' to '%s'" % (old, new))
-                    shutil.copy2(os.path.join(dirpath, old), os.path.join(dirpath, new))
-                    files.append(new)
-                    if f.replace('-src', '') not in files:
-                        logging.info("discarding '%s'" % (old))
-                        files.remove(old)
-                        remove.append(os.path.join(dirpath, old))
+                src_hint = pvr + '-src.hint'
 
                 # see if we can fix-up missing homepage: in -src.hint file
                 # check homepage: for liveliness and redirection
-                # discard any keys which are invalid in a -src.hint
-                if (new in files):
-                    fixes.fix_hint(dirpath, new, f, ['homepage', 'invalid_keys'])
+                if (src_hint in files):
+                    fixes.fix_hint(dirpath, src_hint, f, ['homepage'])
 
         # filter out files we don't need to consider
         for f in sorted(files):
