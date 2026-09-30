@@ -172,33 +172,12 @@ def scan(scandir, m, all_packages, args):
 
         # see if we can fix-up any setup.hint files
         pvr = None
-        ambiguous = False
-        seen = False
 
         for f in sorted(files):
-            # warn about legacy setup.hint uploads
+            # reject setup.hint uploads
             if f == 'setup.hint':
-                logging.warning("'%s' seen, please update to cygport >= 0.23.0" % f)
-                seen = True
-
-            match = re.match(r'^([^-].*?)(-src|)\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
-            if match:
-                if (pvr is not None) and (pvr != match.group(1)):
-                    ambiguous = True
-
-                pvr = match.group(1)
-
-        if seen:
-            if ambiguous or (pvr is None):
-                error = True
-                logging.error("'setup.hint' seen in %s, and couldn't determine what version it applies to", dirpath)
-            else:
-                old = "setup.hint"
-                new = pvr + ".hint"
-                logging.warning("renaming '%s' to '%s'" % (old, new))
-                os.rename(os.path.join(dirpath, old), os.path.join(dirpath, new))
-                files.remove(old)
-                files.append(new)
+                logging.error("'%s' ignored, please update to cygport >= 0.23.0" % f)
+                files.remove(f)
 
         for f in sorted(files):
             match = re.match(r'^([^-].*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
