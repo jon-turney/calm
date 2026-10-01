@@ -1279,6 +1279,12 @@ def validate_packages(args, packages, valid_provides_extra=None, missing_obsolet
 
     assign_importance(packages)
 
+    # XXX: temporarily mark all packages not of base or basedep importance
+    # unavailable on aarch64
+    for po in packages.values():
+        if po.importance >= Importance.normal:
+            po.unavailable_arch.add('aarch64')
+
     return not error
 
 
