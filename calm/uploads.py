@@ -88,6 +88,7 @@ def move_srcpkg_to_src(scandir, m, args):
                     # also move src.hint, if present
                     src_hint = match.group(1) + '-src.hint'
                     if src_hint in files:
+                        logging.info("moving %s to %s" % (src_hint, newpath))
                         shutil.move(os.path.join(dirpath, src_hint), os.path.join(newpath, src_hint))
 
                     replicate_ready = True
@@ -101,7 +102,7 @@ def move_srcpkg_to_src(scandir, m, args):
                 ready = os.path.join(newpath, '!ready')
                 if not os.path.exists(ready):
                     utils.makedirs(newpath)
-                    logging.info("copying %s" % ready)
+                    logging.debug("setting %s" % ready)
                     shutil.copy2(os.path.join(dirpath, '!ready'), ready)
 
 
