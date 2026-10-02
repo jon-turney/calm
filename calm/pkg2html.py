@@ -151,7 +151,7 @@ def update_package_listings(args, packages):
             text = re.sub(re.escape(p), pn, pkg)
             return '<a href="%s.html">%s</a>' % (p, text)
         logging.debug('package linkification failed for %s' % p)
-        return p
+        return pkg
 
     now = time.time()
 
