@@ -25,15 +25,73 @@
 # test helper functions
 #
 
+import collections
+import contextlib
 import os
 import pprint
+
+
+#
+# a context to monkey-patch pprint so a multi-line OrderedDict repr appears as
+# with python <3.5 (a dict, with lines ordered)
+#
+@contextlib.contextmanager
+def pprint_patch():
+    if isinstance(getattr(pprint.PrettyPrinter, '_dispatch', None), dict):
+        orig = pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__]
+        pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = patched_pprint_ordered_dict
+        try:
+            yield
+        finally:
+            pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = orig
+    else:
+        yield
+
+
+def patched_pprint_ordered_dict(self, obj, stream, indent, allowance, context, level):
+    write = stream.write
+    write('{')
+    if self._indent_per_level > 1:
+        write((self._indent_per_level - 1) * ' ')
+    length = len(obj)
+    if length:
+        items = list(obj.items())
+        self._format_dict_items(items, stream, indent, allowance + 1,
+                                context, level)
+    write('}')
+
+
+#
+# For python 3.12 a further change is needed so single-line OrderedDict appeads
+# as a list of tuples rather than a dict
+#
+class CustomPrettyPrinter(pprint.PrettyPrinter):
+    def format(self, obj, context, maxlevels, level):
+        # special formatting for OrderedDict
+        if isinstance(obj, collections.OrderedDict):
+            return self.repr_ordered_dict(obj), True, False
+        # Otherwise, use default behaviour
+        return pprint.PrettyPrinter.format(self, obj, context, maxlevels, level)
+
+    def repr_ordered_dict(self, obj):
+        if len(obj):
+            output = 'OrderedDict('
+            items = list(obj.items())
+            output += self.pformat(items)
+            output += ')'
+        else:
+            output = 'OrderedDict()'
+
+        return output
 
 
 # write results to the file 'results'
 # read expected from the file 'expected'
 # compare them
 def compare_with_expected_file(test, dirpath, results, basename=None):
-    results_str = pprint.pformat(results, width=120)
+    with pprint_patch():
+        custom_pretty_printer = CustomPrettyPrinter(width=120)
+        results_str = custom_pretty_printer.pformat(results)
 
     if basename:
         results_fn = basename + '.results'

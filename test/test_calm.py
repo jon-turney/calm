@@ -26,13 +26,11 @@
 #
 
 import collections
-import contextlib
 import filecmp
 import io
 import json
 import logging
 import os
-import pprint
 import re
 import shutil
 import tempfile
@@ -72,37 +70,6 @@ def capture_dirtree(basedir):
 
 
 #
-# a context to monkey-patch pprint so OrderedDict appears as with python <3.5
-# (a dict, with lines ordered, rather than OrderedDict repr)
-#
-
-def patched_pprint_ordered_dict(self, obj, stream, indent, allowance, context, level):
-    write = stream.write
-    write('{')
-    if self._indent_per_level > 1:
-        write((self._indent_per_level - 1) * ' ')
-    length = len(obj)
-    if length:
-        items = list(obj.items())
-        self._format_dict_items(items, stream, indent, allowance + 1,
-                                context, level)
-    write('}')
-
-
-@contextlib.contextmanager
-def pprint_patch():
-    if isinstance(getattr(pprint.PrettyPrinter, '_dispatch', None), dict):
-        orig = pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__]
-        pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = patched_pprint_ordered_dict
-        try:
-            yield
-        finally:
-            pprint.PrettyPrinter._dispatch[collections.OrderedDict.__repr__] = orig
-    else:
-        yield
-
-
-#
 #
 #
 
@@ -128,8 +95,7 @@ class CalmTest(unittest.TestCase):
                     with self.subTest(package=os.path.basename(dirpath)):
                         logging.info('Reading %s' % os.path.join(dirpath, f))
                         results = hint.hint_file_parse(os.path.join(dirpath, f), kind)
-                        with pprint_patch():
-                            compare_with_expected_file(self, expected, results, name)
+                        compare_with_expected_file(self, expected, results, name)
 
 #
 # something like "find -name results -execdir cp results expected \;" can be
@@ -345,8 +311,7 @@ class CalmTest(unittest.TestCase):
         self.assertCountEqual(scan_result.to_vault.movelist, {'x86_64/release/testpackage': ['x86_64/release/testpackage/testpackage-0.1-1.tar.bz2']})
         self.assertCountEqual(scan_result.remove_always, replicated_ready_files)
         self.assertEqual(scan_result.remove_success, ['testdata/homes/Blooey McFooey/x86_64/release/testpackage/-testpackage-0.1-1-src.tar.bz2', 'testdata/homes/Blooey McFooey/x86_64/release/testpackage/-testpackage-0.1-1.tar.bz2'])
-        with pprint_patch():
-            compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.packages), 'pkglist')
+        compare_with_expected_file(self, 'testdata/uploads', dict(scan_result.packages), 'pkglist')
 
     def test_package_set(self):
         self.maxDiff = None
