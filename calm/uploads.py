@@ -71,24 +71,50 @@ def move_srcpkg_to_src(scandir, m, args):
         return newpath
 
     replicate_ready = False
+    mtimes = [('', 0)]
 
     for (dirpath, _subdirs, files) in os.walk(homedir):
         relpath = os.path.relpath(dirpath, homedir)
 
+        # note the mtime of the !ready file
+        if '!ready' in files:
+            ready = os.path.join(dirpath, '!ready')
+            mtime = os.path.getmtime(ready)
+            mtimes.append((relpath + '/', mtime))
+            logging.debug("processing files below '%s' with mtime older than %d" % (relpath, mtime))
+        else:
+            # otherwise work back up a list of (path,mtimes) (which should be in
+            # shortest-to-longest order, since os.walk() walks the tree
+            # top-down), and use the mtime of the first (longest) matching path.
+            while True:
+                (path, mtime) = mtimes[-1]
+                if relpath.startswith(path):
+                    logging.debug("using mtime %d from subpath '%s' of '%s'" % (mtime, path, relpath))
+                    break
+                else:
+                    mtimes.pop()
+
         for f in sorted(files):
+            fn = os.path.join(dirpath, f)
+            file_mtime = os.path.getmtime(fn)
+            if file_mtime > mtime:
+                continue
+
             match = re.match(r'^([^-].*)-src\.tar' + common_constants.PACKAGE_COMPRESSIONS_RE + r'$', f)
             if match:
                 # move source files to 'src' path (if different)
                 newpath = wrangle_path(relpath)
                 if newpath != dirpath:
                     utils.makedirs(newpath)
-                    logging.info("moving %s to %s" % (f, newpath))
+                    newrelpath = os.path.relpath(newpath, homedir)
+
+                    logging.info("moving %s to %s" % (f, newrelpath))
                     shutil.move(os.path.join(dirpath, f), os.path.join(newpath, f))
 
                     # also move src.hint, if present
                     src_hint = match.group(1) + '-src.hint'
                     if src_hint in files:
-                        logging.info("moving %s to %s" % (src_hint, newpath))
+                        logging.info("moving %s to %s" % (src_hint, newrelpath))
                         shutil.move(os.path.join(dirpath, src_hint), os.path.join(newpath, src_hint))
 
                     replicate_ready = True
