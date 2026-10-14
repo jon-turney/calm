@@ -184,7 +184,7 @@ def scan(scandir, m, all_packages, args):
         splitpath = relpath.split(os.path.sep)
         arch = splitpath[0]
         if arch not in common_constants.ARCHES + ['noarch', 'src', '.'] + common_constants.ARCHIVED_ARCHES:
-            logging.warning("Ignoring unexpected arch directory '%s' " % (arch))
+            logging.warning("Ignoring '%s' due to unexpected arch directory '%s'" % (relpath, arch))
             continue
 
         # filter out expected maintainer-root detritus
