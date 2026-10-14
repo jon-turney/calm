@@ -219,10 +219,10 @@ def _announce_upload(args, scan_result, maintainer, r):
     for po in scan_result.packages.values():
         if po.kind == package.Kind.source:
             srcpkg = po
-            assert len(po.versions()) == 1
-            version = list(po.versions())[0]
-            ldesc = po.hints(version)['ldesc'].strip('"')
-            test = 'test' in po.hints(version)
+            edition = list(po.editions_iterator())[0]
+            version = edition.vr
+            ldesc = po.edition_hints(edition)['ldesc'].strip('"')
+            test = 'test' in po.edition_hints(edition)
 
         # not totally clear how we should name source packages, so omit them for
         # the moment
@@ -236,7 +236,7 @@ def _announce_upload(args, scan_result, maintainer, r):
     logging.debug("source package is %s, version %s, test %s", srcpkg.orig_name, version, test)
 
     # find source tarfile for this particular package version
-    to = srcpkg.tar(version)
+    to = srcpkg.edition_tar(edition)
     tf = to.repopath.abspath(args.rel_area)
 
     if r.announce:
