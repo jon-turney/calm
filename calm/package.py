@@ -1826,17 +1826,18 @@ def write_repo_json(args, packages, f):
         if po.kind != Kind.source:
             continue
 
-        # made complicated by the need to handle the case where a package is
-        # marked with different stability in different arches... at the moment
-        # we put it under 'test' if any edition is marked so.
+        # a package might theoretically be marked with different stability in
+        # different arches... but the requirement to be marked the same as the
+        # source should prevent that
         versions = {}
-        for vr in sorted(set(inst.vr for inst in po.editions_iterator())):
+        for inst in sorted(po.editions_iterator()):
             key = 'stable'
-            for inst in [inst for inst in po.editions_iterator() if inst.vr == vr]:
-                if 'test' in po.edition_hints(inst):
-                    key = 'test'
+            if 'test' in po.edition_hints(inst):
+                key = 'test'
 
-            versions[key] = versions.get(key, []) + [inst.vr]
+            versions[key] = versions.get(key, [])
+            if inst.vr not in versions[key]:
+                versions[key] = versions[key] + [inst.vr]
 
         up_to_date = getattr(po, 'up_to_date', 1)
 
