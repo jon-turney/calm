@@ -50,6 +50,7 @@ use_legacy = {
     'guile': LegacyData(r'\d.\d', ['+'], None, None),
     'python': LegacyData(r'\d.\d+', ['-', '_', '~'], lambda v: v.replace('.', ''), None),
     'python-docs': LegacyData(r'\d.\d+', ['-', '_', '~'], lambda v: v.replace('.', ''), lambda v: 'python' + v + '-doc'),
+    'python:sip': LegacyData(r'\d', [], None, None),
     'qt': LegacyData(r'\d', ['p'], None, None),
     'xdelta': LegacyData(r'\d', [], lambda v: '' if v == '1' else v, None),
 }
