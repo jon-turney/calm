@@ -151,6 +151,8 @@ def scan(scandir, m, all_packages, args):
     logging.debug("reminder-timestamp %d, interval %d, next reminder %d, current time %d" % (m.reminder_time, REMINDER_INTERVAL, m.reminder_time + REMINDER_INTERVAL, time.time()))
 
     # scan package directories
+    result = False
+    collected = {}
     for (dirpath, _subdirs, files) in os.walk(homedir):
         relpath = os.path.relpath(dirpath, homedir)
         removed_files = []
@@ -343,18 +345,19 @@ def scan(scandir, m, all_packages, args):
 
         # read and validate package
         if files:
-            collected = {}
-            result = package.collect_files_package_dir(collected, homedir, dirpath, files)
-            for p in collected:
-                fl = collected[p]
-                for kind in package.Kind:
-                    if not fl[kind]:
-                        continue
+            result = package.collect_files_package_dir(collected, homedir, dirpath, files) or result
 
-                    result = package.read_one_package(packages, p, homedir, fl[kind] + fl['all'], kind, strict=True) or result
+    # now read all collected packages
+    for p in collected:
+        fl = collected[p]
+        for kind in package.Kind:
+            if not fl[kind]:
+                continue
 
-            if result:
-                error = True
+            result = package.read_one_package(packages, p, homedir, fl[kind] + fl['all'], kind, strict=True) or result
+
+    if result:
+        error = True
 
     # always consider timestamp as checked during a dry-run, so it is never
     # reset
